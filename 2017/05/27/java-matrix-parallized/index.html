@@ -1,0 +1,791 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Matrix," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="矩阵运算在很多地方都会用到，常见如图像，密码学。这里来学习一下矩阵算法的典型实现–矩阵乘法的并行化实现。">
+<meta name="keywords" content="Java,Matrix">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java矩阵乘法的并行化实现">
+<meta property="og:url" content="http://yoursite.com/2017/05/27/java-matrix-parallized/index.html">
+<meta property="og:site_name" content="Darcy">
+<meta property="og:description" content="矩阵运算在很多地方都会用到，常见如图像，密码学。这里来学习一下矩阵算法的典型实现–矩阵乘法的并行化实现。">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/1br2xvp27hm9stijwaasb22t/matrix-principles.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/zqg6bc907li34fbqc3kjvs3z/matrix-multiply.png">
+<meta property="og:updated_time" content="2017-05-27T03:10:23.897Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java矩阵乘法的并行化实现">
+<meta name="twitter:description" content="矩阵运算在很多地方都会用到，常见如图像，密码学。这里来学习一下矩阵算法的典型实现–矩阵乘法的并行化实现。">
+<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/1br2xvp27hm9stijwaasb22t/matrix-principles.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/05/27/java-matrix-parallized/"/>
+
+
+
+
+
+  <title>Java矩阵乘法的并行化实现 | Darcy</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Darcy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知。孤勇。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/27/java-matrix-parallized/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java矩阵乘法的并行化实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-27T11:02:05+08:00">
+                2017-05-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>矩阵运算在很多地方都会用到，常见如图像，密码学。这里来学习一下矩阵算法的典型实现–矩阵乘法的并行化实现。</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="矩阵乘法原理"><a href="#矩阵乘法原理" class="headerlink" title="矩阵乘法原理"></a>矩阵乘法原理</h2><ul>
+<li>矩阵乘法中，第一个矩阵的列数和第二个矩阵的行数目必定相等，如果需要进行并行计算，一个简单的策略就是将A矩阵进行水平分割，得到子矩阵A1和A2, B矩阵进行垂直分割，得到子矩阵B1和B2, 这个时候我们只需要分别计算这些子矩阵的乘积，然后将结果进行拼接，就能得到原始矩阵A和B的乘积。当然，子矩阵也是可以进一步进行划分的。</li>
+<li>使用ForkJoin框架来实现这个并行矩阵相乘的算法。同时使用 <a href="http://www.downloadatoz.com/software-development_directory/jmatrices/download.html" target="_blank" rel="external">jMatrices</a> 作为矩阵计算的工具。</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/1br2xvp27hm9stijwaasb22t/matrix-principles.png" alt="matrix-principles.png-48.6kB"></p>
+<h3 id="Matrix-java"><a href="#Matrix-java" class="headerlink" title="Matrix.java"></a><strong>Matrix.java</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Matrix</span> <span class="keyword">extends</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">rows</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">int</span> <span class="title">cols</span><span class="params">()</span></span>;</div><div class="line">    </div><div class="line">    <span class="comment">// ...</span></div><div class="line"></div><div class="line">    <span class="function">Matrix <span class="title">getSubMatrix</span><span class="params">(<span class="keyword">int</span> var1, <span class="keyword">int</span> var2, <span class="keyword">int</span>[] var3)</span></span>;</div><div class="line"></div><div class="line">    <span class="function">Matrix <span class="title">getSubMatrix</span><span class="params">(<span class="keyword">int</span>[] var1, <span class="keyword">int</span> var2, <span class="keyword">int</span> var3)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="MatrixOperator-java"><a href="#MatrixOperator-java" class="headerlink" title="MatrixOperator.java"></a><strong>MatrixOperator.java</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">MatrixOperator</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">applyEBEOperation</span><span class="params">(Matrix a, Matrix b, MatrixEBEOperation mo)</span> </span>&#123;<span class="comment">// ...    &#125;</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">solve</span><span class="params">(Matrix x, Matrix b)</span> </span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">add</span><span class="params">(Matrix a, Matrix b)</span> </span>&#123;&#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">subtract</span><span class="params">(Matrix a, Matrix b)</span> </span>&#123;<span class="comment">//...&#125;</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">multiply</span><span class="params">(Matrix a, Matrix b)</span> </span>&#123;</div><div class="line">        <span class="keyword">int</span> rows_a = a.rows();</div><div class="line">        <span class="keyword">int</span> cols_a = a.cols();</div><div class="line">        <span class="keyword">int</span> rows_b = b.rows();</div><div class="line">        <span class="keyword">int</span> cols_b = b.cols();</div><div class="line">        <span class="keyword">if</span>(cols_a != rows_b) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Dimensions of matrices don't conform for multiplication"</span>);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            Matrix c = MatrixFactory.getMatrix(rows_a, cols_b, a);</div><div class="line"></div><div class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> row_a = <span class="number">1</span>; row_a &lt;= rows_a; ++row_a) &#123;</div><div class="line">                <span class="keyword">for</span>(<span class="keyword">int</span> col_b = <span class="number">1</span>; col_b &lt;= cols_b; ++col_b) &#123;</div><div class="line">                    <span class="keyword">for</span>(<span class="keyword">int</span> col_a = <span class="number">1</span>; col_a &lt;= cols_a; ++col_a) &#123;</div><div class="line">                        <span class="keyword">double</span> tmp = <span class="number">0.0</span>D;</div><div class="line"></div><div class="line">                        <span class="keyword">for</span>(<span class="keyword">int</span> row_b = <span class="number">1</span>; row_b &lt;= rows_b; ++row_b) &#123;</div><div class="line">                            <span class="keyword">double</span> elem_a = a.get(row_a, row_b);</div><div class="line">                            <span class="keyword">double</span> elem_b = b.get(row_b, col_b);</div><div class="line">                            tmp += elem_a * elem_b;</div><div class="line">                        &#125;</div><div class="line"></div><div class="line">                        c.set(row_a, col_b, tmp);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">return</span> c;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="comment">// ...</span></div><div class="line"></div><div class="line">    <span class="comment">// 两个矩阵进行水平连接</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">horizontalConcatenation</span><span class="params">(Matrix a, Matrix b)</span> </span>&#123;<span class="comment">//...&#125;</span></div><div class="line"></div><div class="line">    <span class="comment">// 两个矩阵进行垂直连接</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">verticalConcatenation</span><span class="params">(Matrix a, Matrix b)</span> </span>&#123;</div><div class="line">        <span class="keyword">int</span> rows_a = a.rows();</div><div class="line">        <span class="keyword">int</span> cols_a = a.cols();</div><div class="line">        <span class="keyword">int</span> rows_b = b.rows();</div><div class="line">        <span class="keyword">int</span> cols_b = b.cols();</div><div class="line">        <span class="keyword">if</span>(cols_a != cols_b) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Dimensions of a and b don't conform"</span>);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            Matrix c = MatrixFactory.getMatrix(rows_a + rows_b, cols_a, a);</div><div class="line"></div><div class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> col = <span class="number">1</span>; col &lt;= cols_a; ++col) &#123;</div><div class="line">                <span class="keyword">int</span> row_b;</div><div class="line">                <span class="keyword">for</span>(row_b = <span class="number">1</span>; row_b &lt;= rows_a; ++row_b) &#123;</div><div class="line">                    c.set(row_b, col, a.get(row_b, col));</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="keyword">for</span>(row_b = <span class="number">1</span>; row_b &lt;= rows_b; ++row_b) &#123;</div><div class="line">                    c.set(rows_a + row_b, col, b.get(row_b, col));</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">return</span> c;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">kroneckerProduct</span><span class="params">(Matrix a, Matrix b)</span> </span>&#123;<span class="comment">// ...&#125;</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Matrix <span class="title">horizontalDirectProduct</span><span class="params">(Matrix a, Matrix b)</span> </span>&#123;<span class="comment">// ...&#125;</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="title">MatrixOperator</span><span class="params">()</span> </span>&#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="矩阵乘法实现"><a href="#矩阵乘法实现" class="headerlink" title="矩阵乘法实现"></a>矩阵乘法实现</h2><p><img src="http://static.zybuluo.com/csqiang1992/zqg6bc907li34fbqc3kjvs3z/matrix-multiply.png" alt="matrix-multiply.png-71.6kB"></p>
+<h3 id="MatrixMulTask-java"><a href="#MatrixMulTask-java" class="headerlink" title="MatrixMulTask.java"></a>MatrixMulTask.java</h3><ul>
+<li>三个域分别代表要进行计算的两个矩阵，以及计算结果位于父矩阵中的位置。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MatrixMulTask</span> <span class="keyword">extends</span> <span class="title">RecursiveTask</span>&lt;<span class="title">Matrix</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    Matrix m1;</div><div class="line">    Matrix m2;</div><div class="line">    <span class="comment">// pos代表的计算结果位于结果父矩阵中的位置。</span></div><div class="line">    String pos;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> THRESHOLD = <span class="number">3</span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MatrixMulTask</span><span class="params">(Matrix m1, Matrix m2, String pos)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.m1 = m1;</div><div class="line">        <span class="keyword">this</span>.m2 = m2;</div><div class="line">        <span class="keyword">this</span>.pos = pos;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> Matrix <span class="title">compute</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(Thread.currentThread().getId() + <span class="string">":"</span> + Thread.currentThread().getName() + <span class="string">" Start..."</span>);</div><div class="line">        <span class="comment">// 如果粒度太大，那么需要先进行分解再运算。</span></div><div class="line">        <span class="keyword">if</span> (m1.rows() &lt;= THRESHOLD || m2.cols() &lt;= THRESHOLD) &#123;</div><div class="line">            Matrix matrix = MatrixOperator.multiply(m1, m2);</div><div class="line">            <span class="keyword">return</span> matrix;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">int</span> rows;</div><div class="line">            rows = m1.rows();</div><div class="line">            <span class="comment">// 左乘的矩阵水平分割</span></div><div class="line">            Matrix m11 = m1.getSubMatrix(<span class="number">1</span>, <span class="number">1</span>, rows / <span class="number">2</span>, m1.cols());</div><div class="line">            Matrix m12 = m1.getSubMatrix(rows / <span class="number">2</span> + <span class="number">1</span>, <span class="number">1</span>, m1.rows(), m1.cols());</div><div class="line"></div><div class="line">            <span class="comment">// 右乘的矩阵垂直分割</span></div><div class="line">            Matrix m21 = m2.getSubMatrix(<span class="number">1</span>, <span class="number">1</span>, m2.rows(), m2.cols() / <span class="number">2</span>);</div><div class="line">            Matrix m22 = m2.getSubMatrix(<span class="number">1</span>, m2.cols() / <span class="number">2</span> + <span class="number">1</span>, m2.rows(), m2.cols());</div><div class="line"></div><div class="line">            ArrayList&lt;MatrixMulTask&gt; subTasks = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">            MatrixMulTask temp = <span class="keyword">null</span>;</div><div class="line">            <span class="comment">// 参数用于后续的拼接。</span></div><div class="line">            <span class="comment">// 左上</span></div><div class="line">            temp = <span class="keyword">new</span> MatrixMulTask(m11, m21, <span class="string">"m1"</span>);</div><div class="line">            subTasks.add(temp);</div><div class="line">            <span class="comment">// 右上</span></div><div class="line">            temp = <span class="keyword">new</span> MatrixMulTask(m11, m22, <span class="string">"m2"</span>);</div><div class="line">            subTasks.add(temp);</div><div class="line">            <span class="comment">// 左下</span></div><div class="line">            temp = <span class="keyword">new</span> MatrixMulTask(m12, m21, <span class="string">"m3"</span>);</div><div class="line">            subTasks.add(temp);</div><div class="line">            <span class="comment">// 右下</span></div><div class="line">            temp = <span class="keyword">new</span> MatrixMulTask(m12, m22, <span class="string">"m4"</span>);</div><div class="line">            subTasks.add(temp);</div><div class="line"></div><div class="line">            <span class="keyword">for</span> (MatrixMulTask task : subTasks) &#123;</div><div class="line">                task.fork();</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            Map&lt;String, Matrix&gt; matrixMap = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line">            <span class="keyword">for</span> (MatrixMulTask task : subTasks) &#123;</div><div class="line">                <span class="comment">// task.pos映射到子矩阵计算的结果。</span></div><div class="line">                matrixMap.put(task.pos, task.join());</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            <span class="comment">// 上半部分的水平拼接</span></div><div class="line">            Matrix temp1 = MatrixOperator.horizontalConcatenation(matrixMap.get(<span class="string">"m1"</span>),</div><div class="line">                    matrixMap.get(<span class="string">"m2"</span>));</div><div class="line">            <span class="comment">// 下办部分的水平拼接</span></div><div class="line">            Matrix temp2 = MatrixOperator.horizontalConcatenation(matrixMap.get(<span class="string">"m3"</span>),</div><div class="line">                    matrixMap.get(<span class="string">"m4"</span>));</div><div class="line">            <span class="comment">// 结果的垂直拼接</span></div><div class="line">            Matrix result = MatrixOperator.verticalConcatenation(temp1, temp2);</div><div class="line">            <span class="keyword">return</span> result;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="PMatrixMul-java"><a href="#PMatrixMul-java" class="headerlink" title="PMatrixMul.java"></a>PMatrixMul.java</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PMatrixMul</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> granularity = <span class="number">3</span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ExecutionException, InterruptedException </span>&#123;</div><div class="line">        <span class="keyword">long</span> start = System.currentTimeMillis();</div><div class="line">        ForkJoinPool forkJoinPool = <span class="keyword">new</span> ForkJoinPool();</div><div class="line">        <span class="comment">// 300 × 300的随机矩阵</span></div><div class="line">        Matrix m1 = MatrixFactory.getRandomMatrix(<span class="number">300</span>, <span class="number">300</span>, <span class="keyword">null</span>);</div><div class="line">        Matrix m2 = MatrixFactory.getRandomMatrix(<span class="number">300</span>, <span class="number">300</span>, <span class="keyword">null</span>);</div><div class="line">        <span class="comment">// 构造矩阵并且提交给线程池。</span></div><div class="line">        MatrixMulTask task = <span class="keyword">new</span> MatrixMulTask(m1, m2, <span class="keyword">null</span>);</div><div class="line">        ForkJoinTask&lt;Matrix&gt; result = forkJoinPool.submit(task);</div><div class="line">        Matrix pr = result.get();</div><div class="line">        System.out.println(System.currentTimeMillis() - start);</div><div class="line">        <span class="comment">/*System.out.println(pr);*/</span></div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line"><span class="comment">//....</span></div><div class="line"><span class="number">19</span>:ForkJoinPool-<span class="number">1</span>-worker-<span class="number">11</span> Start...</div><div class="line"><span class="number">38</span>:ForkJoinPool-<span class="number">1</span>-worker-<span class="number">28</span> Start...</div><div class="line"><span class="number">44</span>:ForkJoinPool-<span class="number">1</span>-worker-<span class="number">51</span> Start...</div><div class="line"><span class="number">28</span>:ForkJoinPool-<span class="number">1</span>-worker-<span class="number">19</span> Start...</div><div class="line"><span class="number">3520</span></div></pre></td></tr></table></figure>
+<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><ol>
+<li><a href="http://www.cnblogs.com/xurui1995/p/5222189.html" target="_blank" rel="external">矩阵乘法java代码实现</a></li>
+<li><a href="http://blog.fens.me/hadoop-mapreduce-matrix/" target="_blank" rel="external">用MapReduce实现矩阵乘法</a></li>
+<li><a href="http://blog.csdn.net/x_i_y_u_e/article/details/45457343" target="_blank" rel="external">Java矩阵运算，jama包</a></li>
+<li><a href="http://www.cnblogs.com/gaopeng527/p/4623639.html" target="_blank" rel="external">JAMA:Java矩阵包</a></li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Matrix/" rel="tag"># Matrix</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/26/java-future-pattern/" rel="next" title="Future模式浅析">
+                <i class="fa fa-chevron-left"></i> Future模式浅析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/27/java-bio-nio-aio-demo/" rel="prev" title="BIO, NIO, AIO在网络编程中简单应用">
+                BIO, NIO, AIO在网络编程中简单应用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#矩阵乘法原理"><span class="nav-number">1.</span> <span class="nav-text">矩阵乘法原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Matrix-java"><span class="nav-number">1.1.</span> <span class="nav-text">Matrix.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MatrixOperator-java"><span class="nav-number">1.2.</span> <span class="nav-text">MatrixOperator.java</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#矩阵乘法实现"><span class="nav-number">2.</span> <span class="nav-text">矩阵乘法实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MatrixMulTask-java"><span class="nav-number">2.1.</span> <span class="nav-text">MatrixMulTask.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PMatrixMul-java"><span class="nav-number">2.2.</span> <span class="nav-text">PMatrixMul.java</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ref"><span class="nav-number">3.</span> <span class="nav-text">Ref</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
