@@ -1,0 +1,827 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Future,Java8," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="主要介绍CompletableFuture, StampedLock, 增强的原子类LongAdder和LongAccumulator">
+<meta name="keywords" content="Java,Future,Java8">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java8中其他的新特性CompletableFuture, StampedLock, LongAdder">
+<meta property="og:url" content="http://yoursite.com/2017/05/28/java-java8-completablefuture-stampedlock-longadder/index.html">
+<meta property="og:site_name" content="Darcy">
+<meta property="og:description" content="主要介绍CompletableFuture, StampedLock, 增强的原子类LongAdder和LongAccumulator">
+<meta property="og:updated_time" content="2017-05-28T13:51:57.535Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java8中其他的新特性CompletableFuture, StampedLock, LongAdder">
+<meta name="twitter:description" content="主要介绍CompletableFuture, StampedLock, 增强的原子类LongAdder和LongAccumulator">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/05/28/java-java8-completablefuture-stampedlock-longadder/"/>
+
+
+
+
+
+  <title>Java8中其他的新特性CompletableFuture, StampedLock, LongAdder | Darcy</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Darcy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知。孤勇。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/28/java-java8-completablefuture-stampedlock-longadder/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java8中其他的新特性CompletableFuture, StampedLock, LongAdder</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-28T21:49:18+08:00">
+                2017-05-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>主要介绍CompletableFuture, StampedLock, 增强的原子类LongAdder和LongAccumulator</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="CompletableFuture-增强的Future"><a href="#CompletableFuture-增强的Future" class="headerlink" title="CompletableFuture: 增强的Future"></a>CompletableFuture: 增强的Future</h2><ul>
+<li>CompletableFuture实现了Future接口，同时也实现了CompletionStage接口，CompletionStage 接口拥有多达40种方法，是为了函数式编程中的流式调用准备的。通过CompletionStage提供的接口，就可以在一个执行结果上进行多次流式调用。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// java.util.concurrent.CompletionStage</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">CompletionStage</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletionStage that, when this stage completes</div><div class="line">     * normally, is executed with this stage's result as the argument</div><div class="line">     * to the supplied function.</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenApply</span><span class="params">(Function&lt;? <span class="keyword">super</span> T,? extends U&gt; fn)</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">// sync version.....</span></div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletionStage that, when this stage completes</div><div class="line">     * normally, is executed with this stage's result as the argument</div><div class="line">     * to the supplied action.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">thenAccept</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">// sync version.....</span></div><div class="line">    </div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletionStage that, when this stage completes</div><div class="line">     * normally, executes the given action.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">thenRun</span><span class="params">(Runnable action)</span></span>;</div><div class="line"></div><div class="line">    <span class="comment">// sync version.....</span></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletionStage that, when this and the other</div><div class="line">     * given stage both complete normally, is executed with the two</div><div class="line">     * results as arguments to the supplied function.</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> &lt;U,V&gt; <span class="function">CompletionStage&lt;V&gt; <span class="title">thenCombine</span></span></div><div class="line">        <span class="params">(CompletionStage&lt;? extends U&gt; other,</span></div><div class="line">         BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn);</div><div class="line"></div><div class="line">    <span class="comment">// sync version....</span></div><div class="line">    <span class="comment">// ....</span></div><div class="line">    </div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletionStage that, when this stage completes</div><div class="line">     * normally, is executed with this stage as the argument</div><div class="line">     * to the supplied function.</div><div class="line">     *</div><div class="line">     * See the &#123;<span class="doctag">@link</span> CompletionStage&#125; documentation for rules</div><div class="line">     * covering exceptional completion.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> fn the function returning a new CompletionStage</div><div class="line">     * <span class="doctag">@param</span> &lt;U&gt; the type of the returned CompletionStage's result</div><div class="line">     * <span class="doctag">@return</span> the CompletionStage</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenCompose</span></span></div><div class="line">        <span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends CompletionStage&lt;U&gt;&gt; fn)</span>;</div><div class="line">        </div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletionStage that, when this and the other</div><div class="line">     * given stage both complete normally, is executed with the two</div><div class="line">     * results as arguments to the supplied function.</div><div class="line">     *</div><div class="line">     * See the &#123;<span class="doctag">@link</span> CompletionStage&#125; documentation for rules</div><div class="line">     * covering exceptional completion.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> other the other CompletionStage</div><div class="line">     * <span class="doctag">@param</span> fn the function to use to compute the value of</div><div class="line">     * the returned CompletionStage</div><div class="line">     * <span class="doctag">@param</span> &lt;U&gt; the type of the other CompletionStage's result</div><div class="line">     * <span class="doctag">@param</span> &lt;V&gt; the function's return type</div><div class="line">     * <span class="doctag">@return</span> the new CompletionStage</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> &lt;U,V&gt; <span class="function">CompletionStage&lt;V&gt; <span class="title">thenCombine</span></span></div><div class="line">        <span class="params">(CompletionStage&lt;? extends U&gt; other,</span></div><div class="line">         BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// demo</span></div><div class="line">stage.thenApply((x) -&gt; square(x)).thenAccept(x-&gt; System.out.println(x)).thenRun(() -&gt; System.out.println())</div></pre></td></tr></table></figure>
+<h3 id="CompletableFuture"><a href="#CompletableFuture" class="headerlink" title="CompletableFuture"></a>CompletableFuture</h3><ul>
+<li><code>CompletableFuture</code>和Future一样，可以作为函数调用的契约，如果向CompletableFuture请求数据而数据没有准备好，那么当前线程就会阻塞等待。可以手动设置CompletableFuture的完成状态。</li>
+<li><code>supplyAsync()</code>方法用于需要有返回值的场景(特定的计算)，而<code>runAsync()</code>方法用于没有返回值的场景(只是执行异步的工作)。重载版本可以<strong>接收一个executor参数，让这个任务在指定的线程池中执行</strong>。而如果不指定的话，则是在默认的公共的<code>ForkJoinPool.common</code>线程池中执行。</li>
+<li>Java8中新增<code>ForkJoinPool.commonPool()</code>方法，它可以获得一个公共的ForkJoin线程池，这个公共线程池中的线程都是Deaemon线程，所以如果主线程退出，那么整个系统就会退出而不管这些Daemon线程执行完毕没有。</li>
+</ul>
+<p><strong>CompletableFuture.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// java.util.concurrent.CompletableFuture</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompletableFuture</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">Future</span>&lt;<span class="title">T</span>&gt;, <span class="title">CompletionStage</span>&lt;<span class="title">T</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">// ...</span></div><div class="line">   <span class="comment">/**</span></div><div class="line">     * Returns a new CompletableFuture that is asynchronously completed</div><div class="line">     * by a task running in the &#123;<span class="doctag">@link</span> ForkJoinPool#commonPool()&#125; with</div><div class="line">     * the value obtained by calling the given Supplier.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> supplier a function returning the value to be used</div><div class="line">     * to complete the returned CompletableFuture</div><div class="line">     * <span class="doctag">@param</span> &lt;U&gt; the function's return type</div><div class="line">     * <span class="doctag">@return</span> the new CompletableFuture</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;U&gt; <span class="function">CompletableFuture&lt;U&gt; <span class="title">supplyAsync</span><span class="params">(Supplier&lt;U&gt; supplier)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> asyncSupplyStage(asyncPool, supplier);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletableFuture that is asynchronously completed</div><div class="line">     * by a task running in the given executor with the value obtained</div><div class="line">     * by calling the given Supplier.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> supplier a function returning the value to be used</div><div class="line">     * to complete the returned CompletableFuture</div><div class="line">     * <span class="doctag">@param</span> executor the executor to use for asynchronous execution</div><div class="line">     * <span class="doctag">@param</span> &lt;U&gt; the function's return type</div><div class="line">     * <span class="doctag">@return</span> the new CompletableFuture</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;U&gt; <span class="function">CompletableFuture&lt;U&gt; <span class="title">supplyAsync</span><span class="params">(Supplier&lt;U&gt; supplier,</span></span></div><div class="line">                                                       Executor executor) &#123;</div><div class="line">        <span class="keyword">return</span> asyncSupplyStage(screenExecutor(executor), supplier);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletableFuture that is asynchronously completed</div><div class="line">     * by a task running in the &#123;<span class="doctag">@link</span> ForkJoinPool#commonPool()&#125; after</div><div class="line">     * it runs the given action.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> runnable the action to run before completing the</div><div class="line">     * returned CompletableFuture</div><div class="line">     * <span class="doctag">@return</span> the new CompletableFuture</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CompletableFuture&lt;Void&gt; <span class="title">runAsync</span><span class="params">(Runnable runnable)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> asyncRunStage(asyncPool, runnable);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a new CompletableFuture that is asynchronously completed</div><div class="line">     * by a task running in the given executor after it runs the given</div><div class="line">     * action.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> runnable the action to run before completing the</div><div class="line">     * returned CompletableFuture</div><div class="line">     * <span class="doctag">@param</span> executor the executor to use for asynchronous execution</div><div class="line">     * <span class="doctag">@return</span> the new CompletableFuture</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CompletableFuture&lt;Void&gt; <span class="title">runAsync</span><span class="params">(Runnable runnable,</span></span></div><div class="line">                                                   Executor executor) &#123;</div><div class="line">        <span class="keyword">return</span> asyncRunStage(screenExecutor(executor), runnable);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// ....</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="异步任务的执行"><a href="#异步任务的执行" class="headerlink" title="异步任务的执行"></a>异步任务的执行</h3><ul>
+<li>通过CompletableFuture实现异步调用。</li>
+</ul>
+<p><strong>CompletableFutureDemo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompletableFutureDemo</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</div><div class="line">    CompletableFuture&lt;Integer&gt; result = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompletableFutureDemo</span><span class="params">(CompletableFuture&lt;Integer&gt; result)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.result = result;</div><div class="line">    &#125;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">int</span> value = <span class="number">0</span>;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="comment">// 阻塞, 因为future中没有数据。</span></div><div class="line">            value = result.get() * result.get();</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;&#125;</div><div class="line">        System.out.println(value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</div><div class="line">        CompletableFuture&lt;Integer&gt; future = <span class="keyword">new</span> CompletableFuture&lt;&gt;();</div><div class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> CompletableFutureDemo(future)).start();</div><div class="line">        <span class="comment">// 模拟主线程的业务逻辑处理.</span></div><div class="line">        Thread.sleep(<span class="number">1000</span>);</div><div class="line">        <span class="comment">// 将最终数据载入future, 并标记完成状态。</span></div><div class="line">        <span class="comment">// 下面语句执行完后，那么Future线程就可以继续执行。</span></div><div class="line">        future.complete(<span class="number">60</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">&gt; output</div><div class="line"><span class="number">3600</span></div></pre></td></tr></table></figure>
+<p><strong>CompletableFutureAsyncDemo.java</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public class CompletableFutureAsyncDemo &#123;</div><div class="line">    public static void main(String[] args) throws ExecutionException, InterruptedException &#123;</div><div class="line">        // 构造一个CompletableFuture对象。</div><div class="line">        CompletableFuture&lt;Integer&gt; future = CompletableFuture.supplyAsync(new Supplier&lt;Integer&gt;() &#123;</div><div class="line">            @Override</div><div class="line">            public Integer get() &#123;</div><div class="line">                try &#123;</div><div class="line">                    // 模拟异步任务的执行。</div><div class="line">                    Thread.sleep(1000);</div><div class="line">                &#125; catch (InterruptedException e) &#123;</div><div class="line">                    e.printStackTrace();</div><div class="line">                &#125;</div><div class="line">                return 100 * 100;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">        //异步任务没有执行完成，当前线程就会阻塞等待。</div><div class="line">        System.out.println(future.get());</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line">// output after 1s;  </div><div class="line">10000</div></pre></td></tr></table></figure>
+<h3 id="流式调用"><a href="#流式调用" class="headerlink" title="流式调用"></a>流式调用</h3><ul>
+<li>CompletionStage中提供了大量流式处理的接口。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompletionStageStreamDemo</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ExecutionException, InterruptedException </span>&#123;</div><div class="line">        CompletableFuture&lt;Void&gt; future = CompletableFuture.supplyAsync(() -&gt; calculate(<span class="number">100</span>))</div><div class="line">                .thenApply((i) -&gt; Integer.toString(i))</div><div class="line">                .thenApply((str) -&gt; <span class="string">"$$"</span> + str + <span class="string">"$$"</span>)</div><div class="line">                .thenAccept(System.out::println);</div><div class="line">        <span class="comment">// 调用get()方法等待, 否则主线程就直接结束了, Daemon线程就全部结束了。</span></div><div class="line">        System.out.println(future.get());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> Integer <span class="title">calculate</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            Thread.sleep(<span class="number">1000</span>);</div><div class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> i * i;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line">$$<span class="number">10000</span>$$</div></pre></td></tr></table></figure>
+<h3 id="CompletableFuture中的异常处理"><a href="#CompletableFuture中的异常处理" class="headerlink" title="CompletableFuture中的异常处理"></a>CompletableFuture中的异常处理</h3><ul>
+<li>提供了异常处理方法</li>
+</ul>
+<p><strong>CompletableFutureExceptionHandler.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompletableFutureExceptionHandler</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ExecutionException, InterruptedException </span>&#123;</div><div class="line">        CompletableFuture&lt;Void&gt; future = CompletableFuture</div><div class="line">                .supplyAsync(() -&gt; calculator(<span class="number">100</span>))</div><div class="line">                .exceptionally((ex) -&gt; &#123;</div><div class="line">                    System.out.println(ex);</div><div class="line">                    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">                &#125;)</div><div class="line">                .thenApply((i) -&gt; Integer.toString(i))</div><div class="line">                .thenApply((str) -&gt; <span class="string">"$$"</span> + str + <span class="string">"$$"</span>)</div><div class="line">                .thenAccept(System.out::println);</div><div class="line">        future.get();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> Integer <span class="title">calculator</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> i / <span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line">java.util.concurrent.CompletionException: java.lang.ArithmeticException: / by zero</div><div class="line">$$<span class="number">0</span>$$</div></pre></td></tr></table></figure>
+<h3 id="组合多个CompletableFuture"><a href="#组合多个CompletableFuture" class="headerlink" title="组合多个CompletableFuture"></a>组合多个CompletableFuture</h3><ul>
+<li>CompletableFuture允许将多个CompletableFuture进行组合,一种是使用thenCompose(), 一种是使用thenCombine(), 具体方法声明看上文。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompletableFutureCompose</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ExecutionException, InterruptedException </span>&#123;</div><div class="line">        CompletableFuture&lt;Void&gt; future = CompletableFuture</div><div class="line">                .supplyAsync(() -&gt; calculator(<span class="number">50</span>))</div><div class="line">                <span class="comment">// 执行结果交由下一个CompletableFuture来为完成。</span></div><div class="line">                .thenCompose((i) -&gt; CompletableFuture.supplyAsync(() -&gt; calculator(i)))</div><div class="line">                .thenApply((str) -&gt; <span class="string">"##"</span> + str + <span class="string">"##"</span>)</div><div class="line">                .thenAccept(System.out::println);</div><div class="line">        future.get();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> Integer <span class="title">calculator</span><span class="params">(Integer i)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span>  i / <span class="number">2</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">public class CompletableFutureCompose2 &#123;</div><div class="line">    public static void main(String[] args) throws ExecutionException, InterruptedException &#123;</div><div class="line">        CompletableFuture&lt;Integer&gt; future = CompletableFuture</div><div class="line">                .supplyAsync(() -&gt; calculator(50));</div><div class="line">        CompletableFuture&lt;Integer&gt; future2 = CompletableFuture</div><div class="line">                .supplyAsync(() -&gt; calculator(100));</div><div class="line">        // 首先完成当前future和future2的执行, 然后去执行BiFunction。 </div><div class="line">        future.thenCombine(future2, (x, y) -&gt; x + y)</div><div class="line">                .thenApply((str) -&gt; &quot;$$&quot; + str + &quot;$$&quot;)</div><div class="line">                .thenAccept(System.out::println);</div><div class="line"></div><div class="line">        future.get();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private static Integer calculator(Integer i) &#123;</div><div class="line">        return  i / 2;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="读写锁的改进：-StampedLock"><a href="#读写锁的改进：-StampedLock" class="headerlink" title="读写锁的改进： StampedLock"></a>读写锁的改进： StampedLock</h2><ul>
+<li>读写锁分离了读和写的功能，读读之间完全并发，但是读写，写写是阻塞的。使用的依然是悲观的锁策略。如果右大量的读线程，那么依然会引起写线程的阻塞。</li>
+<li>StampedLock提供了乐观的读策略。类似于无锁操作。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Point</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">double</span> x, y;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> StampedLock sl = <span class="keyword">new</span> StampedLock();</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">move</span><span class="params">(<span class="keyword">double</span> deltaX, <span class="keyword">double</span> deltaY)</span> </span>&#123; <span class="comment">// an exclusively locked method</span></div><div class="line">        <span class="keyword">long</span> stamp = sl.writeLock();</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            x += deltaX;</div><div class="line">            y += deltaY;</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            <span class="comment">// 释放写锁。</span></div><div class="line">            sl.unlockWrite(stamp);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">double</span> <span class="title">distanceFromOrigin</span><span class="params">()</span> </span>&#123; <span class="comment">// A read-only method</span></div><div class="line">        <span class="comment">// 尝试一次乐观读; 返回邮戳整数, 作为锁获取的凭证。</span></div><div class="line">        <span class="keyword">long</span> stamp = sl.tryOptimisticRead();</div><div class="line">        <span class="comment">// 获取x, y值。</span></div><div class="line">        <span class="keyword">double</span> currentX = x, currentY = y;</div><div class="line">        <span class="comment">// 判断stamp在读取x, y的过程中是否被修改。</span></div><div class="line">        <span class="comment">// 一旦修改，可以在死循环中使用乐观读，直到成功为止.</span></div><div class="line">        <span class="comment">// 这里使用的是锁升级的策略, 将乐观锁升级为悲观锁. </span></div><div class="line">        <span class="keyword">if</span> (!sl.validate(stamp)) &#123;</div><div class="line">            <span class="comment">// 获得悲观读锁, 如果当前对象正在被修改, 那么读锁的申请可能会导致线程的挂起. </span></div><div class="line">            stamp = sl.readLock();</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                currentX = x;</div><div class="line">                currentY = y;</div><div class="line">            &#125; <span class="keyword">finally</span> &#123;</div><div class="line">                <span class="comment">// 释放读锁。</span></div><div class="line">                sl.unlockRead(stamp);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 没有被修改,</span></div><div class="line">        <span class="keyword">return</span> Math.sqrt(currentX * currentX + currentY * currentY);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="StampedLock"><a href="#StampedLock" class="headerlink" title="StampedLock"></a>StampedLock</h3><ul>
+<li>StampedLock内部实现使用类似于CAS操作的死循环反复尝试。挂起线程使用的是Unsafe.park函数，park函数在遇到线程中断时，会直接返回。而在StampedLock的死循环逻辑中，没有处理有关中断的逻辑，所以，这会导致阻塞在park()上的线程被中断后，会再次进入循环。而当退出条件得不到满足时，疯狂占用CPU。</li>
+</ul>
+<h3 id="StampedLock的实现思想"><a href="#StampedLock的实现思想" class="headerlink" title="StampedLock的实现思想"></a>StampedLock的实现思想</h3><ul>
+<li>StampedLock的内部实现是基于CLH锁的，CLH锁是一种自旋锁。保证FIFO，保证没有饥饿的发送。</li>
+<li>CLH锁的基本思想：维护一个等待线程的队列，所有申请锁但是没有成功的线程都记录在这个队列中。每一个节点(代表一个线程)， 保存了一个标记位(locked), 用于判断当前线程是否释放锁。只要前序节点没有释放锁，则表示当前线程不能继续执行，所以会自旋等待。而当锁释放时，线程会将自身的节点的locked标记为false， 这样后续的等待线程就能继续执行了。</li>
+</ul>
+<h2 id="原子类的增强"><a href="#原子类的增强" class="headerlink" title="原子类的增强"></a>原子类的增强</h2><h3 id="LongAdder"><a href="#LongAdder" class="headerlink" title="LongAdder"></a>LongAdder</h3><ul>
+<li>AtomicInteger的基本实现机制：在一个死循环中，不断尝试修改目标值，直到修改成功。如果竞争不激烈，那么修改成功的概率很高，否则，修改失败的概率很高。大量修改失败时，多次循环尝试，性能收到影响。</li>
+<li>竞争激烈时，如果进一步提高系统性能<ul>
+<li>热点分离，将竞争的数据进行分解。可行的方案是仿造JDK1.7中ConcurrentHashMap的实现，将热点数据进行分离（成为数组）。实际的操作中，LongAdder并不是一开始就动用数组进行处理。而是将所有数据都记录在一个称为base的变量中。多线程环境中，如果base修改没有冲突，那么就不需要动用cell数组；而一旦base修改冲突，就会初始化cell数组。如果使用拓展cell更新后，某一个cell的更新仍然发送冲突，那么系统就尝试创建新的cell或者扩容，以减少冲突。</li>
+</ul>
+</li>
+<li>从实验效果来看，Synchronized, Atomic, LongAdder的性能略大，LongAdder的性能反而差一些，Atomic性能最好。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// java.util.concurrent.atomic.LongAdder</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">long</span> x)</span> </span>&#123;</div><div class="line">    Cell[] as; <span class="keyword">long</span> b, v; <span class="keyword">int</span> m; Cell a;</div><div class="line">    <span class="keyword">if</span> ((as = cells) != <span class="keyword">null</span> || !casBase(b = base, b + x)) &#123;</div><div class="line">        <span class="comment">// 对base的修改冲突，设置冲突标记为true。 </span></div><div class="line">        <span class="keyword">boolean</span> uncontended = <span class="keyword">true</span>;</div><div class="line">        <span class="comment">// 判断cell数组是否可用，或者当前线程对于的cell为null。</span></div><div class="line">        <span class="keyword">if</span> (as == <span class="keyword">null</span> || (m = as.length - <span class="number">1</span>) &lt; <span class="number">0</span> ||</div><div class="line">            (a = as[getProbe() &amp; m]) == <span class="keyword">null</span> ||</div><div class="line">            !(uncontended = a.cas(v = a.value, v + x))) <span class="comment">// 否则使用CAS更新对应的cell数据。成功退出，失败进入下面的方法。</span></div><div class="line">            <span class="comment">// 不可用，直接这里。</span></div><div class="line">            longAccumulate(x, <span class="keyword">null</span>, uncontended);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>demo</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LongAdderDemo</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MAX_THREADS = <span class="number">3</span>;				   <span class="comment">//线程数</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TASK_COUNT = <span class="number">3</span>;				   <span class="comment">//任务数</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TARGET_COUNT = <span class="number">10000000</span>;		   <span class="comment">//目标总数</span></div><div class="line"></div><div class="line">    <span class="keyword">private</span> AtomicLong acount =<span class="keyword">new</span> AtomicLong(<span class="number">0L</span>);			<span class="comment">//无锁的原子操作</span></div><div class="line">    <span class="keyword">private</span> LongAdder lacount=<span class="keyword">new</span> LongAdder();</div><div class="line">    <span class="keyword">private</span> <span class="keyword">long</span> count=<span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="keyword">static</span> CountDownLatch cdlsync=<span class="keyword">new</span> CountDownLatch(TASK_COUNT);</div><div class="line">    <span class="keyword">static</span> CountDownLatch cdlatomic=<span class="keyword">new</span> CountDownLatch(TASK_COUNT);</div><div class="line">    <span class="keyword">static</span> CountDownLatch cdladdr=<span class="keyword">new</span> CountDownLatch(TASK_COUNT);</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">synchronized</span> <span class="keyword">long</span> <span class="title">inc</span><span class="params">()</span></span>&#123;							<span class="comment">//有锁的加法</span></div><div class="line">        <span class="keyword">return</span> ++count;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">synchronized</span> <span class="keyword">long</span> <span class="title">getCount</span><span class="params">()</span></span>&#123;						<span class="comment">//有锁的操作</span></div><div class="line">        <span class="keyword">return</span> count;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SyncThread</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</div><div class="line">        <span class="keyword">protected</span> String name;</div><div class="line">        <span class="keyword">protected</span> <span class="keyword">long</span> starttime;</div><div class="line">        LongAdderDemo out;</div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">SyncThread</span><span class="params">(LongAdderDemo o,<span class="keyword">long</span> starttime)</span></span>&#123;</div><div class="line">            out=o;</div><div class="line">            <span class="keyword">this</span>.starttime=starttime;</div><div class="line">        &#125;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">long</span> v=out.getCount();</div><div class="line">            <span class="keyword">while</span>(v&lt;TARGET_COUNT)&#123;						<span class="comment">//在到达目标值前，不停循环</span></div><div class="line">                v=out.inc();</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">long</span> endtime=System.currentTimeMillis();</div><div class="line">            System.out.println(<span class="string">"SyncThread spend:"</span>+(endtime-starttime)+<span class="string">"ms"</span>+<span class="string">" v="</span>+v);</div><div class="line">            cdlsync.countDown();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testSync</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException</span>&#123;</div><div class="line">        ExecutorService exe=Executors.newFixedThreadPool(MAX_THREADS);</div><div class="line">        <span class="keyword">long</span> starttime=System.currentTimeMillis();</div><div class="line">        SyncThread sync=<span class="keyword">new</span> SyncThread(<span class="keyword">this</span>,starttime);</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;TASK_COUNT;i++)&#123;</div><div class="line">            exe.submit(sync); 								<span class="comment">//提交线程开始计算</span></div><div class="line">        &#125;</div><div class="line">        cdlsync.await();</div><div class="line">        exe.shutdown();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AtomicThread</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</div><div class="line">        <span class="keyword">protected</span> String name;</div><div class="line">        <span class="keyword">protected</span> <span class="keyword">long</span> starttime;</div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">AtomicThread</span><span class="params">(<span class="keyword">long</span> starttime)</span></span>&#123;</div><div class="line">            <span class="keyword">this</span>.starttime=starttime;</div><div class="line">        &#125;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;									<span class="comment">//在到达目标值前，不停循环</span></div><div class="line">            <span class="keyword">long</span> v=acount.get();</div><div class="line">            <span class="keyword">while</span>(v&lt;TARGET_COUNT)&#123;</div><div class="line">                v=acount.incrementAndGet();					<span class="comment">//无锁的加法</span></div><div class="line">            &#125;</div><div class="line">            <span class="keyword">long</span> endtime=System.currentTimeMillis();</div><div class="line">            System.out.println(<span class="string">"AtomicThread spend:"</span>+(endtime-starttime)+<span class="string">"ms"</span>+<span class="string">" v="</span>+v);</div><div class="line">            cdlatomic.countDown();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testAtomic</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException</span>&#123;</div><div class="line">        ExecutorService exe=Executors.newFixedThreadPool(MAX_THREADS);</div><div class="line">        <span class="keyword">long</span> starttime=System.currentTimeMillis();</div><div class="line">        AtomicThread atomic=<span class="keyword">new</span> AtomicThread(starttime);</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;TASK_COUNT;i++)&#123;</div><div class="line">            exe.submit(atomic);								<span class="comment">//提交线程开始计算</span></div><div class="line">        &#125;</div><div class="line">        cdlatomic.await();</div><div class="line">        exe.shutdown();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LongAddrThread</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</div><div class="line">        <span class="keyword">protected</span> String name;</div><div class="line">        <span class="keyword">protected</span> <span class="keyword">long</span> starttime;</div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">LongAddrThread</span><span class="params">(<span class="keyword">long</span> starttime)</span></span>&#123;</div><div class="line">            <span class="keyword">this</span>.starttime=starttime;</div><div class="line">        &#125;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">long</span> v=lacount.sum();</div><div class="line">            <span class="keyword">while</span>(v&lt;TARGET_COUNT)&#123;</div><div class="line">                lacount.increment();</div><div class="line">                v=lacount.sum();</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">long</span> endtime=System.currentTimeMillis();</div><div class="line">            System.out.println(<span class="string">"LongAdder spend:"</span>+(endtime-starttime)+<span class="string">"ms"</span>+<span class="string">" v="</span>+v);</div><div class="line">            cdladdr.countDown();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testAtomicLong</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException</span>&#123;</div><div class="line">        ExecutorService exe=Executors.newFixedThreadPool(MAX_THREADS);</div><div class="line">        <span class="keyword">long</span> starttime=System.currentTimeMillis();</div><div class="line">        LongAddrThread atomic=<span class="keyword">new</span> LongAddrThread(starttime);</div><div class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;TASK_COUNT;i++)&#123;</div><div class="line">            exe.submit(atomic);								<span class="comment">//提交线程开始计算</span></div><div class="line">        &#125;</div><div class="line">        cdladdr.await();</div><div class="line">        exe.shutdown();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span> <span class="keyword">throws</span> InterruptedException</span>&#123;</div><div class="line">        LongAdderDemo a=<span class="keyword">new</span> LongAdderDemo();</div><div class="line">        a.testSync();</div><div class="line">        a.testAtomic();</div><div class="line">        a.testAtomicLong();</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">&gt; output</div><div class="line">SyncThread spend:<span class="number">1452</span>ms v=<span class="number">10000001</span></div><div class="line">SyncThread spend:<span class="number">1452</span>ms v=<span class="number">10000002</span></div><div class="line">SyncThread spend:<span class="number">1452</span>ms v=<span class="number">10000000</span></div><div class="line">AtomicThread spend:<span class="number">214</span>ms v=<span class="number">10000001</span></div><div class="line">AtomicThread spend:<span class="number">214</span>ms v=<span class="number">10000000</span></div><div class="line">AtomicThread spend:<span class="number">214</span>ms v=<span class="number">10000002</span></div><div class="line">LongAdder spend:<span class="number">1502</span>ms v=<span class="number">10000002</span></div><div class="line">LongAdder spend:<span class="number">1502</span>ms v=<span class="number">10000002</span></div><div class="line">LongAdder spend:<span class="number">1502</span>ms v=<span class="number">10000000</span></div></pre></td></tr></table></figure>
+<h3 id="LongAccumulator-LongAdder的增强版"><a href="#LongAccumulator-LongAdder的增强版" class="headerlink" title="LongAccumulator: LongAdder的增强版"></a>LongAccumulator: LongAdder的增强版</h3><ul>
+<li>基本原理相同。</li>
+<li>LongAccumulator可以实现任意的函数操作，而不是仅仅限定于LongAdder的加法</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LongAccumulatorDemo</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    <span class="comment">// 通过Long::max找出最大值保存在LongAccumulator内部。</span></div><div class="line">        LongAccumulator longAccumulator = <span class="keyword">new</span> LongAccumulator(Long::max, Long.MIN_VALUE);</div><div class="line">        ExecutorService es = Executors.newFixedThreadPool(<span class="number">1000</span>);</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</div><div class="line">            es.submit(() -&gt;&#123;</div><div class="line">                Random random = <span class="keyword">new</span> Random();</div><div class="line">                longAccumulator.accumulate(random.nextLong());</div><div class="line">            &#125;);</div><div class="line">        &#125;</div><div class="line">        es.shutdown();</div><div class="line">        System.out.println(longAccumulator.longValue());</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line"><span class="number">9206003619980046971</span></div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Future/" rel="tag"># Future</a>
+          
+            <a href="/tags/Java8/" rel="tag"># Java8</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/28/java-introduce-to-java8-functional-parallel/" rel="next" title="简单介绍Java8函数式编程">
+                <i class="fa fa-chevron-left"></i> 简单介绍Java8函数式编程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CompletableFuture-增强的Future"><span class="nav-number">1.</span> <span class="nav-text">CompletableFuture: 增强的Future</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CompletableFuture"><span class="nav-number">1.1.</span> <span class="nav-text">CompletableFuture</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异步任务的执行"><span class="nav-number">1.2.</span> <span class="nav-text">异步任务的执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流式调用"><span class="nav-number">1.3.</span> <span class="nav-text">流式调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CompletableFuture中的异常处理"><span class="nav-number">1.4.</span> <span class="nav-text">CompletableFuture中的异常处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组合多个CompletableFuture"><span class="nav-number">1.5.</span> <span class="nav-text">组合多个CompletableFuture</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#读写锁的改进：-StampedLock"><span class="nav-number">2.</span> <span class="nav-text">读写锁的改进： StampedLock</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#StampedLock"><span class="nav-number">2.1.</span> <span class="nav-text">StampedLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StampedLock的实现思想"><span class="nav-number">2.2.</span> <span class="nav-text">StampedLock的实现思想</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原子类的增强"><span class="nav-number">3.</span> <span class="nav-text">原子类的增强</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LongAdder"><span class="nav-number">3.1.</span> <span class="nav-text">LongAdder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LongAccumulator-LongAdder的增强版"><span class="nav-number">3.2.</span> <span class="nav-text">LongAccumulator: LongAdder的增强版</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
