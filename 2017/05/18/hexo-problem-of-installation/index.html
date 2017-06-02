@@ -97,7 +97,7 @@
 <meta property="og:url" content="http://yoursite.com/2017/05/18/hexo-problem-of-installation/index.html">
 <meta property="og:site_name" content="Darcy">
 <meta property="og:description" content="遇到的问题/tags或者 /categories链接为空12345678910111213141516171819在source目录下新建tags, categories文件夹, 然后在这两个文件夹下面各新建页面index.md;index.md的Front-matter部分(文章头部)的type:字段分别设置成为 tags 和 categories# tags/index.md---title:">
-<meta property="og:updated_time" content="2017-05-30T06:42:11.164Z">
+<meta property="og:updated_time" content="2017-06-02T07:15:39.970Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Hexo遇到的一些坑">
 <meta name="twitter:description" content="遇到的问题/tags或者 /categories链接为空12345678910111213141516171819在source目录下新建tags, categories文件夹, 然后在这两个文件夹下面各新建页面index.md;index.md的Front-matter部分(文章头部)的type:字段分别设置成为 tags 和 categories# tags/index.md---title:">
@@ -408,6 +408,9 @@
 <h3 id="端口占用"><a href="#端口占用" class="headerlink" title="端口占用"></a>端口占用</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Server Problems</div><div class="line">Error: listen EADDRINUSE</div><div class="line"></div><div class="line">You may have started two Hexo servers at the same time or there might be another application using the same port. Try to modify the port setting or start the Hexo server with the -p flag.</div><div class="line"></div><div class="line">$ hexo server -p 5000</div></pre></td></tr></table></figure>
 <hr>
 <h2 id="页面可以设置的标签"><a href="#页面可以设置的标签" class="headerlink" title="页面可以设置的标签"></a>页面可以设置的标签</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">title: 分类测试文章</div><div class="line">date: 2014-12-22 12:39:04</div><div class="line">type: &quot;categories&quot;</div><div class="line">type: &quot;tags&quot;</div><div class="line">comments: false</div><div class="line">categories: Testing</div><div class="line">tags:</div><div class="line">  - Testing</div><div class="line">  - Another Tag</div><div class="line"></div><div class="line"></div><div class="line">#  https://hexo.io/zh-cn/docs/front-matter.html#分类和标签</div><div class="line">以下是预先定义的参数，您可在模板中使用这些参数值并加以利用。</div><div class="line"></div><div class="line">参数	描述	默认值</div><div class="line">layout	布局	</div><div class="line">title	标题	</div><div class="line">date	建立日期	文件建立日期</div><div class="line">updated	更新日期	文件更新日期</div><div class="line">comments	开启文章的评论功能	true</div><div class="line">tags	标签（不适用于分页）	</div><div class="line">categories	分类（不适用于分页）	</div><div class="line">permalink	覆盖文章网址</div></pre></td></tr></table></figure>
+<hr>
+<h1 id="Hexo添加友情连接"><a href="#Hexo添加友情连接" class="headerlink" title="Hexo添加友情连接"></a>Hexo添加友情连接</h1><p>给站点添加友情链接功能, 直接在主题配置中开启参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">links_title: 友情链接</div><div class="line">links:</div><div class="line">    #百度: http://www.baidu.com/</div><div class="line">    #新浪: http://example.com/</div></pre></td></tr></table></figure>
 
       
     </div>
@@ -532,7 +535,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-count">29</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -568,7 +571,7 @@
           
             
               <span class="links-of-author-item">
-                <a href="https://github.com/" target="_blank" title="GitHub">
+                <a href="https://github.com/MyDarcy" target="_blank" title="GitHub">
                   
                     <i class="fa fa-fw fa-github"></i>
                   
@@ -586,7 +589,7 @@
               </span>
             
               <span class="links-of-author-item">
-                <a href="http://www.zhihu.com" target="_blank" title="zhihu">
+                <a href="http://www.zhihu.com/people/frobisher27149" target="_blank" title="zhihu">
                   
                     <i class="fa fa-fw fa-globe"></i>
                   
@@ -601,6 +604,20 @@
         
 
         
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.zhenlanghuo.top/" title="zhenlang huo" target="_blank">zhenlang huo</a>
+                </li>
+              
+            </ul>
+          </div>
         
 
         
@@ -618,7 +635,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#遇到的问题"><span class="nav-number">1.</span> <span class="nav-text">遇到的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tags或者-categories链接为空"><span class="nav-number">1.1.</span> <span class="nav-text">/tags或者 /categories链接为空</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装问题-ENSPC"><span class="nav-number">1.2.</span> <span class="nav-text">安装问题 ENSPC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#端口占用"><span class="nav-number">1.3.</span> <span class="nav-text">端口占用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#页面可以设置的标签"><span class="nav-number">2.</span> <span class="nav-text">页面可以设置的标签</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#遇到的问题"><span class="nav-number">1.</span> <span class="nav-text">遇到的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tags或者-categories链接为空"><span class="nav-number">1.1.</span> <span class="nav-text">/tags或者 /categories链接为空</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装问题-ENSPC"><span class="nav-number">1.2.</span> <span class="nav-text">安装问题 ENSPC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#端口占用"><span class="nav-number">1.3.</span> <span class="nav-text">端口占用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#页面可以设置的标签"><span class="nav-number">2.</span> <span class="nav-text">页面可以设置的标签</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hexo添加友情连接"><span class="nav-number"></span> <span class="nav-text">Hexo添加友情连接</span></a></div>
             
 
           </div>
