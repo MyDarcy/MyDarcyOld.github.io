@@ -1,0 +1,1048 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Netty," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Netty基于Java NIO的异步和事件驱动的实现，保证了高负载下应用程序的性能的最大化和可拓展性。而且Netty也包括了一组设计模式将应用程序逻辑从网络层解耦。简化了开发的同时保证了可测试性，模块化和可重用性。">
+<meta name="keywords" content="Java,Netty">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty的基本组件">
+<meta property="og:url" content="http://yoursite.com/2017/06/01/netty-basic-components/index.html">
+<meta property="og:site_name" content="Darcy">
+<meta property="og:description" content="Netty基于Java NIO的异步和事件驱动的实现，保证了高负载下应用程序的性能的最大化和可拓展性。而且Netty也包括了一组设计模式将应用程序逻辑从网络层解耦。简化了开发的同时保证了可测试性，模块化和可重用性。">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/7zvlptrwh9wja07m0e5zr7fx/ch3-channel-eventloops.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/z4pwsird7wfazpecu88xwzmx/ch3-serverbootstrap.png">
+<meta property="og:updated_time" content="2017-06-01T07:22:19.802Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Netty的基本组件">
+<meta name="twitter:description" content="Netty基于Java NIO的异步和事件驱动的实现，保证了高负载下应用程序的性能的最大化和可拓展性。而且Netty也包括了一组设计模式将应用程序逻辑从网络层解耦。简化了开发的同时保证了可测试性，模块化和可重用性。">
+<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/7zvlptrwh9wja07m0e5zr7fx/ch3-channel-eventloops.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/06/01/netty-basic-components/"/>
+
+
+
+
+
+  <title>Netty的基本组件 | Darcy</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Darcy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知。孤勇。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/01/netty-basic-components/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Netty的基本组件</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-01T14:56:54+08:00">
+                2017-06-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Netty/" itemprop="url" rel="index">
+                    <span itemprop="name">Netty</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/06/01/netty-basic-components/" class="leancloud_visitors" data-flag-title="Netty的基本组件">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>Netty基于Java NIO的异步和事件驱动的实现，保证了高负载下应用程序的性能的最大化和可拓展性。而且Netty也包括了一组设计模式将应用程序逻辑从网络层解耦。简化了开发的同时保证了可测试性，模块化和可重用性。</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="Channel-EventLoop-ChannelFuture"><a href="#Channel-EventLoop-ChannelFuture" class="headerlink" title="Channel, EventLoop, ChannelFuture"></a>Channel, EventLoop, ChannelFuture</h2><ul>
+<li>Channel — Socket</li>
+<li>EventLoop — 控制流，多线程处理，并发</li>
+<li>ChannelFuture — 异步通知</li>
+</ul>
+<h3 id="Channel接口"><a href="#Channel接口" class="headerlink" title="Channel接口"></a>Channel接口</h3><ul>
+<li>基本的IO操作(bind, connect, read, write)依赖于底层网络传输所提供的原语。Netty的Channel接口降低了直接使用Socket的复杂性。</li>
+<li>基本的子类<ul>
+<li>EmbeddedChannel, </li>
+<li>EpollDatagramChannel, EpollServerDomainSocketChannel,KQueueDatagramChannel…. </li>
+<li>KQueueDatagramChannel, KQueueXXXXChannel…</li>
+<li>LocalChannel, LocalServerChannel</li>
+<li>NioDatagramChannel,  NioSctpServerChannel, NioServerSocketChannel, NioSocketChannel…</li>
+<li>OioDatagramChannel, OioSctpServerChannel, OioServerSocketChannel, OioSocketChannel…</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">A nexus(关系；连结) to a network socket or a component which is capable of I/O operations such as read, write, connect, and bind.</div><div class="line"></div><div class="line">A channel provides a user:</div><div class="line">- the current state of the channel (e.g. is it open? is it connected?),</div><div class="line">- the configuration parameters of the channel (e.g. receive buffer size),</div><div class="line">- the I/O operations that the channel supports (e.g. read, write, connect, and bind), and</div><div class="line">- the ChannelPipeline which handles all I/O events and requests associated with the channel.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Channel</span> <span class="keyword">extends</span> <span class="title">AttributeMap</span>, <span class="title">ChannelOutboundInvoker</span>, <span class="title">Comparable</span>&lt;<span class="title">Channel</span>&gt;</span></div></pre></td></tr></table></figure>
+<p><strong>Channel的特性</strong></p>
+<p><strong>All I/O operations are asynchronous(所有的IO操作都是异步的)</strong></p>
+<blockquote>
+<p>All I/O operations in Netty are asynchronous. It means any I/O calls will return immediately with no guarantee that the requested I/O operation has been completed at the end of the call. Instead, you will be returned with a ChannelFuture instance which will notify you when the requested I/O operation has succeeded, failed, or canceled.</p>
+</blockquote>
+<p><strong>Channels are hierarchical(分层的, 等级体系的)</strong></p>
+<blockquote>
+<p>A Channel can have a parent depending on how it was created. For instance, a SocketChannel, that was accepted by ServerSocketChannel, will return the ServerSocketChannel as its parent on parent().<br>The semantics of the hierarchical structure depends on the transport implementation where the Channel belongs to. For example, you could write a new Channel implementation that creates the sub-channels that share one socket connection, as BEEP and SSH do.</p>
+</blockquote>
+<p><strong>Downcast to access transport-specific operations (向下类型转换)</strong></p>
+<blockquote>
+<p>Some transports exposes additional operations that is specific to the transport. Down-cast the Channel to sub-type to invoke such operations. For example, with the old I/O datagram transport, multicast join / leave operations are provided by DatagramChannel.</p>
+</blockquote>
+<p><strong>Release resources(资源的释放)</strong></p>
+<blockquote>
+<p>It is important to call ChannelOutboundInvoker.close() or ChannelOutboundInvoker.close(ChannelPromise) to release all resources once you are done with the Channel. This ensures all resources are released in a proper way, i.e. filehandles.</p>
+</blockquote>
+<h3 id="EventLoop接口"><a href="#EventLoop接口" class="headerlink" title="EventLoop接口"></a>EventLoop接口</h3><ul>
+<li>EventLoop用于处理连接的生命周期中所发生的事件。</li>
+<li>Channel, EventLoop, Thread, EventLoopGroutp之间的关系<ul>
+<li>一个EventLoopGroup可以包含一个或者多个EventLoop;</li>
+<li><strong>一个EventLoop在它的生命周期内只和一个Thread绑定</strong>; (<strong>EventLoop:Thread = 1:1</strong>)</li>
+<li>所有由EventLoop处理的IO事件都将在它专有的线程上被处理;</li>
+<li><strong>一个Channel在它的生命周期内只注册于一个EventLoop</strong>; (<strong>Channel:EventLoop = 1:1</strong>)</li>
+<li><strong>一个EventLoop可以被分配给一个或者多个Channel</strong>. (<strong>Channel:EventLoop = n:1</strong>)</li>
+</ul>
+</li>
+<li>所以，一个给定的Channel的IO操作都是由相同的Thread执行。 </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Will handle all the I/O operations for a &#123;Channel&#125; once registered.</div><div class="line"> *</div><div class="line"> * One &#123;EventLoop&#125; instance will usually handle more than one &#123;Channel&#125; but this may depend onimplementation details and internals.</div><div class="line"> *</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">EventLoop</span> <span class="keyword">extends</span> <span class="title">OrderedEventExecutor</span>, <span class="title">EventLoopGroup</span> </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function">EventLoopGroup <span class="title">parent</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><img src="http://static.zybuluo.com/csqiang1992/7zvlptrwh9wja07m0e5zr7fx/ch3-channel-eventloops.png" alt="ch3-channel-eventloops.png-59.1kB"></p>
+<h3 id="ChannelFuture-接口"><a href="#ChannelFuture-接口" class="headerlink" title="ChannelFuture 接口"></a>ChannelFuture 接口</h3><ul>
+<li>Netty中的操作都是异步的，因为操作(指处理请求的那一方)可能不会立即返回，所以Netty提供了ChannelFuture接口，其addListener()方法注册了一个ChannelFutureListener,以便在某个操作完成的时候得到通知。</li>
+<li>所有属于同一个Channel的操作都被保证其将以它们被调用的顺序被执行。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * The result of an asynchronous &#123;Channel&#125; I/O operation.</div><div class="line"></div><div class="line"> * All I/O operations in Netty are asynchronous.  It means any I/O calls will</div><div class="line"> * return immediately with no guarantee that the requested I/O operation has</div><div class="line"> * been completed at the end of the call.  Instead, you will be returned with</div><div class="line"> * a &#123;ChannelFuture&#125; instance which gives you the information about the</div><div class="line"> * result or status of the I/O operation.</div><div class="line"></div><div class="line"> * A &#123;ChannelFuture&#125; is either &lt;em&gt;uncompleted&lt;/em&gt; or &lt;em&gt;completed&lt;/em&gt;.</div><div class="line"> * When an I/O operation begins, a new future object is created.  The new future</div><div class="line"> * is uncompleted initially - it is neither succeeded, failed, nor cancelled</div><div class="line"> * because the I/O operation is not finished yet.  If the I/O operation is</div><div class="line"> * finished either successfully, with failure, or by cancellation, the future is</div><div class="line"> * marked as completed with more specific information, such as the cause of the</div><div class="line"> * failure. </div><div class="line"> *                                      +---------------------------+</div><div class="line"> *                                      | Completed successfully    |</div><div class="line"> *                                      +---------------------------+</div><div class="line"> *                                 +----&gt;      isDone() = true      |</div><div class="line"> * +--------------------------+    |    |   isSuccess() = true      |</div><div class="line"> * |        Uncompleted       |    |    +===========================+</div><div class="line"> * +--------------------------+    |    | Completed with failure    |</div><div class="line"> * |      isDone() = false    |    |    +---------------------------+</div><div class="line"> * |   isSuccess() = false    |----+----&gt;      isDone() = true      |</div><div class="line"> * | isCancelled() = false    |    |    |       cause() = non-null  |</div><div class="line"> * |       cause() = null     |    |    +===========================+</div><div class="line"> * +--------------------------+    |    | Completed by cancellation |</div><div class="line"> *                                 |    +---------------------------+</div><div class="line"> *                                 +----&gt;      isDone() = true      |</div><div class="line"> *                                      | isCancelled() = true      |</div><div class="line"> *                                      +---------------------------+</div><div class="line"> */</div><div class="line"> <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ChannelFuture</span> <span class="keyword">extends</span> <span class="title">Future</span>&lt;<span class="title">Void</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Returns a channel where the I/O operation associated with this</div><div class="line">     * future takes place.</div><div class="line">     */</div><div class="line">    </div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function">ChannelFuture <span class="title">syncUninterruptibly</span><span class="params">()</span></span>;</div><div class="line">    </div><div class="line">    <span class="comment">// ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="ChannelHandler和ChannelPipeline"><a href="#ChannelHandler和ChannelPipeline" class="headerlink" title="ChannelHandler和ChannelPipeline"></a>ChannelHandler和ChannelPipeline</h2><h3 id="ChannelHandler-接口"><a href="#ChannelHandler-接口" class="headerlink" title="ChannelHandler 接口"></a>ChannelHandler 接口</h3><ul>
+<li>从开发人员的角度来看，Netty的主要组件好是ChannelHandler， 它实现所有的入站和出站数据的处理逻辑。<strong>ChannelHandler的所有方法都是由网络事件触发的</strong>。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Handles an I/O event or intercepts an I/O operation, and forwards it to its next handler in its &#123;ChannelPipeline&#125;.</div><div class="line"> */</div><div class="line"> </div><div class="line"> <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ChannelHandler</span> </span>&#123;</div><div class="line">    <span class="comment">// ...</span></div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<h4 id="子类型"><a href="#子类型" class="headerlink" title="子类型"></a>子类型</h4><ul>
+<li>ChannelHandler itself does not provide many methods, but you usually have to implement one of its subtypes:<ul>
+<li><code>ChannelInboundHandler</code> to handle inbound I/O events, and</li>
+<li><code>ChannelOutboundHandler</code> to handle outbound I/O operations.</li>
+</ul>
+</li>
+<li>Alternatively, the following adapter classes are provided for your <strong>convenience</strong>:<ul>
+<li><code>ChannelInboundHandlerAdapter</code> to handle inbound I/O events,</li>
+<li><code>ChannelOutboundHandlerAdapter</code> to handle outbound I/O operations</li>
+<li><code>ChannelDuplexHandler</code> to handle both inbound and outbound events</li>
+</ul>
+</li>
+<li>The context object<ul>
+<li>A <code>ChannelHandler</code> is provided with a <code>ChannelHandlerContext</code> object. <strong>A ChannelHandler is supposed to interact(相互作用) with the ChannelPipeline it belongs to via a context object</strong>. Using the context object, the ChannelHandler can <strong>pass events upstream or downstream</strong>, <strong>modify the pipeline</strong> dynamically, or <strong>store the information</strong> (using AttributeKeys) which is specific to the handler.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ChannelPipeline接口"><a href="#ChannelPipeline接口" class="headerlink" title="ChannelPipeline接口"></a>ChannelPipeline接口</h3><ul>
+<li>ChannelPipeline作为ChannelHandler链容器，定义了用于该链上传播入站和出站事件流的API。<strong>每个Channel都有自己的Pipeline, 当Channe被创建的时候，其相关的ChannelPipeline也会自动的创建</strong>。</li>
+<li>ChannelHandler通过如下步骤被添加到ChannelPipeline <ul>
+<li>一个ChannelInitialize的实现被注册到了ServerBootstrapt或者Bootstrap中</li>
+<li>当ChannelInitialize.initChannel()被调用时，ChannelInitialize将在ChannelPipeline中安装一组自定义的ChannelHandler</li>
+<li>ChannelInitialize将自己从ChannelPipeline中移除。</li>
+</ul>
+</li>
+<li>通过使用作为参数传递到每个方法的ChannelHanderContext,事件可以被传递到当前Channel链中的下一个ChannelHandler。Netty能够区分同一个ChannelPipeline中的ChannelInBoundHandler和ChannelOutBoundHandler,保证数据只会在相同<strong>定向类型(In, Out)</strong>的ChannelHandler之间传递。</li>
+<li>当<strong>ChannelHandler被添加到ChannelPipeline时，它将会被分配一个ChannelHandlerContext</strong>, 其代表了ChannelHandler和ChannelPipeline之间的绑定。<strong>ChannelHandlerContext可以用于获取底层的Channel也可以用于写出站数据</strong>。</li>
+<li>Netty中发送消息的方式<ul>
+<li>直接写到Channel, 这样消息就从尾端(Top)开始流动。</li>
+<li>写到和ChannelHandler相关联的ChannelHandlerContext对象中，这样消息就从ChannelPipeline中的下一个ChannelHandler开始流动。</li>
+</ul>
+</li>
+<li>ChannelPipeline中的每个ChanndleHandler负责把事件转发到链中的下一个ChannelHandler。ChannelHandler的适配器以及其子类将<strong>自动执行</strong>这个操作，而你要做的只是重写你要特殊处理的方法个事件。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * A list of &#123;ChannelHandler&#125;s which handles or intercepts inbound events and outbound operations of a &#123;Channel&#125;.  &#123;ChannelPipeline&#125; implements an advanced form of the</div><div class="line"> * &lt;a href="http://www.oracle.com/technetwork/java/interceptingfilter-142169.html"&gt;Intercepting Filter&lt;/a&gt; pattern to give a user full control over how an event is handled and how the &#123;ChannelHandler&#125;s in a pipeline interact with each other.</div><div class="line"> *</div><div class="line"> * &lt;h3&gt;Creation of a pipeline&lt;/h3&gt;</div><div class="line"> *</div><div class="line"> * Each channel has its own pipeline and it is created automatically when a new channel is created.</div><div class="line"> *</div><div class="line"> * &lt;h3&gt;How an event flows in a pipeline&lt;/h3&gt;</div><div class="line"> *</div><div class="line"> * The following diagram describes how I/O events are processed by &#123;ChannelHandler&#125;s in a &#123;ChannelPipeline&#125; typically. An I/O event is handled by either a &#123;ChannelInboundHandler&#125; or a &#123;ChannelOutboundHandler&#125; and be forwarded to its closest handler by calling the event propagation(传播) methods defined in &#123;ChannelHandlerContext&#125;, such as &#123;ChannelHandlerContext.fireChannelRead(Object)&#125; and &#123;ChannelHandlerContext.write(Object)&#125;.</div><div class="line"> *</div><div class="line"> * &lt;pre&gt;</div><div class="line"> *                                                 I/O Request</div><div class="line"> *                                            via &#123;<span class="doctag">@link</span> Channel&#125; or</div><div class="line"> *                                        &#123;<span class="doctag">@link</span> ChannelHandlerContext&#125;</div><div class="line"> *                                                      |</div><div class="line"> *  +---------------------------------------------------+---------------+</div><div class="line"> *  |                           ChannelPipeline         |               |</div><div class="line"> *  |                                                  \|/              |</div><div class="line"> *  |    +---------------------+            +-----------+----------+    |</div><div class="line"> *  |    | Inbound Handler  N  |            | Outbound Handler  1  |    |</div><div class="line"> *  |    +----------+----------+            +-----------+----------+    |</div><div class="line"> *  |              /|\                                  |               |</div><div class="line"> *  |               |                                  \|/              |</div><div class="line"> *  |    +----------+----------+            +-----------+----------+    |</div><div class="line"> *  |    | Inbound Handler N-1 |            | Outbound Handler  2  |    |</div><div class="line"> *  |    +----------+----------+            +-----------+----------+    |</div><div class="line"> *  |              /|\                                  .               |</div><div class="line"> *  |               .                                   .               |</div><div class="line"> *  | ChannelHandlerContext.fireIN_EVT() ChannelHandlerContext.OUT_EVT()|</div><div class="line"> *  |        [ method call]                       [method call]         |</div><div class="line"> *  |               .                                   .               |</div><div class="line"> *  |               .                                  \|/              |</div><div class="line"> *  |    +----------+----------+            +-----------+----------+    |</div><div class="line"> *  |    | Inbound Handler  2  |            | Outbound Handler M-1 |    |</div><div class="line"> *  |    +----------+----------+            +-----------+----------+    |</div><div class="line"> *  |              /|\                                  |               |</div><div class="line"> *  |               |                                  \|/              |</div><div class="line"> *  |    +----------+----------+            +-----------+----------+    |</div><div class="line"> *  |    | Inbound Handler  1  |            | Outbound Handler  M  |    |</div><div class="line"> *  |    +----------+----------+            +-----------+----------+    |</div><div class="line"> *  |              /|\                                  |               |</div><div class="line"> *  +---------------+-----------------------------------+---------------+</div><div class="line"> *                  |                                  \|/</div><div class="line"> *  +---------------+-----------------------------------+---------------+</div><div class="line"> *  |               |                                   |               |</div><div class="line"> *  |       [ Socket.read() ]                    [ Socket.write() ]     |</div><div class="line"> *  |                                                                   |</div><div class="line"> *  |  Netty Internal I/O Threads (Transport Implementation)            |</div><div class="line"> *  +-------------------------------------------------------------------+</div><div class="line"> * &lt;/pre&gt;</div><div class="line"> * An inbound event is handled by the inbound handlers in the bottom-up direction as shown on the left side of the diagram.  An inbound handler usually handles the inbound data generated by the I/O thread on the bottom of the diagram.  The inbound data is often read from a remote peer via the actual input operation such as &#123;SocketChannel.read(ByteBuffer)&#125;.  If an inbound event goes beyond the top inbound handler, it is discarded silently, or logged if it needs your attention.</div><div class="line"></div><div class="line"> * An outbound event is handled by the outbound handler in the top-down direction as shown on the right side of the diagram.  An outbound handler usually generates or transforms the outbound traffic such as write requests. If an outbound event goes beyond the bottom outbound handler, it is handled by an I/O thread associated with the &#123;Channel&#125;. The I/O thread often performs the actual output operation such as&#123;SocketChannel.write(ByteBuffer)&#125;.</div><div class="line"> */</div><div class="line"> </div><div class="line"> <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ChannelPipeline</span></span></div><div class="line">        <span class="keyword">extends</span> <span class="title">ChannelInboundInvoker</span>, <span class="title">ChannelOutboundInvoker</span>, <span class="title">Iterable</span>&lt;<span class="title">Entry</span>&lt;<span class="title">String</span>, <span class="title">ChannelHandler</span>&gt;&gt; &#123;</div><div class="line">    <span class="comment">// ...        </span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="编码器和解码器"><a href="#编码器和解码器" class="headerlink" title="编码器和解码器"></a>编码器和解码器</h3><ul>
+<li>当通过Netty发送或者接收消息的时候，就会发送一次数据转换。入站消息会被解码(bytes-&gt;msg); 出站消息则会编码(msg -&gt; bytes)。因为底层的网络传输总是bytes的。</li>
+<li>Netty提供的<strong>编码器解码器适配器类</strong>都实现了ChanneOutBoundHandler接口或者ChannelInBoundHandler接口。(<a href="http://netty.io/4.1/api/index.html" target="_blank" rel="external">Netty文档</a> <code>io.netty.handler.codec.ByteToMessageDecoder</code>)</li>
+<li>如下所示，对于入站数据而言，ChannnelRead方法/事件已经被重写了，对于每个从入站Channel读取的消息，这个方法都会被调用。然后它将调用预置的解码器提供的decode方法，将已解码的字节转发给ChannelPipeline中的下一个ChannelInBoundHandler。出站消息的模式只是相反。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ByteToMessageDecoder</span> <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;</div><div class="line"></div><div class="line"><span class="comment">// ...</span></div><div class="line"><span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead</span><span class="params">(ChannelHandlerContext ctx, Object msg)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> ByteBuf) &#123;</div><div class="line">            CodecOutputList out = CodecOutputList.newInstance();</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                ByteBuf data = (ByteBuf) msg;</div><div class="line">                first = cumulation == <span class="keyword">null</span>;</div><div class="line">                <span class="keyword">if</span> (first) &#123;</div><div class="line">                    cumulation = data;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    cumulation = cumulator.cumulate(ctx.alloc(), cumulation, data);</div><div class="line">                &#125;</div><div class="line">                callDecode(ctx, cumulation, out);</div><div class="line">            <span class="comment">// ...</span></div><div class="line">    &#125;</div><div class="line"><span class="comment">// ...</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageToByteEncoder</span>&lt;<span class="title">I</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelOutboundHandlerAdapter</span> </span>&#123;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="SimpleChannelInBoundHandler"><a href="#SimpleChannelInBoundHandler" class="headerlink" title="SimpleChannelInBoundHandler"></a>SimpleChannelInBoundHandler</h3><ul>
+<li>要创建ChannelHandler来接收解码消息并对数据进行处理，只需要拓展基类SimpleChannelInBoundHandler<t> 即可，其中T是你要处理的消息的Java类型。</t></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">I</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">// many have been implemented methods...</span></div><div class="line">    </div><div class="line">    <span class="comment">// 实现不应该阻塞当前线程。</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx, I msg)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="引导"><a href="#引导" class="headerlink" title="引导"></a>引导</h2><ul>
+<li>Netty的引导类为应用程序的网络配置提供了容器，有两种类型<ul>
+<li>引导一个服务器：将一个进程绑定到某个指定的端口，监听传入的连接</li>
+<li>引导一个客户端：将一个进程连接到另一个运行在指定主机的指定端口上的进程；建立到一个或者多个进程的连接</li>
+</ul>
+</li>
+<li>两种引导类的比较</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th style="text-align:right">Bootstrap</th>
+<th style="text-align:center">ServerBootstrap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>网络编程中的作用</td>
+<td style="text-align:right">连接到远程主机和端口</td>
+<td style="text-align:center">绑定到本地端口</td>
+</tr>
+<tr>
+<td>EventLoopGroup的数目</td>
+<td style="text-align:right">1</td>
+<td style="text-align:center">2</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>解释一下引导client只需要一个EvetnLoopGroup，但是一个ServerBootstrap则需要两个（也可以是一个）： 因为服务器需要两组不同的Channel，第一组只包括一个ServerChannel, 代表服务器自身的已经绑定到某个本地端口的正在监听的套接字。第二组将包括所有的已经创建的用来处理客户端连接的的Channel(连接：Channel = 1:1)。</li>
+<li>与ServerChannel关联的EventLoopGroup将分配一个为传入连接请求创建Channel的<strong>EventLoop</strong>。一旦连接被接受，第二个EventLoopGroup就会给它的Channel分配一个<strong>EventLoop</strong>。</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/z4pwsird7wfazpecu88xwzmx/ch3-serverbootstrap.png" alt="ch3-serverbootstrap.png-84.3kB"></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Netty/" rel="tag"># Netty</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/30/netty-echo-server/" rel="next" title="Netty实现Echo服务器和客户端">
+                <i class="fa fa-chevron-left"></i> Netty实现Echo服务器和客户端
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/01/netty-transfer/" rel="prev" title="Netty传输浅析">
+                Netty传输浅析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Channel-EventLoop-ChannelFuture"><span class="nav-number">1.</span> <span class="nav-text">Channel, EventLoop, ChannelFuture</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Channel接口"><span class="nav-number">1.1.</span> <span class="nav-text">Channel接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EventLoop接口"><span class="nav-number">1.2.</span> <span class="nav-text">EventLoop接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ChannelFuture-接口"><span class="nav-number">1.3.</span> <span class="nav-text">ChannelFuture 接口</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ChannelHandler和ChannelPipeline"><span class="nav-number">2.</span> <span class="nav-text">ChannelHandler和ChannelPipeline</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ChannelHandler-接口"><span class="nav-number">2.1.</span> <span class="nav-text">ChannelHandler 接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#子类型"><span class="nav-number">2.1.1.</span> <span class="nav-text">子类型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ChannelPipeline接口"><span class="nav-number">2.2.</span> <span class="nav-text">ChannelPipeline接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编码器和解码器"><span class="nav-number">2.3.</span> <span class="nav-text">编码器和解码器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SimpleChannelInBoundHandler"><span class="nav-number">2.4.</span> <span class="nav-text">SimpleChannelInBoundHandler</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引导"><span class="nav-number">3.</span> <span class="nav-text">引导</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

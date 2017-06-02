@@ -1,0 +1,928 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,ThreadLocal," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="ThreadLocal 线程的局部变量，只有当前线程可以访问。 ThreadLocal只是起到一个容器的作用，而为每个线程分配不同的对象，需要在应用层面来保证。 仅仅针对SimpleDateFormat线程安全性的解决方案还有： Java8中线程安全的的 DateTimeFormatter">
+<meta name="keywords" content="Java,ThreadLocal">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ThreadLocal简单介绍">
+<meta property="og:url" content="http://yoursite.com/2017/05/23/java-threadlocal/index.html">
+<meta property="og:site_name" content="Darcy">
+<meta property="og:description" content="ThreadLocal 线程的局部变量，只有当前线程可以访问。 ThreadLocal只是起到一个容器的作用，而为每个线程分配不同的对象，需要在应用层面来保证。 仅仅针对SimpleDateFormat线程安全性的解决方案还有： Java8中线程安全的的 DateTimeFormatter">
+<meta property="og:updated_time" content="2017-05-23T10:41:44.059Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ThreadLocal简单介绍">
+<meta name="twitter:description" content="ThreadLocal 线程的局部变量，只有当前线程可以访问。 ThreadLocal只是起到一个容器的作用，而为每个线程分配不同的对象，需要在应用层面来保证。 仅仅针对SimpleDateFormat线程安全性的解决方案还有： Java8中线程安全的的 DateTimeFormatter">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/05/23/java-threadlocal/"/>
+
+
+
+
+
+  <title>ThreadLocal简单介绍 | Darcy</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Darcy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知。孤勇。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/23/java-threadlocal/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ThreadLocal简单介绍</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-23T18:39:57+08:00">
+                2017-05-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/05/23/java-threadlocal/" class="leancloud_visitors" data-flag-title="ThreadLocal简单介绍">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h2><ul>
+<li>线程的局部变量，只有当前线程可以访问。</li>
+<li>ThreadLocal只是起到一个容器的作用，而为每个线程分配不同的对象，需要在应用层面来保证。</li>
+<li>仅仅针对SimpleDateFormat线程安全性的解决方案还有： Java8中线程安全的的 <code>DateTimeFormatter</code></li>
+</ul>
+<a id="more"></a>
+<h3 id="SimpleDateFormat线程不安全的使用"><a href="#SimpleDateFormat线程不安全的使用" class="headerlink" title="SimpleDateFormat线程不安全的使用"></a>SimpleDateFormat线程不安全的使用</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleDateFormatDemo</span> </span>&#123;</div><div class="line">    </div><div class="line">    <span class="comment">// SimpleDateFormat并不是线程安全的。 </span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(<span class="string">"yyyy-MM-dd HH:mm:ss"</span>);</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ParseDate</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</div><div class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ParseDate</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.i = i;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                Date date = sdf.parse(<span class="string">"2017-05-22 15:21:"</span> + (i % <span class="number">60</span>));</div><div class="line">                System.out.println(date);</div><div class="line">            &#125; <span class="keyword">catch</span> (ParseException e) &#123;</div><div class="line">                e.printStackTrace();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ParseException </span>&#123;</div><div class="line">        ExecutorService es = Executors.newFixedThreadPool(<span class="number">10</span>);</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</div><div class="line">            es.execute(<span class="keyword">new</span> ParseDate(i));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line">Mon May <span class="number">22</span> <span class="number">15</span>:<span class="number">21</span>:<span class="number">27</span> CST <span class="number">2017</span></div><div class="line">Exception in thread <span class="string">"pool-1-thread-212"</span> java.lang.NumberFormatException: For input string: <span class="string">""</span></div><div class="line"><span class="comment">// ...</span></div><div class="line">Exception in thread <span class="string">"pool-1-thread-209"</span> java.lang.NumberFormatException: For input string: <span class="string">""</span></div><div class="line"><span class="comment">// ...</span></div></pre></td></tr></table></figure>
+<h3 id="SimpleDateFormat线程安全的做法"><a href="#SimpleDateFormat线程安全的做法" class="headerlink" title="SimpleDateFormat线程安全的做法"></a><strong>SimpleDateFormat线程安全的做法</strong></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public static final ThreadLocal&lt;SimpleDateFormat&gt; sdf = new ThreadLocal&lt;&gt;();</div><div class="line"></div><div class="line">public static class ParseDate implements Runnable &#123;</div><div class="line">    int i = 0;</div><div class="line"></div><div class="line">    public ParseDate(int i) &#123;</div><div class="line">        this.i = i;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void run() &#123;</div><div class="line">        try &#123;</div><div class="line">            if (sdf.get() == null) &#123; // 当前线程是否持有SimpleDateFormat对象。</div><div class="line">                sdf.set(new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;)); // 不持有，新建。</div><div class="line">            &#125;</div><div class="line">            Date date = sdf.get().parse(&quot;2017-05-22 15:21:&quot; + (i % 60));</div><div class="line">            System.out.println(date);</div><div class="line">        &#125; catch (ParseException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="ThreadLocal的实现原理"><a href="#ThreadLocal的实现原理" class="headerlink" title="ThreadLocal的实现原理"></a>ThreadLocal的实现原理</h3><ul>
+<li>ThreadLocalMap是ThreadLocal类的的静态内部类，同时是定义在Thread内部的成员变量。设置到了ThreadLocal中的数据其实就是设置到ThreadLocalMap中。key是ThreadLocal对象，value就是需要的值。</li>
+</ul>
+<p><strong>ThreadLocal.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> java.lang</div><div class="line"></div><div class="line"><span class="comment">// ThreadLocal.java</span></div><div class="line"><span class="comment">/**</span></div><div class="line"> * Sets the current thread's copy of this thread-local variable</div><div class="line"> * to the specified value.  Most subclasses will have no need to</div><div class="line"> * override this method, relying solely on the &#123;<span class="doctag">@link</span> #initialValue&#125;</div><div class="line"> * method to set the values of thread-locals.</div><div class="line"> *</div><div class="line"> * <span class="doctag">@param</span> value the value to be stored in the current thread's copy of</div><div class="line"> *        this thread-local.</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(T value)</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread(); <span class="comment">// 首先获得当前的线程对象。</span></div><div class="line">    ThreadLocalMap map = getMap(t); <span class="comment">// 拿到当前线程对象的ThreadLocalMap对象。</span></div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>)</div><div class="line">        map.set(<span class="keyword">this</span>, value); <span class="comment">// 。key是ThreadLocal对象</span></div><div class="line">    <span class="keyword">else</span></div><div class="line">        createMap(t, value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * Returns the value in the current thread's copy of this</div><div class="line"> * thread-local variable.  If the variable has no value for the</div><div class="line"> * current thread, it is first initialized to the value returned</div><div class="line"> * by an invocation of the &#123;<span class="doctag">@link</span> #initialValue&#125; method.</div><div class="line"> *</div><div class="line"> * <span class="doctag">@return</span> the current thread's value of this thread-local</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> T <span class="title">get</span><span class="params">()</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread(); <span class="comment">// 取得当前线程;</span></div><div class="line">    ThreadLocalMap map = getMap(t); <span class="comment">// 取得当前线程的ThreadLocalMap；</span></div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>) &#123;</div><div class="line">        ThreadLocalMap.Entry e = map.getEntry(<span class="keyword">this</span>); <span class="comment">// ThreadLocal对象作为key,取得内部的实际数据。</span></div><div class="line">        <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</div><div class="line">            T result = (T)e.value;</div><div class="line">            <span class="keyword">return</span> result;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> setInitialValue();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * Removes the current thread's value for this thread-local</div><div class="line"> * variable.  If this thread-local variable is subsequently</div><div class="line"> * &#123;<span class="doctag">@linkplain</span> #get read&#125; by the current thread, its value will be</div><div class="line"> * reinitialized by invoking its &#123;<span class="doctag">@link</span> #initialValue&#125; method,</div><div class="line"> * unless its value is &#123;<span class="doctag">@linkplain</span> #set set&#125; by the current thread</div><div class="line"> * in the interim.  This may result in multiple invocations of the</div><div class="line"> * &#123;<span class="doctag">@code</span> initialValue&#125; method in the current thread.</div><div class="line"> *</div><div class="line"> * <span class="doctag">@since</span> 1.5</div><div class="line"> */</div><div class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">()</span> </span>&#123;</div><div class="line">     ThreadLocalMap m = getMap(Thread.currentThread());</div><div class="line">     <span class="keyword">if</span> (m != <span class="keyword">null</span>)</div><div class="line">         m.remove(<span class="keyword">this</span>);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p><strong>Thread.java</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">// Thread.java中</div><div class="line">/* ThreadLocal values pertaining to this thread. This map is maintained</div><div class="line"> * by the ThreadLocal class. */</div><div class="line">ThreadLocal.ThreadLocalMap threadLocals = null;</div><div class="line"></div><div class="line">/**</div><div class="line"> * This method is called by the system to give a Thread</div><div class="line"> * a chance to clean up before it actually exits.</div><div class="line"> */</div><div class="line">private void exit() &#123;</div><div class="line">    if (group != null) &#123;</div><div class="line">        group.threadTerminated(this);</div><div class="line">        group = null;</div><div class="line">    &#125;</div><div class="line">    /* Aggressively null out all reference fields: see bug 4006245 */</div><div class="line">    target = null;</div><div class="line">    /* Speed the release of some of these resources */</div><div class="line">    // 清理了ThreadLocal.ThreadLocalMap对象。</div><div class="line">    threadLocals = null;</div><div class="line">    inheritableThreadLocals = null;</div><div class="line">    inheritedAccessControlContext = null;</div><div class="line">    blocker = null;</div><div class="line">    uncaughtExceptionHandler = null;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>ThreadLocal.ThreadLocalMap.java</strong></p>
+<ul>
+<li>ThreadLocalMap内部是一系列的Entry构成，每一个Entry都是WeakReference<threadlocal对象></threadlocal对象></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadLocalMap</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * The entries in this hash map extend WeakReference, using</div><div class="line">     * its main ref field as the key (which is always a</div><div class="line">     * ThreadLocal object).  Note that null keys (i.e. entry.get()</div><div class="line">     * == null) mean that the key is no longer referenced, so the</div><div class="line">     * entry can be expunged from table.  Such entries are referred to</div><div class="line">     * as "stale entries" in the code that follows.</div><div class="line">     */</div><div class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Entry</span> <span class="keyword">extends</span> <span class="title">WeakReference</span>&lt;<span class="title">ThreadLocal</span>&lt;?&gt;&gt; </span>&#123;</div><div class="line">        <span class="comment">/** The value associated with this ThreadLocal. */</span></div><div class="line">        Object value;</div><div class="line"></div><div class="line">        <span class="comment">// k是ThreadLocal实例</span></div><div class="line">        Entry(ThreadLocal&lt;?&gt; k, Object v) &#123;</div><div class="line">            <span class="comment">// 调用WeakReference构造器，但是并不是真的持有ThreadLocal的引用，当ThreadLocal的外部强引用被回收的时候，ThreadLocalMap中的key就会变成null;当系统进行ThreadLocalMap的回收的时候，就会进行垃圾数据的清理(ThreadLocalMap持有的数据)。</span></div><div class="line">            <span class="keyword">super</span>(k);</div><div class="line">            value = v;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>ThreadLocal所持有的对象其实是保存在Thread类的ThreadLocalMap变量中；所以只要线程不退出，那么这些对象会一直存在。当线程退出的时候，其实就会执行exit()方法进行一些清理工作。但是如果使用线程池的话，那么这些线程未必会退出，这种情况下，将大对象设置到ThreadLocal中，可能使得系统存在内存泄漏（这里指访问几次不访问后可能出现内存无法被回收，因为一直被线程持有），所以要及时回收对象的话，可以通过ThreadLocal.remove()方法将变量移除；</li>
+<li>如果对于ThreadLocal变量，手动设置其为 <code>null</code>, 那么这个ThreadLocal对应的所有线程的局部变量都有可能被回收(参见上面ThreadLocalMap的实现，其存储的每一个对象都是Entry，而Entry又是继承WeakReference，那么当指向ThreadLocal的强引用被设置为null时，ThreadLocalMap的Entry对象中存储的ThreadLocal的弱引用可能会在GC的时候被清理掉)。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadLocalDemoGC</span> </span>&#123;</div><div class="line">    <span class="keyword">static</span> <span class="keyword">volatile</span> ThreadLocal&lt;SimpleDateFormat&gt; t1 = <span class="keyword">new</span> ThreadLocal&lt;SimpleDateFormat&gt;() &#123;</div><div class="line">        <span class="comment">// 为了跟踪ThreadLocal的垃圾回收.</span></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">finalize</span><span class="params">()</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">            System.out.println(<span class="keyword">this</span>.toString() + <span class="string">" is gc"</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="keyword">static</span> <span class="keyword">volatile</span> CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">10000</span>);</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ParseDate</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</div><div class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ParseDate</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</div><div class="line">            <span class="keyword">this</span>.i = i;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                <span class="keyword">if</span> (t1.get() == <span class="keyword">null</span>) &#123;</div><div class="line">                    t1.set(<span class="keyword">new</span> SimpleDateFormat(<span class="string">"yyyy-MM-dd HH:mm:ss"</span>)&#123;</div><div class="line"></div><div class="line">                        <span class="comment">// 为了跟踪SimpleDateFormat对象的垃圾回收.</span></div><div class="line">                        <span class="meta">@Override</span></div><div class="line">                        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">finalize</span><span class="params">()</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">                            System.out.println(<span class="keyword">this</span>.toString() + <span class="string">" is gc."</span>);</div><div class="line">                        &#125;</div><div class="line">                    &#125;);</div><div class="line">                    System.out.println(Thread.currentThread().getId() + <span class="string">": create SimpleDateFormat"</span>);</div><div class="line">                &#125;</div><div class="line">                Date date = t1.get().parse(<span class="string">"2017-05-22 16:21:"</span> + (i % <span class="number">60</span>));</div><div class="line">            &#125; <span class="keyword">catch</span> (ParseException e) &#123;</div><div class="line">                e.printStackTrace();</div><div class="line">            &#125; <span class="keyword">finally</span> &#123;</div><div class="line">                countDownLatch.countDown();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</div><div class="line">        ExecutorService es = Executors.newFixedThreadPool(<span class="number">10</span>);</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</div><div class="line">            es.execute(<span class="keyword">new</span> ParseDate(i));</div><div class="line">        &#125;</div><div class="line">        countDownLatch.await();</div><div class="line">        System.out.println(<span class="string">"mission completed."</span>);</div><div class="line">        t1 = <span class="keyword">null</span>;</div><div class="line">        System.gc();</div><div class="line">        System.out.println(<span class="string">"First GC Completed!!"</span>);</div><div class="line">        t1 = <span class="keyword">new</span> ThreadLocal&lt;&gt;();</div><div class="line">        countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">10000</span>);</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</div><div class="line">            es.execute(<span class="keyword">new</span> ParseDate(i));</div><div class="line">        &#125;</div><div class="line">        countDownLatch.await();</div><div class="line">        Thread.sleep(<span class="number">1000</span>);</div><div class="line">        System.gc();</div><div class="line">        System.out.println(<span class="string">"Second GC Completed!!"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">&gt; output</div><div class="line"><span class="comment">/* JDK1.8 的输出 */</span></div><div class="line"><span class="number">13</span>: create SimpleDateFormat</div><div class="line"><span class="number">18</span>: create SimpleDateFormat</div><div class="line"><span class="number">11</span>: create SimpleDateFormat</div><div class="line"><span class="number">17</span>: create SimpleDateFormat</div><div class="line"><span class="number">12</span>: create SimpleDateFormat</div><div class="line"><span class="number">14</span>: create SimpleDateFormat</div><div class="line"><span class="number">19</span>: create SimpleDateFormat</div><div class="line"><span class="number">20</span>: create SimpleDateFormat</div><div class="line"><span class="number">16</span>: create SimpleDateFormat</div><div class="line"><span class="number">15</span>: create SimpleDateFormat</div><div class="line">mission completed.</div><div class="line">First GC Completed!!</div><div class="line"><span class="comment">// ThreadLocal对象被回收了；</span></div><div class="line">main.java.book1.ch4.ThreadLocalDemoGC$<span class="number">1</span>@<span class="number">37714</span>d2a is gc</div><div class="line"><span class="number">11</span>: create SimpleDateFormat</div><div class="line"><span class="number">15</span>: create SimpleDateFormat</div><div class="line"><span class="number">14</span>: create SimpleDateFormat</div><div class="line"><span class="number">19</span>: create SimpleDateFormat</div><div class="line"><span class="number">18</span>: create SimpleDateFormat</div><div class="line"><span class="number">13</span>: create SimpleDateFormat</div><div class="line"><span class="number">20</span>: create SimpleDateFormat</div><div class="line"><span class="number">16</span>: create SimpleDateFormat</div><div class="line"><span class="number">12</span>: create SimpleDateFormat</div><div class="line"><span class="number">17</span>: create SimpleDateFormat</div><div class="line">Second GC Completed!!</div><div class="line"><span class="comment">// JDK1.8中没有观察到SimpleDateFormat的回收。JDK1.7也没有，书上显示有。。。</span></div></pre></td></tr></table></figure>
+<h3 id="测试ThreadLocald的性能"><a href="#测试ThreadLocald的性能" class="headerlink" title="测试ThreadLocald的性能"></a><strong>测试ThreadLocald的性能</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadLocalOutputDemo</span> </span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> GEN_COUNT = <span class="number">10000000</span>;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> THREAD_COUNT = <span class="number">4</span>;</div><div class="line">    <span class="keyword">static</span> ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT);</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Random rnd = <span class="keyword">new</span> Random(<span class="number">123</span>);</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> ThreadLocal&lt;Random&gt; tRnd = <span class="keyword">new</span> ThreadLocal&lt;Random&gt;() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">protected</span> Random <span class="title">initialValue</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Random(<span class="number">123</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">RndTask</span> <span class="keyword">implements</span> <span class="title">Callable</span>&lt;<span class="title">Long</span>&gt; </span>&#123;</div><div class="line">        <span class="keyword">private</span> <span class="keyword">int</span> mode = <span class="number">0</span>;</div><div class="line"></div><div class="line">        RndTask(<span class="keyword">int</span> mode) &#123;</div><div class="line">            <span class="keyword">this</span>.mode = mode;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">public</span> Random <span class="title">getRandom</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (mode == <span class="number">0</span>) &#123;</div><div class="line">                <span class="keyword">return</span> rnd;</div><div class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mode == <span class="number">1</span>) &#123;</div><div class="line">                <span class="keyword">return</span> tRnd.get();</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> Long <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">            <span class="keyword">long</span> start = System.currentTimeMillis();</div><div class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; GEN_COUNT; i++) &#123;</div><div class="line">                getRandom().nextInt();</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">long</span> end = System.currentTimeMillis();</div><div class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">" spend "</span> + (end - start));</div><div class="line">            <span class="keyword">return</span> end - start;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ExecutionException, InterruptedException </span>&#123;</div><div class="line">        Future&lt;Long&gt;[] futures = <span class="keyword">new</span> Future[THREAD_COUNT];</div><div class="line">        <span class="comment">// 多线程共享一个Random</span></div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; THREAD_COUNT; i++) &#123;</div><div class="line">            futures[i] = es.submit(<span class="keyword">new</span> RndTask(<span class="number">0</span>));</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">long</span> totalTime1 = <span class="number">0</span>;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; THREAD_COUNT; i++) &#123;</div><div class="line">            totalTime1 += futures[i].get();</div><div class="line">        &#125;</div><div class="line">        System.out.println(<span class="string">"多线程访问同一个Random对象的耗时:"</span> + totalTime1);</div><div class="line">        <span class="comment">// 多线程</span></div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; THREAD_COUNT; i++) &#123;</div><div class="line">            futures[i] = es.submit(<span class="keyword">new</span> RndTask(<span class="number">1</span>));</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">long</span> totalTime2 = <span class="number">0</span>;</div><div class="line">        <span class="comment">// 多线程使用私有的Random</span></div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; THREAD_COUNT; i++) &#123;</div><div class="line">            totalTime2 += futures[i].get();</div><div class="line">        &#125;</div><div class="line">        System.out.println(<span class="string">"多线程访问私有Random对象的耗时:"</span> + totalTime2);</div><div class="line"></div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">&gt; output</div><div class="line">pool-<span class="number">1</span>-thread-<span class="number">4</span> spend <span class="number">2833</span></div><div class="line">pool-<span class="number">1</span>-thread-<span class="number">3</span> spend <span class="number">2880</span></div><div class="line">pool-<span class="number">1</span>-thread-<span class="number">1</span> spend <span class="number">2948</span></div><div class="line">pool-<span class="number">1</span>-thread-<span class="number">2</span> spend <span class="number">2949</span></div><div class="line">多线程访问同一个Random对象的耗时:<span class="number">11610</span></div><div class="line">pool-<span class="number">1</span>-thread-<span class="number">4</span> spend <span class="number">193</span></div><div class="line">pool-<span class="number">1</span>-thread-<span class="number">3</span> spend <span class="number">195</span></div><div class="line">pool-<span class="number">1</span>-thread-<span class="number">2</span> spend <span class="number">200</span></div><div class="line">pool-<span class="number">1</span>-thread-<span class="number">1</span> spend <span class="number">209</span></div><div class="line">多线程访问私有Random对象的耗时:<span class="number">797</span></div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/ThreadLocal/" rel="tag"># ThreadLocal</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/22/java-lock-optimizations/" rel="next" title="锁的优化和注意事项">
+                <i class="fa fa-chevron-left"></i> 锁的优化和注意事项
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/26/java-singleton/" rel="prev" title="单例模式线程安全的四种实现">
+                单例模式线程安全的四种实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadLocal"><span class="nav-number">1.</span> <span class="nav-text">ThreadLocal</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SimpleDateFormat线程不安全的使用"><span class="nav-number">1.1.</span> <span class="nav-text">SimpleDateFormat线程不安全的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SimpleDateFormat线程安全的做法"><span class="nav-number">1.2.</span> <span class="nav-text">SimpleDateFormat线程安全的做法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ThreadLocal的实现原理"><span class="nav-number">1.3.</span> <span class="nav-text">ThreadLocal的实现原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试ThreadLocald的性能"><span class="nav-number">1.4.</span> <span class="nav-text">测试ThreadLocald的性能</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

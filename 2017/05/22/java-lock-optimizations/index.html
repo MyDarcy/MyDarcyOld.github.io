@@ -1,0 +1,983 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Synchronized," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="锁的优化和注意事项  对于多线程应用而言，除了处理功能需求以外，还需要维护额外的多线程环境特有的信息，如线程本身的元数据，线程的调度，线程上下文的切换。  提高锁性能的几点思考减少锁持有的时间 锁竞争的过程中，单个线程对于锁的持有时间和系统性能有着直接的关系，如果线程持有锁的时间很长，那么锁的竞争程度也会愈发激烈。应该尽可能的减少对某个锁的占有时间，减少线程互斥的可能。 减少锁的持有时间可以降低锁">
+<meta name="keywords" content="Java,Synchronized">
+<meta property="og:type" content="article">
+<meta property="og:title" content="锁的优化和注意事项">
+<meta property="og:url" content="http://yoursite.com/2017/05/22/java-lock-optimizations/index.html">
+<meta property="og:site_name" content="Darcy">
+<meta property="og:description" content="锁的优化和注意事项  对于多线程应用而言，除了处理功能需求以外，还需要维护额外的多线程环境特有的信息，如线程本身的元数据，线程的调度，线程上下文的切换。  提高锁性能的几点思考减少锁持有的时间 锁竞争的过程中，单个线程对于锁的持有时间和系统性能有着直接的关系，如果线程持有锁的时间很长，那么锁的竞争程度也会愈发激烈。应该尽可能的减少对某个锁的占有时间，减少线程互斥的可能。 减少锁的持有时间可以降低锁">
+<meta property="og:updated_time" content="2017-05-22T14:46:51.381Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="锁的优化和注意事项">
+<meta name="twitter:description" content="锁的优化和注意事项  对于多线程应用而言，除了处理功能需求以外，还需要维护额外的多线程环境特有的信息，如线程本身的元数据，线程的调度，线程上下文的切换。  提高锁性能的几点思考减少锁持有的时间 锁竞争的过程中，单个线程对于锁的持有时间和系统性能有着直接的关系，如果线程持有锁的时间很长，那么锁的竞争程度也会愈发激烈。应该尽可能的减少对某个锁的占有时间，减少线程互斥的可能。 减少锁的持有时间可以降低锁">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/05/22/java-lock-optimizations/"/>
+
+
+
+
+
+  <title>锁的优化和注意事项 | Darcy</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Darcy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知。孤勇。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/22/java-lock-optimizations/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">锁的优化和注意事项</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-22T22:37:05+08:00">
+                2017-05-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/05/22/java-lock-optimizations/" class="leancloud_visitors" data-flag-title="锁的优化和注意事项">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="锁的优化和注意事项"><a href="#锁的优化和注意事项" class="headerlink" title="锁的优化和注意事项"></a>锁的优化和注意事项</h1><blockquote>
+<p> 对于多线程应用而言，除了处理功能需求以外，还需要维护额外的多线程环境特有的信息，如线程本身的元数据，线程的调度，线程上下文的切换。</p>
+</blockquote>
+<h2 id="提高锁性能的几点思考"><a href="#提高锁性能的几点思考" class="headerlink" title="提高锁性能的几点思考"></a>提高锁性能的几点思考</h2><h3 id="减少锁持有的时间"><a href="#减少锁持有的时间" class="headerlink" title="减少锁持有的时间"></a>减少锁持有的时间</h3><ul>
+<li>锁竞争的过程中，单个线程对于锁的持有时间和系统性能有着直接的关系，如果线程持有锁的时间很长，那么锁的竞争程度也会愈发激烈。应该尽可能的减少对某个锁的占有时间，减少线程互斥的可能。</li>
+<li>减少锁的持有时间可以降低锁冲突的可能性，进而提升系统的开发效率。</li>
+</ul>
+<a id="more"></a>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 这里假设只有mutextMethod()方法是需要同步的，而method1()和method2()方法不需要同步而且又是耗时较长的方法，那么这样的同步可能导致等待线程的数目大量的增加。</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">syncMethod1</span><span class="params">()</span> </span>&#123;</div><div class="line">    method1();</div><div class="line">    mutexMethod();</div><div class="line">    method2();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 解决思路：只是在必要的时候进行同步，减少对锁的占用时间，提高系统的吞吐量；</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">syncMethod1</span><span class="params">()</span> </span>&#123;</div><div class="line">    method1();</div><div class="line">    <span class="keyword">synchronized</span>(<span class="keyword">this</span>) &#123;</div><div class="line">        mutexMethod();</div><div class="line">    &#125;</div><div class="line">    method2();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// JDK中的体现, java.util.regex.Pattern</span></div><div class="line"><span class="comment">// 有条件的进行锁的申请。</span></div><div class="line"><span class="function"><span class="keyword">public</span> Matcher <span class="title">matcher</span><span class="params">(CharSequence input)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!compiled) &#123;</div><div class="line">        <span class="keyword">synchronized</span>(<span class="keyword">this</span>) &#123; <span class="comment">// 表达式未编译的时候进行局部的加锁。</span></div><div class="line">            <span class="keyword">if</span> (!compiled)</div><div class="line">                compile();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    Matcher m = <span class="keyword">new</span> Matcher(<span class="keyword">this</span>, input);</div><div class="line">    <span class="keyword">return</span> m;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="减小锁的粒度"><a href="#减小锁的粒度" class="headerlink" title="减小锁的粒度"></a>减小锁的粒度</h3><ul>
+<li>之前的文章 <a href="https://mydarcy.github.io/2017/05/21/juc-concurrency-collections/" target="_blank" rel="external">JDK的并发容器</a> 有说到，这里再贴一下。</li>
+<li>实现线程安全的HashMap的方法之一是对整个HashMap加锁，但是这样的加锁粒度太大，<strong>JDK1.7</strong>中的ConconcurrentHashMap，它内部进一步细分了若干个小的HashMap，称为段(Segment)，默认情况下，一个ConcurrentHashMap被细分为16个段。</li>
+<li>需要在ConcurrentHashMap中增加一个表项时，并不是将整个HashMap加锁，而是首先根据hashCode得到该表项应该被存放到哪个段中，然后针对该段加锁，并完成put操作。所以，默认设置下最好可以支持16个线程的同时插入操作,吞吐量大大提高。</li>
+<li>减少锁粒度也会带来新的问题：当系统需要获取全局锁的时候，消耗的资源比较多。ConconcurrentHashMap的put操作很好的分离了锁，但是当试图获取ConcurrentHashMap的全局信息的时候，就会需要获取所有段的锁才能继续实施。譬如ConcurrentHashMap的size()方法。所以，只有类似于size()这样获取全局信息的方法调用不频繁的时候，这种减小锁粒度的方法才能真正的提高系统的吞吐量。</li>
+<li>以上：仅仅适用于 JDK1.7</li>
+<li>总的来说：减小锁粒度，就是缩小锁定对象的范围，从而减少锁冲突的可能性，提高系统的并发能力。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcurrentHashMap</span>&lt;<span class="title">K</span>, <span class="title">V</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractMap</span>&lt;<span class="title">K</span>, <span class="title">V</span>&gt;  </span></div><div class="line">        <span class="keyword">implements</span> <span class="title">ConcurrentMap</span>&lt;<span class="title">K</span>, <span class="title">V</span>&gt;, <span class="title">Serializable</span> &#123;  </div><div class="line">  </div><div class="line">    <span class="comment">// 将整个hashmap分成几个小的map，每个segment都是一个锁；与hashtable相比，这么设计的目的是对于put, remove等操作，可以减少并发冲突，对  </span></div><div class="line">    <span class="comment">// 不属于同一个片段的节点可以并发操作，大大提高了性能  </span></div><div class="line">    </div><div class="line">    <span class="keyword">final</span> Segment&lt;K,V&gt;[] segments;  </div><div class="line">  </div><div class="line">    <span class="comment">// 本质上Segment类就是一个小的hashmap，里面table数组存储了各个节点的数据，继承了ReentrantLock, 可以作为互拆锁使用  </span></div><div class="line">    </div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Segment</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; <span class="keyword">extends</span> <span class="title">ReentrantLock</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;  </div><div class="line">        <span class="keyword">transient</span> <span class="keyword">volatile</span> HashEntry&lt;K,V&gt;[] table;  </div><div class="line">        <span class="keyword">transient</span> <span class="keyword">int</span> count;  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    <span class="comment">// 基本节点，存储Key， Value值  </span></div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">HashEntry</span>&lt;<span class="title">K</span>,<span class="title">V</span>&gt; </span>&#123;  </div><div class="line">        <span class="keyword">final</span> <span class="keyword">int</span> hash;  </div><div class="line">        <span class="keyword">final</span> K key;  </div><div class="line">        <span class="keyword">volatile</span> V value;  </div><div class="line">        <span class="keyword">volatile</span> HashEntry&lt;K,V&gt; next;  </div><div class="line">    &#125;  </div><div class="line">    </div><div class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</div><div class="line">    <span class="function"><span class="keyword">public</span> V <span class="title">put</span><span class="params">(K key, V value)</span> </span>&#123;</div><div class="line">        Segment&lt;K,V&gt; s;</div><div class="line">        <span class="keyword">if</span> (value == <span class="keyword">null</span>)</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</div><div class="line">        <span class="keyword">int</span> hash = hash(key);</div><div class="line">        <span class="keyword">int</span> j = (hash &gt;&gt;&gt; segmentShift) &amp; segmentMask;</div><div class="line">        <span class="keyword">if</span> ((s = (Segment&lt;K,V&gt;)UNSAFE.getObject          <span class="comment">// nonvolatile; recheck</span></div><div class="line">             (segments, (j &lt;&lt; SSHIFT) + SBASE)) == <span class="keyword">null</span>) <span class="comment">//  in ensureSegment</span></div><div class="line">            s = ensureSegment(j);</div><div class="line">        <span class="keyword">return</span> s.put(key, hash, value, <span class="keyword">false</span>);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Number of unsynchronized retries in size and containsValue</div><div class="line">     * methods before resorting to locking. This is used to avoid</div><div class="line">     * unbounded retries if tables undergo continuous modification</div><div class="line">     * which would make it impossible to obtain an accurate result.</div><div class="line">     */</div><div class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> RETRIES_BEFORE_LOCK = <span class="number">2</span>;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="comment">// Try a few times to get accurate count. On failure due to</span></div><div class="line">        <span class="comment">// continuous async changes in table, resort to locking.</span></div><div class="line">        <span class="comment">// size()方法首先会使用无锁的方式来求和，如果失败了几次才会使用加锁的方法，所以高并发的场合，这种方式size()方法的性能仍然比同步的HashMap差。</span></div><div class="line">        <span class="keyword">final</span> Segment&lt;K,V&gt;[] segments = <span class="keyword">this</span>.segments;</div><div class="line">        <span class="keyword">int</span> size;</div><div class="line">        <span class="keyword">boolean</span> overflow; <span class="comment">// true if size overflows 32 bits</span></div><div class="line">        <span class="keyword">long</span> sum;         <span class="comment">// sum of modCounts</span></div><div class="line">        <span class="keyword">long</span> last = <span class="number">0L</span>;   <span class="comment">// previous sum</span></div><div class="line">        <span class="keyword">int</span> retries = -<span class="number">1</span>; <span class="comment">// first iteration isn't retry</span></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">for</span> (;;) &#123;</div><div class="line">                <span class="keyword">if</span> (retries++ == RETRIES_BEFORE_LOCK) &#123; <span class="comment">// 重试两次</span></div><div class="line">                    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; segments.length; ++j)</div><div class="line">                        ensureSegment(j).lock(); <span class="comment">// force creation， 对所有的段加锁，</span></div><div class="line">                &#125;</div><div class="line">                sum = <span class="number">0L</span>;</div><div class="line">                size = <span class="number">0</span>;</div><div class="line">                overflow = <span class="keyword">false</span>;</div><div class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; segments.length; ++j) &#123;</div><div class="line">                    Segment&lt;K,V&gt; seg = segmentAt(segments, j);</div><div class="line">                    <span class="keyword">if</span> (seg != <span class="keyword">null</span>) &#123;</div><div class="line">                        sum += seg.modCount;  </div><div class="line">                        <span class="keyword">int</span> c = seg.count;</div><div class="line">                        <span class="keyword">if</span> (c &lt; <span class="number">0</span> || (size += c) &lt; <span class="number">0</span>) <span class="comment">// 求和；</span></div><div class="line">                            overflow = <span class="keyword">true</span>;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">if</span> (sum == last)</div><div class="line">                    <span class="keyword">break</span>;</div><div class="line">                last = sum; <span class="comment">// 记录这一次的sum，下一次在求和看看两次sum是否改变，作为中断继续查询的条件。</span></div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            <span class="keyword">if</span> (retries &gt; RETRIES_BEFORE_LOCK) &#123;</div><div class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; segments.length; ++j)</div><div class="line">                    segmentAt(segments, j).unlock(); <span class="comment">// 释放锁；</span></div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> overflow ? Integer.MAX_VALUE : size;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="读写分离锁来替换独占锁"><a href="#读写分离锁来替换独占锁" class="headerlink" title="读写分离锁来替换独占锁"></a>读写分离锁来替换独占锁</h3><ul>
+<li>文章 <a href="https://mydarcy.github.io/2017/05/20/juc-sync-tools/" target="_blank" rel="external">JDK并发包-同步工具</a> 中有提到读写锁，这里也简单的贴一下</li>
+<li>读写分离锁来替代独占锁是减小锁粒度的特殊情况，JDK1.7中的ConcurrentHashMap中的减小锁粒度是通过分割数据结构来实现的，读写锁更多的是对系统功能点的切分。</li>
+<li>ReadWriteLock 是JDK1.5引入的读写分离锁。读写分离锁可以有效的帮助减少锁竞争。以提升系统性能。如果有多个写进程和多个写线程，那么如果采用重入锁或者内部锁，那么所有读写，写写，读读之间都是串行操作。</li>
+<li>读写锁允许多个线程同时读，但是写写线程和读写线程仍然需要互相等待和持有锁的。（读读不阻塞，其他都是阻塞的）所以如果系统中读操作次数远远大于写操作，那么读写锁就可以发挥功效，提升性能。</li>
+<li>适用场合：读多写少。</li>
+</ul>
+<h3 id="锁的分离"><a href="#锁的分离" class="headerlink" title="锁的分离"></a>锁的分离</h3><ul>
+<li>读写锁的思想进一步的延伸就是锁分离的思想了。读写锁根据系统<strong>读写功能</strong>上的不同进行了有效的锁分离。同样可以使用这种思想根据<strong>应用程序的功能特点</strong>对独占锁进行分离。</li>
+<li>java.util.concurrent.LinkedBlockingQueue中的take()和put()方法分别作用于链表的头部和尾部，如果使用独占锁，那么理论上并不冲突的两个方法就会在操作是互相阻塞，不能实现真正的并发。JDK中使用两把不同的锁来分离take()和put()操作, take()和put()就此互相独立，不存在锁竞争关系，只在take()和take()之间，put()和put()之间分别对takeLock和putLock进行竞争。</li>
+<li>通过takeLock和putLock两把锁，LinkedBlockingQueue实现了<strong>读数据和写数据的分离</strong>，使得两者在真正意义上成为可以并发的操作。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/** Lock held by take, poll, etc */</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> ReentrantLock takeLock = <span class="keyword">new</span> ReentrantLock();</div><div class="line"></div><div class="line"><span class="comment">/** Wait queue for waiting takes */</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Condition notEmpty = takeLock.newCondition();</div><div class="line"></div><div class="line"><span class="comment">/** Lock held by put, offer, etc */</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> ReentrantLock putLock = <span class="keyword">new</span> ReentrantLock();</div><div class="line"></div><div class="line"><span class="comment">/** Wait queue for waiting puts */</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Condition notFull = putLock.newCondition();</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> E <span class="title">take</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</div><div class="line">    E x;</div><div class="line">    <span class="keyword">int</span> c = -<span class="number">1</span>;</div><div class="line">    <span class="keyword">final</span> AtomicInteger count = <span class="keyword">this</span>.count;</div><div class="line">    <span class="keyword">final</span> ReentrantLock takeLock = <span class="keyword">this</span>.takeLock;</div><div class="line">    takeLock.lockInterruptibly(); <span class="comment">// 首先获取锁，不能有两个线程同时取数据。</span></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">while</span> (count.get() == <span class="number">0</span>) &#123; <span class="comment">// 没有数据可用，等待。</span></div><div class="line">            notEmpty.await();</div><div class="line">        &#125;</div><div class="line">        x = dequeue(); <span class="comment">// 取得第一个数据</span></div><div class="line">        c = count.getAndDecrement(); <span class="comment">// 数量-1, 原子操作，因为会和put()函数同时访问count(),c是-1之前的值；</span></div><div class="line">        <span class="keyword">if</span> (c &gt; <span class="number">1</span>)</div><div class="line">            notEmpty.signal(); <span class="comment">// 可以take了，通知可以取了。</span></div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (c == capacity)</div><div class="line">        signalNotFull(); <span class="comment">//take成功后,通知put操作，已经有了空余空间；</span></div><div class="line">    <span class="keyword">return</span> x;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * Inserts the specified element at the tail of this queue, waiting if</div><div class="line"> * necessary for space to become available.</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">put</span><span class="params">(E e)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</div><div class="line">    <span class="keyword">if</span> (e == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</div><div class="line">    <span class="comment">// Note: convention in all put/take/etc is to preset local var</span></div><div class="line">    <span class="comment">// holding count negative to indicate failure unless set.</span></div><div class="line">    <span class="keyword">int</span> c = -<span class="number">1</span>;</div><div class="line">    Node&lt;E&gt; node = <span class="keyword">new</span> Node&lt;E&gt;(e);</div><div class="line">    <span class="keyword">final</span> ReentrantLock putLock = <span class="keyword">this</span>.putLock;</div><div class="line">    <span class="keyword">final</span> AtomicInteger count = <span class="keyword">this</span>.count;</div><div class="line">    putLock.lockInterruptibly(); <span class="comment">// 获取锁，不能同时有两个线程进行put操作，</span></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">/*</span></div><div class="line">         * Note that count is used in wait guard even though it is</div><div class="line">         * not protected by lock. This works because count can</div><div class="line">         * only decrease at this point (all other puts are shut</div><div class="line">         * out by lock), and we (or some other waiting put) are</div><div class="line">         * signalled if it ever changes from capacity. Similarly</div><div class="line">         * for all other uses of count in other wait guards.</div><div class="line">         */</div><div class="line">        <span class="keyword">while</span> (count.get() == capacity) &#123; <span class="comment">// 队列满了等待。</span></div><div class="line">            notFull.await();</div><div class="line">        &#125;</div><div class="line">        enqueue(node); <span class="comment">// 插入数据；</span></div><div class="line">        c = count.getAndIncrement(); <span class="comment">// 原子的+1, 变量c是+1前的值；</span></div><div class="line">        <span class="keyword">if</span> (c + <span class="number">1</span> &lt; capacity)</div><div class="line">            notFull.signal(); <span class="comment">// 右足够的空间；通知其他放入的进程。</span></div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        putLock.unlock(); <span class="comment">// 释放锁；</span></div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (c == <span class="number">0</span>)</div><div class="line">        signalNotEmpty(); <span class="comment">// 插入成功后，通知其他线程取。</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="锁的粗化"><a href="#锁的粗化" class="headerlink" title="锁的粗化"></a>锁的粗化</h3><ul>
+<li>虚拟机遇到一连串的对同一个锁不断的进行请求和释放的操作，便会把所有的锁操作整合成对锁的一一次请求，从而减少对锁的请求同步次数，即<strong>锁的粗化</strong>。因为不断的对同一个锁进行请求，同步和释放，本身也会消耗资源。</li>
+<li>注：性能优化是根据运行时的真实情况对各个资源点进行权衡的过程。锁的粗化和减少锁的持有时间是相反的，效果并不一样，weighted…。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">synchronized</span>(lock) &#123;</div><div class="line">        <span class="comment">// do sth here.</span></div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 做其他不需要的同步操作，但是能很快的执行完。</span></div><div class="line">    <span class="keyword">synchronized</span>(lock) &#123;</div><div class="line">        <span class="comment">// do sth here too.</span></div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 整合后</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">synchronized</span>(lock) &#123;</div><div class="line">        <span class="comment">// do sth here.</span></div><div class="line">        <span class="comment">// 做其他不需要的同步操作，但是能很快的执行完。</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>开发过程中的锁的粗化</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// before。每次循环都请求和释放锁.</span></div><div class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; LENGTH; i++) &#123;</div><div class="line">    <span class="keyword">synchronized</span>(lock) &#123; <span class="comment">// </span></div><div class="line">        <span class="comment">// do sth.</span></div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 合理的做法：只是在外层请求一次锁。</span></div><div class="line"><span class="keyword">synchronized</span>(lock) &#123;</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; LENGTH; i++) &#123;</div><div class="line">        <span class="comment">// do sth here.</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="Java虚拟机对锁优化所做的努力"><a href="#Java虚拟机对锁优化所做的努力" class="headerlink" title="Java虚拟机对锁优化所做的努力"></a>Java虚拟机对锁优化所做的努力</h2><blockquote>
+<p>JDK内部的锁优化策略</p>
+</blockquote>
+<h3 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h3><ul>
+<li>锁偏向是针对加锁操作的优化手段，核心思想是：如果一个线程获得了锁，那么锁就进入了偏向模式，<strong>当这个线程再次请求锁的时候，无须再做任何的同步工作，节省了大量有关锁申请的操作</strong>，从而提高了程序的性能。所以，对于几乎没有锁竞争的场合，偏向锁的优化效果较好，因为连续多次可能是同一个线程请求相同的锁。但是线程竞争锁比较激烈的场合效果不佳，以内在竞争激烈的场合，往往每次请求同一个锁的线程都不一样。这样偏向模式会失效（此时不推荐开启偏向锁）。使用Java虚拟机参数<code>-XX:+UseBiasedLocking</code>可以开启偏向锁。</li>
+<li>优点：消除数据在无竞争情况下的同步原语，提高性能。</li>
+<li>偏向锁与轻量级锁理念上的区别： <ul>
+<li>轻量级锁：在无竞争的情况下使用CAS操作去消除同步使用的互斥量</li>
+<li>偏向锁：在无竞争的情况下把整个同步都消除掉，连CAS操作都不做了</li>
+</ul>
+</li>
+<li>意义：锁偏向于第一个获得它的线程。如果在接下来的执行过程中，该锁没有被其他的线程获取，则持有偏向锁的线程将永远不需要再进行同步。</li>
+<li>相关参数： <ul>
+<li>默认-XX:+UseBiasedLocking=true</li>
+<li>-XX:-UseBiasedLocking=false关闭偏向锁</li>
+<li>应用程序启动几秒钟之后才激活</li>
+<li>-XX：BiasedLockingStartupDelay = 0关闭延迟</li>
+</ul>
+</li>
+</ul>
+<h3 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a>轻量级锁</h3><ul>
+<li>如果偏向锁失效，虚拟机并不会立即挂起线程，而是会使用<strong>轻量级锁</strong>的优化手段：其操作只是简单的将对象头部作为指针，指向持有锁的线程堆栈的内部，从而判断一个线程时候持有对象锁。如果线程线程获得轻量级锁成功，那么可以成功进入临界区；如果轻量级锁加锁失败，表示其他线程争夺了资源，那么当前线程的锁请求就会膨胀为重量级锁。</li>
+<li>轻量级锁并不是用来代替重量级锁的，它的本意是在没有多线程竞争的前提下，减少传统的重量级锁使用产生的性能消耗。轻量级锁所适应的场景是线程交替执行同步块的情况，如果存在同一时间访问同一锁的情况，就会导致轻量级锁膨胀为重量级锁。</li>
+</ul>
+<h3 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h3><ul>
+<li>锁膨胀以后，虚拟机为了避免线程真的在操作系统层面挂起了，虚拟机还会通过<strong>自旋锁</strong>做最后的努力。自旋锁意思是直接粗暴的挂起线程并不是最佳的做法，因为可能几个CPU周期以后就可以获得锁，所以虚拟机会让当前线程做几个空循环(自旋就是这个意思)。如果几轮循环后，得到了锁那么就进入临界区；如果还是不能获得锁，那么会在操作系统层面真的挂起线程。</li>
+</ul>
+<h3 id="锁消除"><a href="#锁消除" class="headerlink" title="锁消除"></a>锁消除</h3><ul>
+<li>锁消除也是一种锁的优化，只是更加的彻底。JVM在JIT编译的时候，通过对运行上下文进行扫描，去除<strong>不可能存在共享资源竞争的锁</strong>。通过锁的消除，可以节省<strong>请求锁</strong>的时间。</li>
+<li>锁消除涉及到名为<strong>逃逸分析</strong>的技术。逃逸分析就是观察某个变量是否会逃出某个作用域。下面的例子中，变量<code>vec</code>没有逃出方法外，所以，JVM才会将vec内部的加锁操作去掉。但是如果直接返回vec，那么就认vec逃出当前函数，即vec可能被其他线程访问，这样情况下JVM就不能直接消除vec中的锁。</li>
+<li>逃逸分析必须在<code>-Server</code>模式下，可以使用<code>-XX:+DoEscapeAnalysis</code>参数打开逃逸分析，也可以使用<code>-XX:EliminateLocks</code>参数打开锁的消除。</li>
+</ul>
+<p><strong>不可能存在共享资源竞争的锁???</strong></p>
+<ul>
+<li>有可能在一个不会存在并发竞争的场合使用了<code>Vector</code>或者<code>StringBuffer</code>，而这些数据结构内部都是通过<code>Synchronized</code>请求锁来实现线程安全。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> String[] createStrings() &#123;</div><div class="line">    <span class="comment">// 注意这里vec只是一个局部变量。而局部变量是在线程栈上分配的。属于线程私有的数据，所以不可能被其他线程访问。这种情况下，Vector内部的加锁是没有必要的。此时如果JVM检测到这样情况，就会将这些无用的锁去除掉。</span></div><div class="line">    Vector&lt;String&gt; vec = <span class="keyword">new</span> Vector&lt;&gt;();</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</div><div class="line">        vec.add(<span class="string">""</span> + i);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> v.toArray(<span class="keyword">new</span> String[]&#123;&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h1><ol>
+<li><a href="http://www.cnblogs.com/charlesblc/p/5994162.html" target="_blank" rel="external">Java中的锁机制 synchronized &amp; 偏向锁 &amp; 轻量级锁 &amp; 重量级锁 &amp; 各自优缺点及场景 &amp; AtomicReference</a></li>
+<li><a href="http://blog.csdn.net/chen77716/article/details/6618779" target="_blank" rel="external">深入JVM锁机制1-synchronized  再看一遍</a></li>
+<li><a href="http://blog.csdn.net/wolegequdidiao/article/details/45116141" target="_blank" rel="external"> 轻量级锁与偏向锁</a></li>
+<li><a href="http://www.cnblogs.com/paddix/p/5405678.html" target="_blank" rel="external">Synchronized底层优化（偏向锁、轻量级锁） 再看一遍</a></li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Synchronized/" rel="tag"># Synchronized</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/22/java-light-biased-locks/" rel="next" title="Synchronized底层优化（偏向锁、轻量级锁）">
+                <i class="fa fa-chevron-left"></i> Synchronized底层优化（偏向锁、轻量级锁）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/23/java-threadlocal/" rel="prev" title="ThreadLocal简单介绍">
+                ThreadLocal简单介绍 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#锁的优化和注意事项"><span class="nav-number">1.</span> <span class="nav-text">锁的优化和注意事项</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#提高锁性能的几点思考"><span class="nav-number">1.1.</span> <span class="nav-text">提高锁性能的几点思考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#减少锁持有的时间"><span class="nav-number">1.1.1.</span> <span class="nav-text">减少锁持有的时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#减小锁的粒度"><span class="nav-number">1.1.2.</span> <span class="nav-text">减小锁的粒度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读写分离锁来替换独占锁"><span class="nav-number">1.1.3.</span> <span class="nav-text">读写分离锁来替换独占锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#锁的分离"><span class="nav-number">1.1.4.</span> <span class="nav-text">锁的分离</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#锁的粗化"><span class="nav-number">1.1.5.</span> <span class="nav-text">锁的粗化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java虚拟机对锁优化所做的努力"><span class="nav-number">1.2.</span> <span class="nav-text">Java虚拟机对锁优化所做的努力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#偏向锁"><span class="nav-number">1.2.1.</span> <span class="nav-text">偏向锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#轻量级锁"><span class="nav-number">1.2.2.</span> <span class="nav-text">轻量级锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自旋锁"><span class="nav-number">1.2.3.</span> <span class="nav-text">自旋锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#锁消除"><span class="nav-number">1.2.4.</span> <span class="nav-text">锁消除</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Ref"><span class="nav-number">2.</span> <span class="nav-text">Ref</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

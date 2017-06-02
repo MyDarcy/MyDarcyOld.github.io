@@ -1,0 +1,1004 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Akka," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Akka基于Scala构建，可以用于创建正确的，高性能的，可拓展的并发程序。">
+<meta name="keywords" content="Akka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Akka简介">
+<meta property="og:url" content="http://yoursite.com/2017/05/30/introduce-to-akka/index.html">
+<meta property="og:site_name" content="Darcy">
+<meta property="og:description" content="Akka基于Scala构建，可以用于创建正确的，高性能的，可拓展的并发程序。">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/sywpy8f9xxnhwl95mmawpja6/akka-lifetime2.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/3fn2ujdmk9oy38w70urk8b4o/actor-lifetime.png">
+<meta property="og:updated_time" content="2017-05-30T06:35:48.720Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Akka简介">
+<meta name="twitter:description" content="Akka基于Scala构建，可以用于创建正确的，高性能的，可拓展的并发程序。">
+<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/sywpy8f9xxnhwl95mmawpja6/akka-lifetime2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/05/30/introduce-to-akka/"/>
+
+
+
+
+
+  <title>Akka简介 | Darcy</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Darcy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知。孤勇。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/30/introduce-to-akka/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Akka简介</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-30T14:33:47+08:00">
+                2017-05-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Akka/" itemprop="url" rel="index">
+                    <span itemprop="name">Akka</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/05/30/introduce-to-akka/" class="leancloud_visitors" data-flag-title="Akka简介">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>Akka基于Scala构建，可以用于创建正确的，高性能的，可拓展的并发程序。</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="Akka优点"><a href="#Akka优点" class="headerlink" title="Akka优点"></a>Akka优点</h2><ul>
+<li>Akka提出了一种名为Actor的并发模型，其粒度比线程小，相比于线程，它可以更大规模的使用。</li>
+<li>Akka提供了容错机制，允许在Actor出现异常的时候进行一些恢复或者重置操作</li>
+<li>Akka可以在单机上构建高并发程序，也可以在网络中构建分布式程序，并且提供透明的Actor定位服务。</li>
+</ul>
+<h2 id="新的并发模型：Actor"><a href="#新的并发模型：Actor" class="headerlink" title="新的并发模型：Actor"></a>新的并发模型：Actor</h2><ul>
+<li>传统的并发程序，线程作为并发程序执行的基本单位。Akka中，使用全新的执行单元–Actor。</li>
+<li>传统的Java并行程序，完全基于面向对象的方法，通过对象的方法调用进行消息的通信，但是如果对象的方法修改了对象本身的状态，那么多线程环境下就可能出现对象不一致的情况，这就需要对这类方法进行同步，这就对性能有所影响。</li>
+<li>Actor模型中，我们并不是通过Actor对象的某一个方法来告诉Actor需要做什么，而是给Actor发消息。当Actor收到消息，就可以根据消息做相应的处理(主动的), 类似于人与人对话。</li>
+</ul>
+<h2 id="Hello-World-Demo"><a href="#Hello-World-Demo" class="headerlink" title="Hello World Demo"></a>Hello World Demo</h2><ul>
+<li>线程调度已经被Actor框架进行了封装，当系统有多个Actor存在时，Akka会自动在线程池中选择线程来执行我们的Actor, 所以多个Actor可能被同一个线程执行，而一个Actor也可能被不同的线程执行。值得注意的是不要在Actor中执行耗时的代码，可能导致其他的Actor调度出现问题。</li>
+</ul>
+<p><strong>Greeter.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Greeter</span> <span class="keyword">extends</span> <span class="title">UntypedActor</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">// 定义了两种消息类型.</span></div><div class="line">    <span class="keyword">static</span> <span class="keyword">enum</span> Msg &#123;</div><div class="line">        GREET, DONE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Actor启动之前, 本方法会被Akka框架回调，初始化处理。</div><div class="line">     * <span class="doctag">@param</span> o</div><div class="line">     * <span class="doctag">@throws</span> Throwable</div><div class="line">     */</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Object o)</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">        <span class="keyword">if</span> (o == Msg.GREET) &#123;</div><div class="line">            System.out.println(<span class="string">"hello, world."</span>);</div><div class="line">            <span class="comment">// 向消息发送方发送DONE消息。</span></div><div class="line">            getSender().tell(Msg.DONE, getSelf());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            unhandled(o);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>HelloWorld.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorld</span> <span class="keyword">extends</span> <span class="title">UntypedAbstractActor</span> </span>&#123;</div><div class="line">    ActorRef greeter;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Actor启动之前, 会被Akka框架调用, 完成一些初始化工作.</div><div class="line">     * <span class="doctag">@throws</span> Exception</div><div class="line">     */</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">preStart</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="comment">// 创建Greeter实例，是HelloWorld的子Actor(使用的是HelloWorld的上下文)。</span></div><div class="line">        greeter = getContext().actorOf(Props.create(Greeter.class), <span class="string">"greeter"</span>);</div><div class="line">        System.out.println(<span class="string">"Greeter Actor Path:"</span> + greeter.path());</div><div class="line">        <span class="comment">// 向Greeter实例发送GREET消息。</span></div><div class="line">        greeter.tell(Greeter.Msg.GREET, getSelf());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * HelloWorld的消息处理函数</div><div class="line">     * <span class="doctag">@param</span> o</div><div class="line">     * <span class="doctag">@throws</span> Throwable</div><div class="line">     */</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Object o)</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">        <span class="comment">// 处理DONE消息, 接收到Done消息时，再向greeter发送GREET消息，然后终止自己。</span></div><div class="line">        <span class="keyword">if</span> (o == Greeter.Msg.DONE) &#123;</div><div class="line">            <span class="comment">// 再次发送GREET信息。getSelf()代表消息发送方。</span></div><div class="line">            greeter.tell(Greeter.Msg.GREET, getSelf());</div><div class="line">            getContext().stop(getSelf());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            unhandled(o);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>HelloWorldDemo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorldDemo</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        <span class="comment">// 管理和维护Actor的ActorSystem。"Hello"为系统名，</span></div><div class="line">        ActorSystem system = ActorSystem.create(<span class="string">"Hello"</span>, ConfigFactory.load(<span class="string">"samplehello.conf"</span>));</div><div class="line">        <span class="comment">// 创建顶级的Acotr， HelloWorld。</span></div><div class="line">        ActorRef actorRef = system.actorOf(Props.create(HelloWorld.class));</div><div class="line">        System.out.println(<span class="string">"HelloWorld Actor Path:"</span> + actorRef.path());</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">&gt; output</div><div class="line">HelloWorld Actor Path:akka:<span class="comment">//Hello/user/$a</span></div><div class="line">Greeter Actor Path:akka:<span class="comment">//Hello/user/$a/greeter</span></div><div class="line">hello, world.</div><div class="line">hello, world.</div><div class="line">[INFO] [<span class="number">05</span>/<span class="number">29</span>/<span class="number">2017</span> <span class="number">20</span>:<span class="number">29</span>:<span class="number">11.923</span>] [Hello-akka.actor.<span class="keyword">default</span>-dispatcher-<span class="number">3</span>]</div><div class="line"><span class="comment">// 消息投递失败，因为HelloWorld 将自己stop了。</span></div><div class="line">[akka:<span class="comment">//Hello/user/$a] Message [book1.ch7.Greeter$Msg] from Actor[akka://Hello/user/$a/greeter#1310019784] to Actor[akka://Hello/user/$a#-865745237] was not delivered. [1] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.</span></div></pre></td></tr></table></figure>
+<p><strong>samplehello.conf</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">akka &#123;</div><div class="line">    loglevel = INFO</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="消息投递的说明"><a href="#消息投递的说明" class="headerlink" title="消息投递的说明"></a>消息投递的说明</h2><ul>
+<li>Actor之间传递的消息应该满足不可变性，因为可变的消息无法高效的在并发环境中使用。</li>
+<li>消息的投递的三种策略（性能从强到弱）<ul>
+<li>至多一次投递：每个消息最多被投递一次，可能出现消息投递失败，出现消息丢失。</li>
+<li>至少一次投递：每个消息至少被投递一次，直到消息投递成功。可能接收到重复消息。</li>
+<li>精确的消息投递：所有消息被精确的投递并且只投递一次。既不会有丢失也不会有重复接收。</li>
+</ul>
+</li>
+<li>没有必要在Akka层保证消息投递的可靠性。消息的可靠性应该在应用的业务逻辑层去维护。</li>
+</ul>
+<h2 id="Actor的生命周期"><a href="#Actor的生命周期" class="headerlink" title="Actor的生命周期"></a>Actor的生命周期</h2><p><img src="http://static.zybuluo.com/csqiang1992/sywpy8f9xxnhwl95mmawpja6/akka-lifetime2.png" alt="akka-lifetime2.png-114.6kB"></p>
+<p><img src="http://static.zybuluo.com/csqiang1992/3fn2ujdmk9oy38w70urk8b4o/actor-lifetime.png" alt="actor-lifetime.png-60.1kB"></p>
+<ul>
+<li>Actor在actorOf()函数被调用后开始创建，<strong>Actor实例创建</strong>后，会<strong>回调preStart()方法</strong>，可以进行一些初始化工作。Actor工作过程中可能出现异常，这时Actor需要重启。<strong>当Actor被重启</strong>时，会<strong>回调preStart()方法</strong>（在老的实例上），接着系统就会创建一个新的Actor实例（都表示同一个Actor）。当<strong>新的Actor创建完成</strong>后，会<strong>回调postRestart()方法</strong>，表示启动完成，同时新的实例会替代旧的实例。停止Actor可以调用stop()方法或者给Actor发送PoisionPill。<strong>Actor停止</strong>时<strong>，postStop()方法</strong>会被调用，同时这个<strong>Actor的监督者</strong>会收到一个<strong>Terminated消息</strong>。</li>
+</ul>
+<p><strong>MyWorker.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyWorker</span> <span class="keyword">extends</span> <span class="title">UntypedActor</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> LoggingAdapter logger = Logging.getLogger(getContext().system(), <span class="keyword">this</span>);</div><div class="line">    <span class="keyword">static</span> <span class="keyword">enum</span> Msg &#123;</div><div class="line">        WORKONG, DONE, CLOSE;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">preStart</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        System.out.println(<span class="string">"MyWorker is starting."</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postStop</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        System.out.println(<span class="string">"MyWorker is stopping"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Object msg)</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">        <span class="keyword">if</span> (msg == Msg.WORKONG) &#123;</div><div class="line">            System.out.println(<span class="string">"I am working"</span>);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (Msg.DONE == msg) &#123;</div><div class="line">            System.out.println(<span class="string">"stop working"</span>);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (Msg.CLOSE == msg) &#123;</div><div class="line">            System.out.println(<span class="string">"I will shutdown."</span>);</div><div class="line">            <span class="comment">// 给发送者发送Done消息。</span></div><div class="line">            getSender().tell(Msg.DONE, getSelf());</div><div class="line">            <span class="comment">// Actor停止。</span></div><div class="line">            getContext().stop(getSelf());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            unhandled(msg);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>WatchActor.java</strong></p>
+<ul>
+<li>为MyWorker指定监督者，一旦MyWorker因为意外停止工作，监视者就会收到通知。</li>
+<li>WatchActor本质上也是一个Actor，不同的地方在于他会在上下文中监视一个Actor。如果将来这个被监视的Actor被终止了，那么WatchActor就会收到一条Terminated消息，这里打印相关actor的路径。</li>
+<li>ActorSystem的shutdown()方法被废弃了，参照Github上面终结ActorSystem的新的方法如下。<a href="https://github.com/shekhargulati/52-technologies-in-2016/blob/master/38-akka/README.md" target="_blank" rel="external">参考</a></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WatchActor</span> <span class="keyword">extends</span> <span class="title">UntypedActor</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> LoggingAdapter logger = Logging.getLogger(getContext().system(), <span class="keyword">this</span>);</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">WatchActor</span><span class="params">(ActorRef actorRef)</span> </span>&#123;</div><div class="line">        getContext().watch(actorRef);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Object msg)</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">        <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> Terminated) &#123;</div><div class="line">            System.out.println(String.format(<span class="string">"%s terminated, shutting down system"</span>, ((Terminated) msg).getActor().path()));</div><div class="line">            Future&lt;Terminated&gt; future = context().system().terminate();</div><div class="line">            <span class="comment">// shutdown deprecated, now this may useful...</span></div><div class="line">            <span class="comment">// ref here: https://github.com/shekhargulati/52-technologies-in-2016/blob/master/38-akka/README.md</span></div><div class="line">            Await.result(future, Duration.create(<span class="string">"10 seconds"</span>));</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            unhandled(msg);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>LifetimeDemo.java</strong></p>
+<ul>
+<li>注意最后向worker发送的PoisionPill这种特殊的消息，会毒死接收方，让其终止。最后一行的输出也显示Watcher监视到了MyWorker的终结。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LifetimeDemo</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        ActorSystem system = ActorSystem.create(<span class="string">"LifttimeDemo"</span>, ConfigFactory.load(<span class="string">"samplehello.conf"</span>));</div><div class="line">        <span class="comment">// 创建worker和watcher。</span></div><div class="line">        ActorRef worker = system.actorOf(Props.create(MyWorker.class), <span class="string">"worker"</span>);</div><div class="line">        <span class="comment">// create()方法第一个参数为要创建的Actor类型，第二个参数为Actor构造函数的参数,这里是worker。</span></div><div class="line">        system.actorOf(Props.create(WatchActor.class, worker), <span class="string">"watcher"</span>);</div><div class="line">        <span class="comment">// 向worker发送两条消息。</span></div><div class="line">        worker.tell(MyWorker.Msg.WORKONG, ActorRef.noSender());</div><div class="line">        worker.tell(MyWorker.Msg.DONE, ActorRef.noSender());</div><div class="line">        <span class="comment">// 向workder发送特殊的消息PoisionPill。 PoisionPill就是毒药丸，直接毒死对方，让其终止。</span></div><div class="line">        worker.tell(PoisonPill.getInstance(), ActorRef.noSender());</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">&gt; output</div><div class="line">MyWorker is starting.</div><div class="line">I am working</div><div class="line">stop working</div><div class="line">MyWorker is stopping</div><div class="line">akka:<span class="comment">//LifetimeDemo/user/worker terminated, shutting down system</span></div><div class="line"><span class="comment">// after 10s JVM shutdown.</span></div></pre></td></tr></table></figure>
+<h2 id="监督策略"><a href="#监督策略" class="headerlink" title="监督策略"></a>监督策略</h2><ul>
+<li>Akka框架内，父Actor可以对子Actor进行监督，监督策略有两种<ul>
+<li>OneForOneStrategy: 父Actor只会对出问题的子Actor进行处理；默认。</li>
+<li>AllForOneStrategy: 父Actor会对出问题的子Actor和它的兄弟都进行处理。</li>
+</ul>
+</li>
+</ul>
+<h2 id="选择Actor"><a href="#选择Actor" class="headerlink" title="选择Actor"></a>选择Actor</h2><ul>
+<li>对Actor进行批量的管理和通信：ActorSelection。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">List&lt;MyWorker&gt; workers = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</div><div class="line">    workers.add(system.actorOf(Props.create(MyWorker.class, i), <span class="string">"worker_"</span> + i))</div><div class="line">&#125;</div><div class="line">ActorSelection actorSelection1 = getContext().actorSelection(<span class="string">"/user/worker_*"</span>);</div><div class="line"><span class="comment">// 向所有的worker actor发送消息。</span></div><div class="line">actorSelection1.tell(<span class="number">1</span>, getSelf());</div></pre></td></tr></table></figure>
+<h2 id="消息收件箱-Inbox"><a href="#消息收件箱-Inbox" class="headerlink" title="消息收件箱(Inbox)"></a>消息收件箱(Inbox)</h2><ul>
+<li>使用Actor可以方便的对Actor进行消息发送和接收。方便Application和Actor之间的交互。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InBoxDemo</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ActorSystem system = ActorSystem.create(<span class="string">"inboxdemo"</span>, ConfigFactory.load(<span class="string">"samplehello.conf"</span>));</div><div class="line">        ActorRef worker = system.actorOf(Props.create(MyWorker.class), <span class="string">"worker"</span>);</div><div class="line"></div><div class="line">        <span class="comment">// 根据system创建与之绑定的Inbox;</span></div><div class="line">        Inbox inbox = Inbox.create(system);</div><div class="line">        <span class="comment">// 用邮箱监视worker; 这样就能够在worker停止以后得到一个通知。</span></div><div class="line">        inbox.watch(worker);</div><div class="line">        <span class="comment">// 通过邮箱向worker发送消息。</span></div><div class="line">        inbox.send(worker, MyWorker.Msg.WORKONG);</div><div class="line">        inbox.send(worker, MyWorker.Msg.DONE);</div><div class="line">        inbox.send(worker, MyWorker.Msg.CLOSE);</div><div class="line"></div><div class="line">        <span class="comment">// 接收消息。</span></div><div class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">            Object msg = inbox.receive(Duration.create(<span class="number">1</span>, TimeUnit.SECONDS));</div><div class="line">            <span class="keyword">if</span> (msg == MyWorker.Msg.CLOSE) &#123;</div><div class="line">                System.out.println(<span class="string">"Inbox my worker is closing"</span>);</div><div class="line">                <span class="comment">// worker停止工作了。</span></div><div class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> Terminated) &#123;</div><div class="line">                System.out.println(<span class="string">"Inbox my worker is dead"</span>);</div><div class="line">                Future&lt;Terminated&gt; fu = system.terminate();</div><div class="line">                Await.result(fu, Duration.create(<span class="string">"10 seconds"</span>));</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                System.out.println(msg);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line">MyWorker is starting.</div><div class="line">I am working</div><div class="line">stop working</div><div class="line">I will shutdown.</div><div class="line">MyWorker is stopping</div><div class="line">DONE</div><div class="line">Inbox my worker is dead</div></pre></td></tr></table></figure>
+<h2 id="消息路由"><a href="#消息路由" class="headerlink" title="消息路由"></a>消息路由</h2><ul>
+<li>Akka提供了灵活的消息发送机制，当需要使用一组Actor而不是一个Actor来提供服务的时候，这一组的Actor都是对等的，这里涉及到的问题是如何调度消息，将消息均衡的分发到一组Actor中。</li>
+<li>Akka使用路由器组件(Router)来封装消息的调度，系统提供了几种消息路由策略<ul>
+<li>轮询选择Actor</li>
+<li>随机选择Actor</li>
+<li>消息发送给最空闲的Actor</li>
+<li>组内广播消息</li>
+</ul>
+</li>
+<li>官网说明: <a href="http://doc.akka.io/docs/akka/snapshot/java/routing.html" target="_blank" rel="external">Routing</a></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Master</span> <span class="keyword">extends</span> <span class="title">AbstractActor</span> </span>&#123;</div><div class="line">  </div><div class="line">  Router router;</div><div class="line">  &#123;</div><div class="line">    List&lt;Routee&gt; routees = <span class="keyword">new</span> ArrayList&lt;Routee&gt;();</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; i++) &#123;</div><div class="line">      ActorRef r = getContext().actorOf(Props.create(Worker.class));</div><div class="line">      getContext().watch(r);</div><div class="line">      routees.add(<span class="keyword">new</span> ActorRefRoutee(r));</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 指定路由策略</span></div><div class="line">    router = <span class="keyword">new</span> Router(<span class="keyword">new</span> RoundRobinRoutingLogic(), routees);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Receive <span class="title">createReceive</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> receiveBuilder()</div><div class="line">      .match(Work.class, message -&gt; &#123;</div><div class="line">        router.route(message, getSender());</div><div class="line">      &#125;)</div><div class="line">      .match(Terminated.class, message -&gt; &#123;</div><div class="line">        router = router.removeRoutee(message.actor());</div><div class="line">        ActorRef r = getContext().actorOf(Props.create(Worker.class));</div><div class="line">        getContext().watch(r);</div><div class="line">        router = router.addRoutee(<span class="keyword">new</span> ActorRefRoutee(r));</div><div class="line">      &#125;)</div><div class="line">      .build();</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<h2 id="Actor内置的状态切换"><a href="#Actor内置的状态切换" class="headerlink" title="Actor内置的状态切换"></a>Actor内置的状态切换</h2><ul>
+<li>Procedure表示一种Actor的状态，同时，它封装了在这种状态下的消息处理逻辑。</li>
+</ul>
+<p><strong>BabyActor.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BabyActor</span> <span class="keyword">extends</span> <span class="title">UntypedActor</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> LoggingAdapter logger = Logging.getLogger(getContext().system(), <span class="keyword">this</span>);</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">enum</span> Msg &#123;</div><div class="line">        SLEEP, PLAY, CLOSE,</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Procedure&lt;Object&gt; angry = <span class="keyword">new</span> Procedure&lt;Object&gt;() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">apply</span><span class="params">(Object msg)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">            System.out.println(<span class="string">"angryApply:"</span> + msg);</div><div class="line">            <span class="keyword">if</span> (msg == Msg.SLEEP) &#123;</div><div class="line">                getSender().tell(<span class="string">"I am already angry."</span>, getSelf());</div><div class="line">                System.out.println(<span class="string">"I am already angry."</span>);</div><div class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (msg == Msg.PLAY) &#123;</div><div class="line">                System.out.println(<span class="string">"I like Playing"</span>);</div><div class="line">                getContext().become(happy);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    Procedure&lt;Object&gt; happy = <span class="keyword">new</span> Procedure&lt;Object&gt;() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">apply</span><span class="params">(Object msg)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">            System.out.println(<span class="string">"happyApply:"</span> + msg);</div><div class="line">            <span class="keyword">if</span> (msg == Msg.PLAY) &#123;</div><div class="line">                getSender().tell(<span class="string">"I am already happy"</span>, getSelf());</div><div class="line">                System.out.println(<span class="string">"I am already happy"</span>);</div><div class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (msg == Msg.SLEEP) &#123;</div><div class="line">                System.out.println(<span class="string">"I dont wanna to sleep."</span>);</div><div class="line">                getContext().become(angry);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 当onReceive()方法处理SLEEP消息时, 会切换当前的Actor状态为angry,</div><div class="line">     * 如果处理PLAY消息, 会切换当前Ator状态为happy。但是一旦完成状态取切换,</div><div class="line">     * 后续有新的消息到达, 那么后续的消息就交由当前状态处理。</div><div class="line">     * <span class="doctag">@param</span> msg</div><div class="line">     * <span class="doctag">@throws</span> Throwable</div><div class="line">     */</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Object msg)</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">        System.out.println(<span class="string">"onReceive:"</span> + msg);</div><div class="line">        <span class="keyword">if</span> (msg == Msg.SLEEP) &#123;</div><div class="line">            getContext().become(angry);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (msg == Msg.PLAY) &#123;</div><div class="line">            getContext().become(happy);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            unhandled(msg);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>BabyDemo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BabyDemo</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        ActorSystem system = ActorSystem.create(<span class="string">"become"</span>, ConfigFactory.load(<span class="string">"samplehello.conf"</span>));</div><div class="line">        ActorRef child = system.actorOf(Props.create(BabyActor.class), <span class="string">"baby"</span>);</div><div class="line">        system.actorOf(Props.create(WatchActor.class, child), <span class="string">"watcher"</span>);</div><div class="line">        child.tell(BabyActor.Msg.PLAY, ActorRef.noSender());</div><div class="line">        child.tell(BabyActor.Msg.SLEEP, ActorRef.noSender());</div><div class="line">        child.tell(BabyActor.Msg.PLAY, ActorRef.noSender());</div><div class="line">        child.tell(BabyActor.Msg.PLAY, ActorRef.noSender());</div><div class="line"></div><div class="line">        child.tell(PoisonPill.getInstance(), ActorRef.noSender());</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line"><span class="comment">// 第一个消息由onReceive处理。同时状态切换成了happy。</span></div><div class="line">onReceive:PLAY</div><div class="line"><span class="comment">// happy状态下处理SLEEP消息，切换状态为angry。</span></div><div class="line">happyApply:SLEEP</div><div class="line">I dont wanna to sleep.</div><div class="line"><span class="comment">// angry状态下处理PLAY消息，切换状态为happy;</span></div><div class="line">angryApply:PLAY</div><div class="line">I like Playing</div><div class="line">happyApply:PLAY</div><div class="line">I am already happy</div><div class="line">akka:<span class="comment">//become/user/baby terminated, shutting down system</span></div><div class="line">[INFO] [<span class="number">05</span>/<span class="number">30</span>/<span class="number">2017</span> <span class="number">13</span>:<span class="number">32</span>:<span class="number">06.578</span>] [become-akka.actor.<span class="keyword">default</span>-dispatcher-<span class="number">2</span>] [akka:<span class="comment">//become/deadLetters] Message [java.lang.String] from Actor[akka://become/user/baby#141531647] to Actor[akka://become/deadLetters] was not delivered. [1] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.</span></div></pre></td></tr></table></figure>
+<h2 id="询问模式-Actor中的Future"><a href="#询问模式-Actor中的Future" class="headerlink" title="询问模式: Actor中的Future."></a>询问模式: Actor中的Future.</h2><ul>
+<li>Actor中的消息是异步通信的。类似Future模式。同样，Actor调用返回一个契约，通过这个契约可以获取最终的结果。</li>
+<li><a href="http://doc.akka.io/docs/akka/snapshot/java/futures.html#introduction" target="_blank" rel="external">官网说明</a></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line">This will cause the current thread to block and wait for the AbstractActor to ‘complete’ the Future with it’s reply. Blocking is discouraged though as it can cause performance problem. The blocking operations are located in Await.result and Await.ready to make it easy to spot where blocking occurs. Alternatives to blocking are discussed further within this documentation. Also note that the Future returned by an AbstractActor is a Future&lt;Object&gt; since an AbstractActor is dynamic. That is why the cast to String is used in the above sample.</div><div class="line">*/</div><div class="line">Timeout timeout = <span class="keyword">new</span> Timeout(Duration.create(<span class="number">5</span>, <span class="string">"seconds"</span>));</div><div class="line">Future&lt;Object&gt; future = Patterns.ask(actor, msg, timeout);</div><div class="line">String result = (String) Await.result(future, timeout.duration());</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">/*</span></div><div class="line">Warning</div><div class="line">Await.result and Await.ready are provided for exceptional situations where you must block, a good rule of thumb is to only use them if you know why you must block. For all other cases, use asynchronous composition as described below.</div><div class="line">To send the result of a Future to an Actor, you can use the pipe construct:</div><div class="line">*/</div><div class="line">akka.pattern.Patterns.pipe(future, system.dispatcher()).to(actor);</div></pre></td></tr></table></figure>
+<p><strong>FutureDemo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">enum</span> Msg &#123;</div><div class="line">    DONE, CLOSE,</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PrintActor</span> <span class="keyword">extends</span> <span class="title">UntypedActor</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> LoggingAdapter log = Logging.getLogger(getContext().system(), ConfigFactory.load(<span class="string">"samplehello.conf"</span>));</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Object msg)</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">        <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> Integer) &#123;</div><div class="line">            System.out.println(<span class="string">"PrintActor:"</span> + msg);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (msg == Msg.DONE) &#123;</div><div class="line">            log.info(<span class="string">"Stop working"</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (msg == Msg.CLOSE) &#123;</div><div class="line">            log.info(<span class="string">"I will shutdown."</span>);</div><div class="line">            getSender().tell(Msg.CLOSE, getSelf());</div><div class="line">            getContext().stop(getSelf());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            unhandled(msg);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">WorkerActor</span> <span class="keyword">extends</span> <span class="title">UntypedActor</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> LoggingAdapter log = Logging.getLogger(getContext().system(), ConfigFactory.load(<span class="string">"samplehello.conf"</span>));</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Object msg)</span> <span class="keyword">throws</span> Throwable </span>&#123;</div><div class="line">        <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> Integer) &#123;</div><div class="line">            <span class="keyword">int</span> number = (Integer) msg;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                Thread.sleep(<span class="number">1000</span>);</div><div class="line">            &#125;<span class="keyword">catch</span> (Exception e) &#123;&#125;</div><div class="line">            getSender().tell(number * number, getSelf());</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (msg == Msg.DONE) &#123;</div><div class="line">            log.info(<span class="string">"Stop working"</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (msg == Msg.CLOSE) &#123;</div><div class="line">            log.info(<span class="string">"I will shutdown."</span>);</div><div class="line">            getSender().tell(Msg.CLOSE, getSelf());</div><div class="line">            getContext().stop(getSelf());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            unhandled(msg);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FutureDemo</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ActorSystem system = ActorSystem.create(<span class="string">"future"</span>, ConfigFactory.load(<span class="string">"samplehello.conf"</span>));</div><div class="line">        ActorRef worker = system.actorOf(Props.create(WorkerActor.class), <span class="string">"worker"</span>);</div><div class="line">        ActorRef printer = system.actorOf(Props.create(PrintActor.class), <span class="string">"printer"</span>);</div><div class="line">        system.actorOf(Props.create(WatchActor.class, worker), <span class="string">"watcher"</span>);</div><div class="line"></div><div class="line">        <span class="comment">// 等待future返回.</span></div><div class="line">        <span class="comment">// Pattern的ask方法。</span></div><div class="line">        Future&lt;Object&gt; future = ask(worker, <span class="number">5</span>, <span class="number">1500</span>);</div><div class="line">        <span class="comment">// Await方法等待future的返回, 这里将一个异步调用转为一个同步调用。所以可能会出现性能问题。</span></div><div class="line">        Integer re = (<span class="keyword">int</span>) Await.result(future, Duration.create(<span class="number">6</span>, TimeUnit.SECONDS));</div><div class="line">        System.out.println(<span class="string">"sync:"</span> + re);</div><div class="line"></div><div class="line">        <span class="comment">// 直接导向其他的Actor, pipe不会等待.</span></div><div class="line">        future = ask(worker, <span class="number">6</span>, <span class="number">1500</span>);</div><div class="line">        <span class="comment">// 使用这个pipe函数将future重定向到另一个Actor。</span></div><div class="line">        pipe(future, system.dispatcher()).to(printer);</div><div class="line"></div><div class="line">        worker.tell(PoisonPill.getInstance(), ActorRef.noSender());</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&gt; output</div><div class="line">sync:<span class="number">25</span></div><div class="line">PrintActor:<span class="number">36</span></div><div class="line">akka:<span class="comment">//future/user/worker terminated, shutting down system</span></div></pre></td></tr></table></figure>
+<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><ol>
+<li><a href="http://doc.akka.io/docs/akka/snapshot/java/actors.html" target="_blank" rel="external">Actors– akki.io</a></li>
+<li><a href="https://www.iteblog.com/archives/1221.html" target="_blank" rel="external">Akka学习笔记：Actor生命周期</a></li>
+<li><a href="http://doc.akka.io/docs/akka/snapshot/java/guide/index.html" target="_blank" rel="external">Akka–Java Get Started Guide</a></li>
+<li><a href="http://doc.akka.io/docs/akka/snapshot/java/futures.html#introduction" target="_blank" rel="external">Akka–futture</a></li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag"># Akka</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/28/java-java8-completablefuture-stampedlock-longadder/" rel="next" title="Java8中其他的新特性CompletableFuture, StampedLock, LongAdder">
+                <i class="fa fa-chevron-left"></i> Java8中其他的新特性CompletableFuture, StampedLock, LongAdder
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/30/hexo-simple-introduction/" rel="prev" title="Hexo基本教程">
+                Hexo基本教程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Akka优点"><span class="nav-number">1.</span> <span class="nav-text">Akka优点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#新的并发模型：Actor"><span class="nav-number">2.</span> <span class="nav-text">新的并发模型：Actor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hello-World-Demo"><span class="nav-number">3.</span> <span class="nav-text">Hello World Demo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息投递的说明"><span class="nav-number">4.</span> <span class="nav-text">消息投递的说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Actor的生命周期"><span class="nav-number">5.</span> <span class="nav-text">Actor的生命周期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#监督策略"><span class="nav-number">6.</span> <span class="nav-text">监督策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选择Actor"><span class="nav-number">7.</span> <span class="nav-text">选择Actor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息收件箱-Inbox"><span class="nav-number">8.</span> <span class="nav-text">消息收件箱(Inbox)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息路由"><span class="nav-number">9.</span> <span class="nav-text">消息路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Actor内置的状态切换"><span class="nav-number">10.</span> <span class="nav-text">Actor内置的状态切换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#询问模式-Actor中的Future"><span class="nav-number">11.</span> <span class="nav-text">询问模式: Actor中的Future.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ref"><span class="nav-number">12.</span> <span class="nav-text">Ref</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
