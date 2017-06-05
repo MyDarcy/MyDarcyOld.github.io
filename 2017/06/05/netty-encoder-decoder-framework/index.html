@@ -1,0 +1,1027 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Netty," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="编解码器：数据从一种特定协议的格式到另一种特定格式的协议的转换。  编解码器 编解码器：定义如何解析在两个节点之间来回传输的原始字节，以及如何将其和目标应用程序的数据格式做相互转换。 编码器：消息转换为适合于传输的格式（一般是字节流）。处理出站数据。 解码器：网络字节流转换回应用程序的的消息格式。处理入站数据">
+<meta name="keywords" content="Java,Netty">
+<meta property="og:type" content="article">
+<meta property="og:title" content="netty编码解码框架">
+<meta property="og:url" content="http://yoursite.com/2017/06/05/netty-encoder-decoder-framework/index.html">
+<meta property="og:site_name" content="Darcy">
+<meta property="og:description" content="编解码器：数据从一种特定协议的格式到另一种特定格式的协议的转换。  编解码器 编解码器：定义如何解析在两个节点之间来回传输的原始字节，以及如何将其和目标应用程序的数据格式做相互转换。 编码器：消息转换为适合于传输的格式（一般是字节流）。处理出站数据。 解码器：网络字节流转换回应用程序的的消息格式。处理入站数据">
+<meta property="og:updated_time" content="2017-06-05T13:41:56.462Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="netty编码解码框架">
+<meta name="twitter:description" content="编解码器：数据从一种特定协议的格式到另一种特定格式的协议的转换。  编解码器 编解码器：定义如何解析在两个节点之间来回传输的原始字节，以及如何将其和目标应用程序的数据格式做相互转换。 编码器：消息转换为适合于传输的格式（一般是字节流）。处理出站数据。 解码器：网络字节流转换回应用程序的的消息格式。处理入站数据">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/06/05/netty-encoder-decoder-framework/"/>
+
+
+
+
+
+  <title>netty编码解码框架 | Darcy</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?594cf3672b18c8c9a97689d1dfffaa39";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Darcy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知。孤勇。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/05/netty-encoder-decoder-framework/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">netty编码解码框架</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-05T21:36:55+08:00">
+                2017-06-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Netty/" itemprop="url" rel="index">
+                    <span itemprop="name">Netty</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/06/05/netty-encoder-decoder-framework/" class="leancloud_visitors" data-flag-title="netty编码解码框架">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>编解码器：数据从一种特定协议的格式到另一种特定格式的协议的转换。</p>
+</blockquote>
+<h2 id="编解码器"><a href="#编解码器" class="headerlink" title="编解码器"></a>编解码器</h2><ul>
+<li>编解码器：定义如何解析在两个节点之间来回传输的原始字节，以及如何将其和目标应用程序的数据格式做相互转换。</li>
+<li>编码器：消息转换为适合于传输的格式（一般是字节流）。处理<strong>出站数据</strong>。</li>
+<li>解码器：网络字节流转换回应用程序的的消息格式。处理<strong>入站数据</strong></li>
+</ul>
+<a id="more"></a>
+<hr>
+<h2 id="解码器"><a href="#解码器" class="headerlink" title="解码器"></a>解码器</h2><ul>
+<li>字节解码为消息：<code>ByteToMessageDecoder</code>, <code>ReplayingDecoder</code></li>
+<li>一种消息解码为另一种消息：<code>MessageToMessageDecoder</code></li>
+<li>应用场景：每当需要为ChannelPipeline中的下一个ChannelInboundHandler转换入站数据时会用到。在ChannelPipeline中，可以将多个解码器链接在一起，以实现任意复杂的转换逻辑。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> io.netty.handler.codec.*</div><div class="line"><span class="comment">/**</span></div><div class="line"> * &#123;ChannelInboundHandlerAdapter&#125; which decodes bytes in a stream-like fashion from one &#123;<span class="doctag">@link</span> ByteBuf&#125; to an other Message type.</div><div class="line">*/</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ByteToMessageDecoder</span> <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * A specialized variation of &#123;ByteToMessageDecoder&#125; which enables implementation</div><div class="line"> * of a non-blocking decoder in the blocking I/O paradigm.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ReplayingDecoder</span>&lt;<span class="title">S</span>&gt; <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * &#123;ChannelInboundHandlerAdapter&#125; which decodes from one message to an other message.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageToMessageDecoder</span>&lt;<span class="title">I</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;&#125;</div></pre></td></tr></table></figure>
+<h3 id="抽象类ByteToMessageDecoder"><a href="#抽象类ByteToMessageDecoder" class="headerlink" title="抽象类ByteToMessageDecoder"></a>抽象类ByteToMessageDecoder</h3><ul>
+<li>decode : 不断解码传入的bytebuf, 并且将解码后的消息添加到list中，直到bytebuf中没有更多可读取的字节或者list中没有再添加新的元素为止。然后如果list不为空，那么<strong>list中的内容被传递给ChannelPipeline中的下一个ChannelInboundHandler</strong>。</li>
+<li>decodeLast : Channel的状态变为in-active的时候，调用本方法一次。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ByteToMessageDecoder</span> <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;</div><div class="line">   <span class="comment">/**</span></div><div class="line">     * Decode the from one &#123;ByteBuf&#125; to an other. This method will be called till either the input &#123;ByteBuf&#125; has nothing to read when return from this method or till nothing was read from the input &#123;ByteBuf&#125;.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> ctx           the &#123;ChannelHandlerContext&#125; which this &#123;ByteToMessageDecoder&#125; belongs to</div><div class="line">     * <span class="doctag">@param</span> in            the &#123;ByteBuf&#125; from which to read data</div><div class="line">     * <span class="doctag">@param</span> out           the &#123;List&#125; to which decoded messages should be added</div><div class="line">     * <span class="doctag">@throws</span> Exception    is thrown if an error occurs</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in, List&lt;Object&gt; out)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line">    </div><div class="line">   <span class="comment">/**</span></div><div class="line">     * Is called one last time when the &#123;ChannelHandlerContext&#125; goes in-active. Which means the &#123;#channelInactive(ChannelHandlerContext)&#125; was triggered.</div><div class="line">     *</div><div class="line">     * By default this will just call &#123;#decode(ChannelHandlerContext, ByteBuf, List)&#125; but sub-classes may override this for some special cleanup operation.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">decodeLast</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in, List&lt;Object&gt; out)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="keyword">if</span> (in.isReadable()) &#123;</div><div class="line">            <span class="comment">// Only call decode() if there is something left in the buffer to decode.</span></div><div class="line">            <span class="comment">// See https://github.com/netty/netty/issues/4386</span></div><div class="line">            decodeRemovalReentryProtection(ctx, in, out);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>处理包含int的字节流</strong></p>
+<ul>
+<li>解码字节流</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ToIntegerDecoder</span> <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123; <span class="comment">// 拓展ByteToMessageDecoder.</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in,</span></span></div><div class="line">        List&lt;Object&gt; out) <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="comment">//　是否有四个字节可读。</span></div><div class="line">            <span class="keyword">if</span> (in.readableBytes() &gt;= <span class="number">4</span>) &#123;</div><div class="line">                out.add(in.readInt());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>编解码器中的引用计数</strong></p>
+<ul>
+<li>在<strong>编解码器中，一旦消息被编码或者解码，它就会被ReferenceCountUtil.release(msg)调用自动释放</strong>。如果需要将消息保留引用以便稍后使用，可以调用ReferenceCountUtil.retain(msg)方法，以增加引用计数，从而防止消息被自动释放。</li>
+</ul>
+<h3 id="抽象类ReplayingCodeder"><a href="#抽象类ReplayingCodeder" class="headerlink" title="抽象类ReplayingCodeder"></a>抽象类ReplayingCodeder</h3><ul>
+<li><code>ReplayingDecoder</code>拓展了<code>ByteToMessageDecoder</code>类，其使用了一个自定义的<code>ReplayingDecoderByteBuf</code>类来包装ByteBuf，所以就不需要再显式调用<code>readableBytes()</code>, 而是在内部执行该调用。</li>
+<li>但是<code>ReplayingDecoderByteBuf</code>有如下缺陷：<ul>
+<li>不是ByteBuf的所有操作都支持。</li>
+<li>ReplayingDecoder比ByteToMessageDecoder慢一点。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// S是用于状态管理的类型，Void代表不需要状态管理。</span></div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ReplayingDecoder</span>&lt;<span class="title">S</span>&gt; <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ReplayingDecoderByteBuf replayable = <span class="keyword">new</span> ReplayingDecoderByteBuf();</div><div class="line">　　<span class="keyword">private</span> S state;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">callDecode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in, List&lt;Object&gt; out)</span> </span>&#123;</div><div class="line">        replayable.setCumulation(in);</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">while</span> (in.isReadable()) &#123;</div><div class="line">            <span class="comment">//...</span></div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">//...</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>处理int数据的字节流</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ToIntegerDecoder2</span> <span class="keyword">extends</span> <span class="title">ReplayingDecoder</span>&lt;<span class="title">Void</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in,</span></span></div><div class="line">                       List&lt;Object&gt; out) <span class="keyword">throws</span> Exception &#123;</div><div class="line">        out.add(in.readInt());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>更多的解码器</strong></p>
+<ul>
+<li><code>io.netty.handler.codec.DatagramPacketDecoder</code></li>
+<li><code>io.netty.handler.codec.FixedLengthFrameDecoder</code></li>
+<li><code>io.netty.handler.codec.LineBasedFrameDecoder</code>: \n　\r\n来解析数据</li>
+<li><code>io.netty.handler.codec.xxx.*</code>子包下的解码器</li>
+<li><code>io.netty.handler.codec.http.HttpObjectDecoder</code>: 解码http数据。</li>
+</ul>
+<h3 id="抽象类MessageToMessageDecoder"><a href="#抽象类MessageToMessageDecoder" class="headerlink" title="抽象类MessageToMessageDecoder"></a>抽象类MessageToMessageDecoder</h3><ul>
+<li>解码输入消息为另一种格式的消息。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * &#123;ChannelInboundHandlerAdapter&#125; which decodes from one message to an other message.</div><div class="line"> </div><div class="line"> * Be aware that you need to call &#123;ReferenceCounted#retain()&#125; on messages that are just passed through if they are of type &#123;ReferenceCounted&#125;. This is needed as the &#123;MessageToMessageDecoder&#125; will call &#123;ReferenceCounted#release()&#125; on decoded messages.</div><div class="line"> *</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageToMessageDecoder</span>&lt;<span class="title">I</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;</div><div class="line">    <span class="comment">//...</span></div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead</span><span class="params">(ChannelHandlerContext ctx, Object msg)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="comment">// impls....</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Decode from one message to an other. This method will be called for each written message that can be handled by this encoder.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> ctx           the &#123;ChannelHandlerContext&#125; which this &#123;MessageToMessageDecoder&#125; belongs to</div><div class="line">     * <span class="doctag">@param</span> msg           the message to decode to an other one</div><div class="line">     * <span class="doctag">@param</span> out           the &#123;List&#125; to which decoded messages should be added</div><div class="line">     * <span class="doctag">@throws</span> Exception    is thrown if an error occurs</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, I msg, List&lt;Object&gt; out)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>输入的Integer解码为String</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IntegerToStringDecoder</span> <span class="keyword">extends</span> <span class="title">MessageToMessageDecoder</span>&lt;<span class="title">Integer</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, Integer msg</span></span></div><div class="line">List&lt;Object&gt; out) <span class="keyword">throws</span> Exception &#123;</div><div class="line">        out.add(String.valueOf(msg));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="TooLongFrameException"><a href="#TooLongFrameException" class="headerlink" title="TooLongFrameException"></a>TooLongFrameException</h3><ul>
+<li>解码器在帧超出指定长度限制时抛出异常。随后被ChannelHandler.exceptionCaught()方法捕获。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SafeByteToMessageDecoder</span> <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MAX_FRAME_SIZE = <span class="number">1024</span>;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in,</span></span></div><div class="line">                       List&lt;Object&gt; out) <span class="keyword">throws</span> Exception &#123;</div><div class="line">        <span class="keyword">int</span> readable = in.readableBytes();</div><div class="line">        <span class="keyword">if</span> (readable &gt; MAX_FRAME_SIZE) &#123;</div><div class="line">            <span class="comment">//　跳过所有可读的字节，直接抛出异常。</span></div><div class="line">            in.skipBytes(readable);</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> TooLongFrameException(<span class="string">"Frame too big!"</span>);</div><div class="line">        &#125;</div><div class="line"><span class="comment">// do something</span></div><div class="line">...</div><div class="line">    &#125;ChannelOutbound</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="编码器"><a href="#编码器" class="headerlink" title="编码器"></a>编码器</h2><h3 id="抽象类MessageToByteEncoder"><a href="#抽象类MessageToByteEncoder" class="headerlink" title="抽象类MessageToByteEncoder"></a>抽象类MessageToByteEncoder</h3><ul>
+<li>encode：要被编码的消息为msg，编码成为ByteBuf。该ByteBuf随后被转发给ChannelPipeline中的下一个ChannelOutboundHandler…</li>
+<li>解码器需要在Channel关闭之后产生最后一个消息，所以就需要decodeLast()方法的调用，但是编码器则没有这种需求。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * &#123;ChannelOutboundHandlerAdapter&#125; which encodes message in a stream-like fashion from one message to an &#123;ByteBuf&#125;.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageToByteEncoder</span>&lt;<span class="title">I</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelOutboundHandlerAdapter</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Encode a message into a &#123;ByteBuf&#125;. This method will be called for each written message that can be handled　by this encoder.</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> ctx           the &#123;ChannelHandlerContext&#125; which this &#123;MessageToByteEncoder&#125; belongs to</div><div class="line">     * <span class="doctag">@param</span> msg           the message to encode</div><div class="line">     * <span class="doctag">@param</span> out           the &#123;ByteBuf&#125; into which the encoded message will be written</div><div class="line">     * <span class="doctag">@throws</span> Exception    is thrown if an error occurs</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(ChannelHandlerContext ctx, I msg, ByteBuf out)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line">    </div><div class="line">｝</div></pre></td></tr></table></figure>
+<p><strong>doc demo</strong></p>
+<ul>
+<li>integer编码后传输。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IntegerEncoder</span> <span class="keyword">extends</span> <span class="title">MessageToByteEncoder</span>&lt;<span class="title">Integer</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(ChannelHandlerContext ctx, Integer msg,  ByteBuf out)</span></span></div><div class="line">               <span class="keyword">throws</span> Exception &#123;</div><div class="line">           out.writeInt(msg);</div><div class="line">        &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="抽象类MessageToMessageEncoder"><a href="#抽象类MessageToMessageEncoder" class="headerlink" title="抽象类MessageToMessageEncoder"></a>抽象类MessageToMessageEncoder</h3><ul>
+<li>数据从一种格式编码为另一种格式。</li>
+<li>encode: 通过write()方法写入的消息都会被传递给encode()方法，以编码为一个或者多个出站消息。然后，这些出站消息会被转发给ChannelPipeline中的下一个ChannelOutboundHandler…</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * &#123;@link ChannelOutboundHandlerAdapter&#125; which encodes from one message to an other message</div><div class="line"> *</div><div class="line"> * Be aware that you need to call &#123;ReferenceCounted#retain()&#125; on messages that are just passed through if they are of type &#123;ReferenceCounted&#125;. This is needed as the &#123;MessageToMessageEncoder&#125; will call &#123;ReferenceCounted#release()&#125; on encoded messages.</div><div class="line"> */</div><div class="line">public abstract class MessageToMessageEncoder&lt;I&gt; extends ChannelOutboundHandlerAdapter &#123;</div><div class="line"></div><div class="line">    //...</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception &#123;</div><div class="line">    // ...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * Encode from one message to an other. This method will be called for each written message that can be handled by this encoder.</div><div class="line">     *</div><div class="line">     * @param ctx           the &#123;ChannelHandlerContext&#125; which this &#123;MessageToMessageEncoder&#125; belongs to</div><div class="line">     * @param msg           the message to encode to an other one</div><div class="line">     * @param out           the &#123;List&#125; into which the encoded msg should be added</div><div class="line">     *                      needs to do some kind of aggregation</div><div class="line">     * @throws Exception    is thrown if an error occurs</div><div class="line">     */</div><div class="line">    protected abstract void encode(ChannelHandlerContext ctx, I msg, List&lt;Object&gt; out) throws Exception;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>编码integer为String</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IntegerToStringEncoder</span> <span class="keyword">extends</span> <span class="title">MessageToMessageEncoder</span>&lt;<span class="title">Integer</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">( ChannelHandlerContext ctx,  Integer message, List&lt;Object&gt; out)</span></span></div><div class="line">             <span class="keyword">throws</span> Exception &#123;</div><div class="line">        out.add(message.toString());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="抽象的编解码器"><a href="#抽象的编解码器" class="headerlink" title="抽象的编解码器"></a>抽象的编解码器</h2><ul>
+<li>有需要在同一个类中管理入站和出站数据和消息的转换。抽象的编解码器可以用于这个目的。其在内部组合了一个编解码器对。</li>
+<li><code>extends ChannelInboundHandlerAdapter implements ChannelOutboundHandler</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChannelDuplexHandler</span> <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> <span class="keyword">implements</span> <span class="title">ChannelOutboundHandler</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * A Codec for on-the-fly encoding/decoding of bytes to messages and vise-versa.</div><div class="line"> *</div><div class="line"> * This can be thought of as a combination of &#123;ByteToMessageDecoder&#125; and &#123;MessageToByteEncoder&#125;.</div><div class="line"> *</div><div class="line"> * Be aware that sub-classes of &#123;ByteToMessageCodec&#125; MUST NOT annotated with &#123;<span class="doctag">@Sharable</span>&#125;.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ByteToMessageCodec</span>&lt;<span class="title">I</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelDuplexHandler</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(ChannelHandlerContext ctx, I msg, ByteBuf out)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in, List&lt;Object&gt; out)</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">decodeLast</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in, List&lt;Object&gt; out)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="keyword">if</span> (in.isReadable()) &#123;</div><div class="line">            <span class="comment">// Only call decode() if there is something left in the buffer to decode.</span></div><div class="line">            <span class="comment">// See https://github.com/netty/netty/issues/4386</span></div><div class="line">            decode(ctx, in, out);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="抽象类-ByteToMessageCodec"><a href="#抽象类-ByteToMessageCodec" class="headerlink" title="抽象类 ByteToMessageCodec"></a>抽象类 ByteToMessageCodec</h3><ul>
+<li>需要将字节解码为某个格式的消息，然后再次编码发送。</li>
+<li>适用于请求/响应协议。</li>
+<li>具体的类声明如上</li>
+</ul>
+<h3 id="抽象类MessageToMessageCodec"><a href="#抽象类MessageToMessageCodec" class="headerlink" title="抽象类MessageToMessageCodec"></a>抽象类MessageToMessageCodec</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * A Codec for on-the-fly encoding/decoding of message.</div><div class="line"> * This can be thought of as a combination of &#123;<span class="doctag">@link</span> MessageToMessageDecoder&#125; and &#123;<span class="doctag">@link</span> MessageToMessageEncoder&#125;.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageToMessageCodec</span>&lt;<span class="title">INBOUND_IN</span>, <span class="title">OUTBOUND_IN</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelDuplexHandler</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> MessageToMessageEncoder&lt;Object&gt; encoder = <span class="keyword">new</span> MessageToMessageEncoder&lt;Object&gt;() &#123;</div><div class="line">        <span class="comment">// ...</span></div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> MessageToMessageDecoder&lt;Object&gt; decoder = <span class="keyword">new</span> MessageToMessageDecoder&lt;Object&gt;() &#123;</div><div class="line">        <span class="comment">// ...</span></div><div class="line">    &#125;;</div><div class="line">    </div><div class="line">    <span class="comment">// OUTBOUND_IN 看作是应用程序处理的类型</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(ChannelHandlerContext ctx, OUTBOUND_IN msg, List&lt;Object&gt; out)</span>  <span class="keyword">throws</span> Exception</span>;</div><div class="line"></div><div class="line">    <span class="comment">// INBOUNDED_IN 看作是是网络传输的类型</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, INBOUND_IN msg, List&lt;Object&gt; out)</span>  <span class="keyword">throws</span> Exception</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>doc demo</strong></p>
+<ul>
+<li>decode from Integer to long and encode from Long to Integer…</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NumberCodec</span> <span class="keyword">extends</span> <span class="title">MessageToMessageCodec</span>&lt;<span class="title">Integer</span>,<span class="title">Long</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">     <span class="function"><span class="keyword">public</span>  Long <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx,  Integer msg, List&lt;Object&gt; out)</span></span></div><div class="line">            <span class="keyword">throws</span> Exception&#123;</div><div class="line">        out.add(msg.longValue());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">encode</span><span class="params">( ChannelHandlerContext ctx,  Long msg, List&lt;Object&gt; out)</span></span></div><div class="line">            <span class="keyword">throws</span> Exception&#123;</div><div class="line">       out.add(msg.intValue());</div><div class="line">     &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="CombinedChannelDuplexHandler"><a href="#CombinedChannelDuplexHandler" class="headerlink" title="CombinedChannelDuplexHandler"></a>CombinedChannelDuplexHandler</h3><ul>
+<li>CombinedChannelDuplexHandler可以充当ChannelInboundHandler和ChannelOubboundHandler的容器。</li>
+<li>通过提供分别继承了解码器类和编码器类的的类型，可以实现一个编解码器而又不需要拓展抽象的编解码器类</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> *  Combines a &#123;<span class="doctag">@link</span> ChannelInboundHandler&#125; and a &#123;<span class="doctag">@link</span> ChannelOutboundHandler&#125; into one &#123;<span class="doctag">@link</span> ChannelHandler&#125;.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CombinedChannelDuplexHandler</span>&lt;<span class="title">I</span> <span class="keyword">extends</span> <span class="title">ChannelInboundHandler</span>, <span class="title">O</span> <span class="keyword">extends</span> <span class="title">ChannelOutboundHandler</span>&gt;</span></div><div class="line">        <span class="keyword">extends</span> <span class="title">ChannelDuplexHandler</span> &#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> I inboundHandler;</div><div class="line">    <span class="keyword">private</span> O outboundHandler;</div><div class="line">    </div><div class="line">    <span class="comment">//...   </span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>ByteToCharDecoder</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ByteToCharDecoder</span> <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf in,</span></span></div><div class="line">                       List&lt;Object&gt; out) <span class="keyword">throws</span> Exception &#123;</div><div class="line">        <span class="keyword">while</span> (in.readableBytes() &gt;= <span class="number">2</span>) &#123;</div><div class="line">            out.add(in.readChar());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>CharToByteEncoder</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CharToByteEncoder</span> <span class="keyword">extends</span> <span class="title">MessageToByteEncoder</span>&lt;<span class="title">Character</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(ChannelHandlerContext ctx, Character msg,</span></span></div><div class="line">                       ByteBuf out) <span class="keyword">throws</span> Exception &#123;</div><div class="line">        out.writeChar(msg);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>CombinedChannelDuplexHandler</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CombinedByteCharCodec</span> <span class="keyword">extends</span></span></div><div class="line">                <span class="title">CombinedChannelDuplexHandler</span>&lt;<span class="title">ByteToCharDecoder</span>, <span class="title">CharToByteEncoder</span>&gt; &#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CombinedByteCharCodec</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>(<span class="keyword">new</span> ByteToCharDecoder(), <span class="keyword">new</span> CharToByteEncoder());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Netty/" rel="tag"># Netty</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/02/netty-bootstrap/" rel="next" title="Netty中的引导(Boostrap)">
+                <i class="fa fa-chevron-left"></i> Netty中的引导(Boostrap)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">32</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/MyDarcy" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/frobisher27149" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.zhenlanghuo.top/" title="zhenlang huo" target="_blank">zhenlang huo</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#编解码器"><span class="nav-number">1.</span> <span class="nav-text">编解码器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解码器"><span class="nav-number">2.</span> <span class="nav-text">解码器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象类ByteToMessageDecoder"><span class="nav-number">2.1.</span> <span class="nav-text">抽象类ByteToMessageDecoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象类ReplayingCodeder"><span class="nav-number">2.2.</span> <span class="nav-text">抽象类ReplayingCodeder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象类MessageToMessageDecoder"><span class="nav-number">2.3.</span> <span class="nav-text">抽象类MessageToMessageDecoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TooLongFrameException"><span class="nav-number">2.4.</span> <span class="nav-text">TooLongFrameException</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编码器"><span class="nav-number">3.</span> <span class="nav-text">编码器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象类MessageToByteEncoder"><span class="nav-number">3.1.</span> <span class="nav-text">抽象类MessageToByteEncoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象类MessageToMessageEncoder"><span class="nav-number">3.2.</span> <span class="nav-text">抽象类MessageToMessageEncoder</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#抽象的编解码器"><span class="nav-number">4.</span> <span class="nav-text">抽象的编解码器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象类-ByteToMessageCodec"><span class="nav-number">4.1.</span> <span class="nav-text">抽象类 ByteToMessageCodec</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象类MessageToMessageCodec"><span class="nav-number">4.2.</span> <span class="nav-text">抽象类MessageToMessageCodec</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CombinedChannelDuplexHandler"><span class="nav-number">4.3.</span> <span class="nav-text">CombinedChannelDuplexHandler</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
