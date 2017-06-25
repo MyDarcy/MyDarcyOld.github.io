@@ -1,0 +1,1084 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Golang,Concurrency," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Golang对并发的支持是Golang的最重要的特性之一, goroutine很像线程，但是其占用的内存远小于线程；通道（Channel）是Golang的内置的数据结构，可以让用户在不同的goroutine之间同步发送具有类型的信息. 这里就简单记录Golang并发的特性．">
+<meta name="keywords" content="Golang,Concurrency">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Golang-并发">
+<meta property="og:url" content="http://yoursite.com/2017/06/25/golang-about-concurrencys/index.html">
+<meta property="og:site_name" content="Darcy">
+<meta property="og:description" content="Golang对并发的支持是Golang的最重要的特性之一, goroutine很像线程，但是其占用的内存远小于线程；通道（Channel）是Golang的内置的数据结构，可以让用户在不同的goroutine之间同步发送具有类型的信息. 这里就简单记录Golang并发的特性．">
+<meta property="og:updated_time" content="2017-06-25T13:56:11.942Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Golang-并发">
+<meta name="twitter:description" content="Golang对并发的支持是Golang的最重要的特性之一, goroutine很像线程，但是其占用的内存远小于线程；通道（Channel）是Golang的内置的数据结构，可以让用户在不同的goroutine之间同步发送具有类型的信息. 这里就简单记录Golang并发的特性．">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/06/25/golang-about-concurrencys/"/>
+
+
+
+
+
+  <title>Golang-并发 | Darcy</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?594cf3672b18c8c9a97689d1dfffaa39";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Darcy</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知。孤勇。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/25/golang-about-concurrencys/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Golang-并发</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-25T21:48:00+08:00">
+                2017-06-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Golang/" itemprop="url" rel="index">
+                    <span itemprop="name">Golang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/06/25/golang-about-concurrencys/" class="leancloud_visitors" data-flag-title="Golang-并发">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>Golang对并发的支持是Golang的最重要的特性之一, goroutine很像线程，但是其占用的内存远小于线程；通道（Channel）是Golang的内置的数据结构，可以让用户在不同的goroutine之间同步发送具有类型的信息. 这里就简单记录Golang并发的特性．</p>
+</blockquote>
+<a id="more"></a>
+<hr>
+<h2 id="并发"><a href="#并发" class="headerlink" title="并发"></a>并发</h2><ul>
+<li>并发(Concurrency)vs并行(Parallesim)<ul>
+<li>并发：逻辑上具备同时执行多个任务的能力(Python因为GIL默认只能并发而不能并行)</li>
+<li>并行：物理上同一时刻执行多个并发任务</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>Concurrency is not parallesim: Different concurrent designs enable different way to parallize</p>
+</blockquote>
+<ul>
+<li>多线程或者多进程是并行的基础条件，但是单线程也可以用协程(coroutine)实现并发．而协程在单个线程上通过主动切换来实现多任务并发．但是协程上运行多个任务本质上仍然是串行的，而且因为是自主调度，所以不需要同步.</li>
+<li>使用场景：使用多进程实现分布式和负载均衡，减轻单进程GC压力；使用多线程（LWP）争夺更多的处理器资源；使用协程提供处理器事件片利用率．</li>
+</ul>
+<p><strong>函数调用前添加go关键字即可创建并发任务</strong>(注意是函数调用，不是函数声明，需要提供相关的参数)</p>
+<ul>
+<li>关键字go并不是执行并发操作,而是创建一个<strong>并发任务单元</strong>,新建任务会放在<strong>系统队列</strong>中,等待调度器安排合适的系统线程取获取执行权.当前流程不会阻塞,也不会等待任务的启动,运行时也不保证并发任务的执行次序.</li>
+<li>每个任务单元除了保存<strong>函数指针,调用参数</strong>以外,还会分配<strong>执行所需的栈内存空间</strong>.相比系统默认MB级别的线程栈,goroutine的自定义<strong>初始栈仅需2KB</strong>,所以能创建大量的并发任务.而且自定义栈采取<strong>按需分配策略,需要的时候可以扩容</strong>,最大能达到GB级别.</li>
+<li>和defer一样，goroutine也会因为<strong>延迟执行</strong>而<strong>立即计算并复制执行参数</strong>．</li>
+</ul>
+<p><strong>demo</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> main</div><div class="line"></div><div class="line"><span class="keyword">import</span> (</div><div class="line">	<span class="string">"time"</span></div><div class="line">	<span class="string">"fmt"</span></div><div class="line">)</div><div class="line"></div><div class="line"><span class="keyword">var</span> c <span class="keyword">int</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">counter</span><span class="params">()</span> <span class="title">int</span></span> &#123;</div><div class="line">	c++</div><div class="line">	<span class="keyword">return</span> c</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	a := <span class="number">100</span></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(x, y <span class="keyword">int</span>)</span></span> &#123;</div><div class="line">		time.Sleep(time.Second) <span class="comment">// goroutine在main任务之后执行.</span></div><div class="line">		fmt.Println(<span class="string">"go:"</span>, x, y)</div><div class="line">	&#125;(a, counter()) <span class="comment">// a = 100, 立即计算并且复制参数.</span></div><div class="line"></div><div class="line">	a += <span class="number">100</span></div><div class="line">	fmt.Println(<span class="string">"main:"</span>, a, counter())</div><div class="line">	time.Sleep(time.Second * <span class="number">3</span>) <span class="comment">// 等待goroutine的执行结束.</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/*</span></div><div class="line">output:</div><div class="line">main: 200 2</div><div class="line">go: 100 1</div><div class="line"> */</div></pre></td></tr></table></figure>
+<h3 id="Wait"><a href="#Wait" class="headerlink" title="Wait"></a>Wait</h3><ul>
+<li>进程退出的时候不会等待并发任务执行结束，可用通道（Channel）阻塞，等待关闭通道时发出退出信号．</li>
+<li>解除阻塞的方式: 1. 关闭通道; 2. 写入数据.</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> main</div><div class="line"></div><div class="line"><span class="keyword">import</span> <span class="string">"time"</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	exit := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;) <span class="comment">// 创建通道,仅仅用于通知,所以不需要数据.</span></div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		time.Sleep(time.Second)</div><div class="line">		<span class="built_in">println</span>(<span class="string">"goroutine done."</span>)</div><div class="line">		<span class="built_in">close</span>(exit) <span class="comment">// 关闭通道,发出信号.</span></div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="built_in">println</span>(<span class="string">"main..."</span>)</div><div class="line">	<span class="comment">// 进程退出的时候不会等待并发任务执行结束，可用通道（Channel）阻塞，等待关闭通道时发出退出信号．</span></div><div class="line">	&lt;-exit <span class="comment">// 阻塞,如果通道关闭,立即解除阻塞.</span></div><div class="line">	<span class="built_in">println</span>(<span class="string">"main exit..."</span>)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">main...</div><div class="line">goroutine done.</div><div class="line">main exit...</div><div class="line"> */</div></pre></td></tr></table></figure>
+<ul>
+<li>如果要等待多个任务结束,那么可以使用sync.WaitGroup.通过设定计数器,然后让goroutine退出前递减, 调用Wait等待直到<strong>计数器归零以解除阻塞</strong>.</li>
+<li>建议在goroutine外累加计数器, 以免Add尚未执行,Wait已经退出了.</li>
+</ul>
+<p><strong>demo</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> main</div><div class="line"></div><div class="line"><span class="keyword">import</span> (</div><div class="line">	<span class="string">"sync"</span></div><div class="line">	<span class="string">"time"</span></div><div class="line">)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line"></div><div class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;</div><div class="line">		wg.Add(<span class="number">1</span>) <span class="comment">// 累计计数, 虽然这个是原子操作,但是仍然建议在goroutine外累加计数器, 以免Add尚未执行,Wait已经退出了.</span></div><div class="line"></div><div class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(id <span class="keyword">int</span>)</span></span> &#123;</div><div class="line">			<span class="keyword">defer</span> wg.Done() <span class="comment">// 递减计数</span></div><div class="line"></div><div class="line">			time.Sleep(time.Second)</div><div class="line">			<span class="built_in">println</span>(<span class="string">"goroutine"</span>, id, <span class="string">"done."</span>)</div><div class="line">		&#125;(i)</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="built_in">println</span>(<span class="string">"main..."</span>)</div><div class="line">	wg.Wait() <span class="comment">// 阻塞,直到计数归零</span></div><div class="line">	<span class="built_in">println</span>(<span class="string">"main done..."</span>)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">main...</div><div class="line">goroutine 4 done.</div><div class="line">goroutine 2 done.</div><div class="line">goroutine 9 done.</div><div class="line">goroutine 6 done.</div><div class="line">goroutine 7 done.</div><div class="line">goroutine 8 done.</div><div class="line">goroutine 0 done.</div><div class="line">goroutine 1 done.</div><div class="line">goroutine 5 done.</div><div class="line">goroutine 3 done.</div><div class="line">main done...</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p><strong>Add未执行，Wait退出</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line">	</div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		wg.Add(<span class="number">1</span>)</div><div class="line">		<span class="built_in">println</span>(<span class="string">"hi."</span>)</div><div class="line">	&#125;()</div><div class="line">	</div><div class="line">	wg.Wait()</div><div class="line">	<span class="built_in">println</span>(<span class="string">"main..."</span>)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">main...</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p><strong>多处使用Wait阻塞，以使得他们都接收到通知</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line"></div><div class="line">	wg.Add(<span class="number">1</span>)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		wg.Wait()</div><div class="line">		<span class="built_in">println</span>(<span class="string">"wait done."</span>)</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		time.Sleep(time.Second)</div><div class="line">		<span class="built_in">println</span>(<span class="string">"done."</span>)</div><div class="line">		wg.Done()</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	wg.Wait()</div><div class="line">	<span class="built_in">println</span>(<span class="string">"main."</span>)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">done.</div><div class="line">wait done.</div><div class="line">main.</div><div class="line"> */</div></pre></td></tr></table></figure>
+<h3 id="GOMAXPROCS"><a href="#GOMAXPROCS" class="headerlink" title="GOMAXPROCS"></a>GOMAXPROCS</h3><ul>
+<li>Runtime可能会创建很多线程，但实际参与并发任务的执行的线程的目录默认与处理器核数相等．可以使用runtime.GOMAXPROCS函数修改．</li>
+</ul>
+<h3 id="Local-Storage"><a href="#Local-Storage" class="headerlink" title="Local Storage"></a>Local Storage</h3><ul>
+<li>和线程不同，goroutine任务无法设置优先级，获取编号，没有局部存储(TLS)，而且返回者也会被抛弃．</li>
+</ul>
+<p><strong>demo</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line">	<span class="keyword">var</span> gs [<span class="number">5</span>]<span class="keyword">struct</span>&#123; <span class="comment">// 用于实现类似TLS功能．</span></div><div class="line">		id <span class="keyword">int</span> <span class="comment">// 编号</span></div><div class="line">		result <span class="keyword">int</span> <span class="comment">// 返回值</span></div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(gs); i++ &#123;</div><div class="line">		wg.Add(<span class="number">1</span>)</div><div class="line"></div><div class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(id <span class="keyword">int</span>)</span></span> &#123; <span class="comment">// 需要传递参数避免闭包延迟求值.</span></div><div class="line">			<span class="keyword">defer</span> wg.Done()</div><div class="line">			gs[id].id = id; <span class="comment">// first id is index...</span></div><div class="line">			gs[id].result = (id + <span class="number">1</span>) * <span class="number">100</span></div><div class="line">		&#125;(i)</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	wg.Wait()</div><div class="line">	fmt.Printf(<span class="string">"%+v\n"</span>, gs)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">[&#123;id:0 result:100&#125; &#123;id:1 result:200&#125; &#123;id:2 result:300&#125; &#123;id:3 result:400&#125; &#123;id:4 result:500&#125;]</div><div class="line"> */</div></pre></td></tr></table></figure>
+<h3 id="Goexit"><a href="#Goexit" class="headerlink" title="Goexit"></a>Goexit</h3><ul>
+<li>Goexit立即停止执行当前任务,运行时(Runtime)<strong>确保所有已经注册的延迟调用被执行</strong>．不会影响其他的并发任务, 不会引发panic, 无法被捕获.</li>
+<li>如果在main.main中调用Goexit，那么他会等待其他任务结束，然后让进程崩溃．</li>
+<li>无论Goexit在哪一层被调用，都会立即终止整个调用堆栈，这和return仅退出当前函数不同，而标准库函数os.Exit可以终止进程，但是不会执行延迟调用.</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	exit := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(exit)</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">println</span>(<span class="string">"a"</span>)</div><div class="line"></div><div class="line">		<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">			<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">				<span class="built_in">println</span>(<span class="string">"b"</span>, <span class="built_in">recover</span>() == <span class="literal">nil</span>)</div><div class="line">			&#125;()</div><div class="line"></div><div class="line">			<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">				<span class="built_in">println</span>(<span class="string">"c"</span>)</div><div class="line">				runtime.Goexit() <span class="comment">// 多层调度中执行Goexit, 立刻停止整个调用堆栈.</span></div><div class="line">				<span class="built_in">println</span>(<span class="string">"c, done."</span>) <span class="comment">// 不会执行</span></div><div class="line">			&#125;()</div><div class="line"></div><div class="line">			<span class="built_in">println</span>(<span class="string">"b done."</span>) <span class="comment">// 不会执行</span></div><div class="line">		&#125;()</div><div class="line"></div><div class="line">		<span class="built_in">println</span>(<span class="string">"a done."</span>) <span class="comment">// 不会执行</span></div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	&lt;-exit</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">c</div><div class="line">b true</div><div class="line">a</div><div class="line"> */</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="通道"><a href="#通道" class="headerlink" title="通道"></a>通道</h2><ul>
+<li>Go并没有实现严格的并发安全，因为在Go中允许全局变量，指针，引用等这些非安全内存共享操作．Go鼓励使用CSP通道，以通信来代替内存共享，实现并发安全．</li>
+</ul>
+<blockquote>
+<p>Dont communicate by sharing memory, share memory by communicating.<br>CSP: Communicating Sequential Process．</p>
+</blockquote>
+<ul>
+<li><p>CSP vs Actor (都是通过消息来避免竞争)</p>
+<ul>
+<li>CSP中的通道是<strong>显式的</strong>，要求<strong>操作双方必须知道数据类型和具体通道</strong>，而并不关系另一端的操作者身份和数量．当另一端没有准备好或者消息没有及时处理时，会<strong>阻塞</strong>当前端． </li>
+<li>Actor是透明的，它不在乎数据类型和通道，只要直到接受者信箱即可．其默认就是异步的方式，发送方对消息是否接收和处理不关心．</li>
+</ul>
+</li>
+<li><p><strong>通道</strong>的底层实现只是一个<strong>队列</strong>．<strong>同步模式</strong>下，发送方和接收方配对，然后<strong>直接复制</strong>数据给另一方．如果配对失败，则置入<strong>等待队列</strong>，直到另一方出现后才被唤醒．<strong>异步模式</strong>争夺的则是数据缓冲槽，发送方要求有空槽可供写入，而接收方则要求有缓冲数据可读，需求不符时，同样可以加入<strong>等待队列</strong>中，直到有另一方写入数据或者消费数据出现空槽后被唤醒．</p>
+</li>
+<li>通道作用：<strong>通道可以传递消息和数据，也可以用作事件通知</strong>.</li>
+</ul>
+<p><strong>demo</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	done := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;) <span class="comment">// 结束事件通道</span></div><div class="line">	data := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">string</span>) <span class="comment">// 数据通道</span></div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		s := &lt;-data <span class="comment">// 接收消息</span></div><div class="line">		<span class="built_in">println</span>(s)</div><div class="line">		<span class="built_in">close</span>(done) <span class="comment">// 关闭通道, 作为结束通知.</span></div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	data &lt;- <span class="string">"str data"</span> <span class="comment">// 发送消息.</span></div><div class="line">	&lt;-done <span class="comment">// 阻塞, 直到管道关闭. (类比获取数据被阻塞了.)</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>同步模式必须有配对的goroutine出现，否则会一直阻塞．而异步模式在缓冲区没有满或者没有读完前，不会阻塞．多数时候，异步通道有助于提升性能，减少排队阻塞．</li>
+<li>缓冲区的大小不是类型的组成部分．而且通道变量本身就是指针，可以使用相等操作符判断是否指向同一对象或者nil.</li>
+<li>可以传递指针避免数据的复制，但是也需要注意并发安全．</li>
+<li>内置函数cap和len返回缓冲区的大小和当前已经缓冲的数目．而对于同步通道都返回0, 以此判断通道是同步的函数异步的.</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	a, b := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>), <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>, <span class="number">3</span>)</div><div class="line"></div><div class="line">	b &lt;- <span class="number">1</span></div><div class="line">	b &lt;- <span class="number">2</span></div><div class="line"></div><div class="line">	<span class="built_in">println</span>(<span class="string">"a:"</span>, <span class="built_in">len</span>(a), <span class="built_in">cap</span>(a))</div><div class="line">	<span class="built_in">println</span>(<span class="string">"a:"</span>, <span class="built_in">len</span>(b), <span class="built_in">cap</span>(b))</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">a: 0 0</div><div class="line">a: 2 3</div><div class="line"> */</div></pre></td></tr></table></figure>
+<h3 id="数据处理"><a href="#数据处理" class="headerlink" title="数据处理"></a>数据处理</h3><p><strong>ok-idom</strong>模式处理数据<br><figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	done := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</div><div class="line"></div><div class="line">	data := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(done) <span class="comment">// 关闭通道</span></div><div class="line"></div><div class="line">		<span class="keyword">for</span>  &#123;</div><div class="line">			x, ok := &lt;-data</div><div class="line">			<span class="keyword">if</span> !ok &#123; <span class="comment">// 数据通道是否被关闭．</span></div><div class="line">				<span class="keyword">return</span></div><div class="line">			&#125;</div><div class="line">			<span class="built_in">println</span>(x)</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	data &lt;- <span class="number">1</span></div><div class="line">	time.Sleep(time.Second)</div><div class="line">	data &lt;- <span class="number">2</span></div><div class="line">	time.Sleep(time.Second)</div><div class="line">	data &lt;- <span class="number">3</span></div><div class="line">	<span class="built_in">close</span>(data)</div><div class="line">	&lt;-done <span class="comment">// 阻塞直到关闭此通道.</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><strong>range模式处理数据</strong></p>
+<ul>
+<li>注意通道都要及时的关闭，如下如果没有close(data),就会发生死锁．</li>
+<li>及时用close函数关闭通道引发结束通知，否则可能会导致死锁．</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	done := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</div><div class="line">	data := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(done)</div><div class="line"></div><div class="line">		<span class="keyword">for</span> x:= <span class="keyword">range</span> data &#123;</div><div class="line">			<span class="built_in">println</span>(x)</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	data &lt;- <span class="number">1</span></div><div class="line">	data &lt;- <span class="number">2</span></div><div class="line">	data &lt;- <span class="number">3</span></div><div class="line">	<span class="comment">// 使用close及时关闭通道引发结束通知,　否则可能会引起死锁.</span></div><div class="line">	<span class="built_in">close</span>(data) <span class="comment">//fatal error: all goroutines are asleep - deadlock!</span></div><div class="line">	&lt;- done</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>使用通道和WaitGroup实现CountDownLatch的功能</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line">通道实现类似CountDownLatch的功能功能</div><div class="line">一次性的事件使用close()效率更好,</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line">	ready := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</div><div class="line"></div><div class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</div><div class="line">		wg.Add(<span class="number">1</span>)</div><div class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(id <span class="keyword">int</span>)</span></span> &#123;</div><div class="line">			<span class="keyword">defer</span> wg.Done()</div><div class="line"></div><div class="line">			<span class="built_in">println</span>(id, <span class="string">": ready."</span>)</div><div class="line">			&lt;-ready <span class="comment">// 阻塞, 直到关闭. 指运动员等待发令</span></div><div class="line">			<span class="built_in">println</span>(<span class="string">"running."</span>)</div><div class="line">		&#125;(i)</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	time.Sleep(time.Second)</div><div class="line">	<span class="built_in">println</span>(<span class="string">"\nready? go\n"</span>)</div><div class="line">	<span class="built_in">close</span>(ready)  <span class="comment">// 关闭通道.</span></div><div class="line">	wg.Wait() <span class="comment">// 等待归零</span></div><div class="line">	<span class="built_in">println</span>(<span class="string">"\nmain done."</span>)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">1 : ready.</div><div class="line">2 : ready.</div><div class="line">0 : ready.</div><div class="line"></div><div class="line">ready? go</div><div class="line"></div><div class="line">running.</div><div class="line">running.</div><div class="line">running.</div><div class="line"></div><div class="line">main done.</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p><strong>对于closed或者nil通道，发送和接收操作都有相应的规则</strong></p>
+<ul>
+<li>向已经关闭的通道发送数据，会引发panic</li>
+<li>从已经关闭的通道接收数据，返回已经缓冲的数据或者零值．</li>
+<li>无论收发，nil通道都会阻塞．</li>
+<li>重复关闭或者关闭nil通道都会引发panic错误．</li>
+</ul>
+<h3 id="单向"><a href="#单向" class="headerlink" title="单向"></a>单向</h3><ul>
+<li>通道默认是双向的，并且不区分发送端和接收端，</li>
+<li>可以使用make创建单向通道，但是通常都是类型转换来获取单向通道．并分别赋予操作双方．</li>
+<li>不能在单向通道上做逆向操作</li>
+<li>close不能用于接收端</li>
+<li>无法将单向通道转换回去．</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line">	wg.Add(<span class="number">2</span>)</div><div class="line"></div><div class="line">	c := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</div><div class="line"></div><div class="line">	<span class="keyword">var</span> send <span class="keyword">chan</span>&lt;- <span class="keyword">int</span> = c <span class="comment">// 单向发送通道</span></div><div class="line">	<span class="keyword">var</span> recv &lt;-<span class="keyword">chan</span> <span class="keyword">int</span> = c <span class="comment">// 单向接收通道</span></div><div class="line"></div><div class="line">	<span class="comment">/*</span></div><div class="line">	ch8/ss2/oneway.go:14: invalid operation: &lt;-send (receive from send-only type chan&lt;- int)</div><div class="line">	ch8/ss2/oneway.go:15: invalid operation: recv &lt;- 1 (send to receive-only type &lt;-chan int)</div><div class="line">	 */</div><div class="line">	<span class="comment">//&lt;-send</span></div><div class="line">	<span class="comment">//recv &lt;- 1</span></div><div class="line"></div><div class="line">	<span class="comment">/*</span></div><div class="line">	ch8/ss2/oneway.go:23: invalid operation: close(recv) (cannot close receive-only channel)</div><div class="line">	 */</div><div class="line">	<span class="comment">//close(recv)</span></div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">for</span> x:= <span class="keyword">range</span> recv &#123;</div><div class="line">			<span class="built_in">println</span>(x)</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(c) <span class="comment">// 关闭发送通道．</span></div><div class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</div><div class="line">			send &lt;- i</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	wg.Wait()</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">0</div><div class="line">1</div><div class="line">2</div><div class="line"> */</div></pre></td></tr></table></figure>
+<h3 id="选择"><a href="#选择" class="headerlink" title="选择"></a>选择</h3><ul>
+<li>需要处理多个通道时，可以选用select语句．会随机选择一个可用通道做收发操作．</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line">	wg.Add(<span class="number">2</span>)</div><div class="line"></div><div class="line">	a, b := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>), <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; <span class="comment">// 接收端.</span></div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">for</span>  &#123;</div><div class="line">			<span class="keyword">var</span> (</div><div class="line">				name <span class="keyword">string</span></div><div class="line">				x <span class="keyword">int</span></div><div class="line">				ok <span class="keyword">bool</span></div><div class="line">			)</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> x, ok = &lt;-a:</div><div class="line">				name = <span class="string">"a"</span></div><div class="line">			<span class="keyword">case</span> x, ok = &lt;-b:</div><div class="line">				name = <span class="string">"b"</span></div><div class="line">			&#125;</div><div class="line">			<span class="keyword">if</span> !ok &#123;</div><div class="line">				<span class="keyword">return</span></div><div class="line">			&#125;</div><div class="line"></div><div class="line">			<span class="built_in">println</span>(name, x)</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(a)</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(b)</div><div class="line"></div><div class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> a &lt;- i: <span class="comment">// 往通道放入数据.注意select...case的语法．</span></div><div class="line">			<span class="keyword">case</span> b &lt;- i *<span class="number">10</span>:</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	wg.Wait()</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">b 0</div><div class="line">a 1</div><div class="line">a 2</div><div class="line">b 30</div><div class="line">a 4</div><div class="line">b 50</div><div class="line">a 6</div><div class="line">b 70</div><div class="line">b 80</div><div class="line">a 9</div><div class="line"> */</div></pre></td></tr></table></figure>
+<ul>
+<li>如果要等全部通道消息处理结束（closed）, 可以将<strong>已完成的通道设置为nil，这样它就会被阻塞，不再被select选中</strong>.</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line">	wg.Add(<span class="number">3</span>)</div><div class="line"></div><div class="line">	a, b := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>), <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; <span class="comment">// 接收端.</span></div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">for</span>  &#123;</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> x, ok := &lt;-a:</div><div class="line">				<span class="keyword">if</span> !ok &#123;</div><div class="line">					a = <span class="literal">nil</span> <span class="comment">// 已经完成的通道设置为nil, 这样它就会被阻塞, 不再被select选中.</span></div><div class="line">					<span class="keyword">break</span></div><div class="line">				&#125;</div><div class="line">				<span class="built_in">println</span>(<span class="string">"a"</span>, x)</div><div class="line">			<span class="keyword">case</span> x, ok := &lt;-b:</div><div class="line">				<span class="keyword">if</span> !ok &#123;</div><div class="line">					b = <span class="literal">nil</span></div><div class="line">					<span class="keyword">break</span></div><div class="line">				&#125;</div><div class="line">				<span class="built_in">println</span>(<span class="string">"b"</span>, x)</div><div class="line">			&#125;</div><div class="line">			<span class="keyword">if</span> a == <span class="literal">nil</span> &amp;&amp; b== <span class="literal">nil</span> &#123; <span class="comment">// 通道都被关闭了.</span></div><div class="line">				<span class="keyword">return</span></div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(a)</div><div class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</div><div class="line">			 a &lt;- i <span class="comment">// here.</span></div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(b)</div><div class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</div><div class="line">			b &lt;- i <span class="comment">// here.</span></div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	wg.Wait()</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">b 0</div><div class="line">a 0</div><div class="line">a 1</div><div class="line">a 2</div><div class="line">b 1</div><div class="line">b 2</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p><strong>同一个通道也可以用于select随机选择</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line">	wg.Add(<span class="number">2</span>)</div><div class="line"></div><div class="line">	a := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; <span class="comment">// 接收端.</span></div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">for</span>  &#123;</div><div class="line">			<span class="keyword">var</span> (</div><div class="line">				name <span class="keyword">string</span></div><div class="line">				x <span class="keyword">int</span></div><div class="line">				ok <span class="keyword">bool</span></div><div class="line">			)</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> x, ok = &lt;-a:</div><div class="line">				name = <span class="string">"a1"</span></div><div class="line">			<span class="keyword">case</span> x, ok = &lt;-a:</div><div class="line">				name = <span class="string">"a2"</span></div><div class="line">			&#125;</div><div class="line">			<span class="keyword">if</span> !ok &#123;</div><div class="line">				<span class="keyword">return</span></div><div class="line">			&#125;</div><div class="line">			<span class="built_in">println</span>(name, x)</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(a)</div><div class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> a &lt;- i: <span class="comment">// here.</span></div><div class="line">			<span class="keyword">case</span> a &lt;- i *<span class="number">10</span>:</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	wg.Wait()</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">a1 0</div><div class="line">a1 10</div><div class="line">a1 20</div><div class="line">a2 30</div><div class="line">a1 40</div><div class="line">a2 50</div><div class="line">a1 60</div><div class="line">a1 70</div><div class="line">a2 80</div><div class="line">a1 9</div><div class="line"> */</div></pre></td></tr></table></figure>
+<ul>
+<li>所有通道都不可用时，select会执行default语句，这样就可以避免select阻塞．</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line">所有通道都不可用的时候, select语句会选择default语句, 这样就可以避开select阻塞.</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line"></div><div class="line">	done := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</div><div class="line">	a := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; <span class="comment">// 接收端.</span></div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(done)</div><div class="line">		<span class="keyword">for</span>  &#123;</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> x, ok := &lt;-a:</div><div class="line">				<span class="keyword">if</span> !ok &#123;</div><div class="line">					<span class="keyword">return</span></div><div class="line">				&#125;</div><div class="line">				fmt.Println(<span class="string">"data:"</span>, x)</div><div class="line">			<span class="keyword">default</span>: <span class="comment">// 避免select阻塞.</span></div><div class="line">			&#125;</div><div class="line"></div><div class="line">			fmt.Println(time.Now())</div><div class="line">			time.Sleep(time.Second)</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	time.Sleep(time.Second * <span class="number">5</span>)</div><div class="line">	a &lt;- <span class="number">100</span></div><div class="line">	<span class="built_in">close</span>(a)</div><div class="line"></div><div class="line">	&lt;-done</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line">2017-06-25 20:42:02.858372669 +0800 CST</div><div class="line">2017-06-25 20:42:03.85883701 +0800 CST</div><div class="line">2017-06-25 20:42:04.859130338 +0800 CST</div><div class="line">2017-06-25 20:42:05.859318156 +0800 CST</div><div class="line">2017-06-25 20:42:06.859668216 +0800 CST</div><div class="line">data: 100</div><div class="line">2017-06-25 20:42:07.859904603 +0800 CST</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p><strong>default处理默认逻辑</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	done := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</div><div class="line"></div><div class="line">	data := []<span class="keyword">chan</span> <span class="keyword">int</span> &#123;</div><div class="line">		<span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>, <span class="number">3</span>),</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(done)</div><div class="line"></div><div class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> data[<span class="built_in">len</span>(data) - <span class="number">1</span>] &lt;- i: <span class="comment">// 生成数据.</span></div><div class="line">			<span class="keyword">default</span>:</div><div class="line">				data = <span class="built_in">append</span>(data, <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>, <span class="number">3</span>)) <span class="comment">// 数据通道满, 产生新的通道.</span></div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	&lt;-done</div><div class="line"></div><div class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(data); i++ &#123;</div><div class="line">		c := data[i]</div><div class="line">		<span class="built_in">close</span>(c)</div><div class="line"></div><div class="line">		<span class="keyword">for</span> v := <span class="keyword">range</span> c  &#123;</div><div class="line">			<span class="built_in">println</span>(v)</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h3><ul>
+<li>常使用工厂方法将goroutine和通道绑定.</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">type</span> receiver <span class="keyword">struct</span> &#123;</div><div class="line">	sync.WaitGroup <span class="comment">// 匿名字段</span></div><div class="line">	data <span class="keyword">chan</span> <span class="keyword">int</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">newReceiver</span><span class="params">()</span> *<span class="title">receiver</span></span> &#123;</div><div class="line">	r := &amp;receiver&#123;</div><div class="line">		data:<span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>),</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	r.Add(<span class="number">1</span>)</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> r.Done()</div><div class="line">		<span class="keyword">for</span> x := <span class="keyword">range</span> r.data &#123;</div><div class="line">			<span class="built_in">println</span>(<span class="string">"recv:"</span>, x)</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="keyword">return</span> r</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	r := newReceiver()</div><div class="line"></div><div class="line">	r.data &lt;- <span class="number">1</span></div><div class="line">	r.data &lt;- <span class="number">2</span></div><div class="line"></div><div class="line">	<span class="built_in">close</span>(r.data) <span class="comment">// 关闭通道.</span></div><div class="line"></div><div class="line">	r.Wait() <span class="comment">// 等待接收者处理结束.</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><strong>通道本身就是线程安全的，所以可以用以实现ID generator和Pool</strong></li>
+<li>可以使用通道实现信号量</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	runtime.GOMAXPROCS(<span class="number">8</span>)</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line"></div><div class="line">	semaphore := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, <span class="number">2</span>) <span class="comment">// 最多允许2个并发同时执行.</span></div><div class="line"></div><div class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">5</span>; i++ &#123;</div><div class="line">		wg.Add(<span class="number">1</span>)</div><div class="line"></div><div class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(id <span class="keyword">int</span>)</span></span> &#123;</div><div class="line">			<span class="keyword">defer</span> wg.Done()</div><div class="line">			<span class="comment">// 有两个goroutine能获取到信号量</span></div><div class="line">			semaphore &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125; <span class="comment">// 获取信号量(放入元素..) 否则就阻塞了.</span></div><div class="line">			<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; &lt;-semaphore&#125;() <span class="comment">// 释放信号量(取出元素..)</span></div><div class="line"></div><div class="line">			fmt.Println(id, time.Now())</div><div class="line">			time.Sleep(time.Second * <span class="number">2</span>)</div><div class="line">		&#125;(i)</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	wg.Wait()</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>tick Channel demo</strong></p>
+<ul>
+<li>可以使用nil channel阻塞进程.</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">for</span>  &#123;</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> &lt;-time.After(time.Second * <span class="number">5</span>): <span class="comment">// 阻塞５s;</span></div><div class="line">				fmt.Println(<span class="string">"timeout..."</span>)</div><div class="line">				os.Exit(<span class="number">0</span>)</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		tick := time.Tick(time.Second)</div><div class="line">		<span class="keyword">for</span> &#123;</div><div class="line">			<span class="keyword">select</span> &#123;</div><div class="line">			<span class="keyword">case</span> &lt;-tick: <span class="comment">// 阻塞1s; </span></div><div class="line">				fmt.Println(time.Now())</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	&lt;-(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)(<span class="literal">nil</span>) <span class="comment">// 用nil channel阻塞进程.</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">2017-06-25 21:18:25.651904856 +0800 CST</div><div class="line">2017-06-25 21:18:26.651912171 +0800 CST</div><div class="line">2017-06-25 21:18:27.65190529 +0800 CST</div><div class="line">2017-06-25 21:18:28.651892566 +0800 CST</div><div class="line">timeout...</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p><strong>捕获INT, TERM信号</strong>，　实现atexit函数（就是在中断，停止的时候执行一些函数）</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> exits = &amp;<span class="keyword">struct</span> &#123;</div><div class="line">	sync.RWMutex</div><div class="line">	funcs []<span class="function"><span class="keyword">func</span><span class="params">()</span></span></div><div class="line">	<span class="title">signals</span> <span class="title">chan</span> <span class="title">os</span>.<span class="title">Signal</span></div><div class="line">&#125;&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">// 待执行函数加入到funcs数组中.</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">atexit</span><span class="params">(f <span class="keyword">func</span>()</span>)</span> &#123;</div><div class="line">	exits.Lock()</div><div class="line">	<span class="keyword">defer</span> exits.Unlock()</div><div class="line">	exits.funcs = <span class="built_in">append</span>(exits.funcs, f)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">waitExit</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">if</span> exits.signals == <span class="literal">nil</span> &#123;</div><div class="line">		exits.signals = <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal)</div><div class="line">		<span class="comment">// exits.sinals在接收到INT和和TERM时解除阻塞.</span></div><div class="line">		signal.Notify(exits.signals, syscall.SIGINT, syscall.SIGTERM)</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	exits.RLock()</div><div class="line">	<span class="keyword">for</span> _, f := <span class="keyword">range</span> exits.funcs &#123;</div><div class="line">		<span class="keyword">defer</span> f()</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	exits.RUnlock()</div><div class="line"></div><div class="line">	&lt;- exits.signals <span class="comment">// 没有接收到信号时阻塞.</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	atexit(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="built_in">println</span>(<span class="string">"exit1..."</span>)</div><div class="line">	&#125;)</div><div class="line"></div><div class="line">	atexit(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="built_in">println</span>(<span class="string">"exit2..."</span>)</div><div class="line">	&#125;)</div><div class="line"></div><div class="line">	waitExit()</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="资源泄漏"><a href="#资源泄漏" class="headerlink" title="资源泄漏"></a>资源泄漏</h3><ul>
+<li>通道可能引发<strong>goroutine leak</strong>, 是<strong>指goroutine处于发送或者接收阻塞状态，但是一直没有被唤醒．GC并不收集此类资源，导致他们会在等待队列中休眠</strong>．形成事实上的资源泄漏．</li>
+<li>GODEBUG中可以看到大量的goroutine处于chan recv状态．</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">test</span><span class="params">()</span></span> &#123;</div><div class="line">	c := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</div><div class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;</div><div class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">			&lt;-c <span class="comment">// 接收, 处于阻塞状态.</span></div><div class="line">		&#125;()</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	test()</div><div class="line"></div><div class="line">	<span class="keyword">for</span>  &#123;</div><div class="line">		time.Sleep(time.Second)</div><div class="line">		runtime.GC() <span class="comment">// 强制进行GC.</span></div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">darcy@darcy-ubuntu:~/go/src/testgc$ go build </div><div class="line">darcy@darcy-ubuntu:~/go/src/testgc$ go build -o testgc</div><div class="line">darcy@darcy-ubuntu:~/go/src/testgc$ GODEBUG="gctrace=1,schedtrace=1000,scheddetail=1" ./testgc</div><div class="line"></div><div class="line">...</div><div class="line">...</div><div class="line"></div><div class="line">gc 9 @9.009s 0%: 0.11+0+0.49 ms clock, 0.80+0/0/0+3.4 ms cpu, 0-&gt;0-&gt;0 MB, 0 MB goal, 8 P (forced)</div><div class="line">SCHED 9071ms: gomaxprocs=8 idleprocs=8 threads=9 spinningthreads=0 idlethreads=7 runqueue=0 gcwaiting=0 nmidlelocked=0 stopwait=0 sysmonwait=0</div><div class="line">  P0: status=0 schedtick=6 syscalltick=9 m=-1 runqsize=0 gfreecnt=0</div><div class="line">  P1: status=0 schedtick=1 syscalltick=10 m=-1 runqsize=0 gfreecnt=0</div><div class="line">  P2: status=0 schedtick=5 syscalltick=0 m=-1 runqsize=0 gfreecnt=0</div><div class="line">  P3: status=0 schedtick=0 syscalltick=0 m=-1 runqsize=0 gfreecnt=0</div><div class="line">  P4: status=0 schedtick=0 syscalltick=0 m=-1 runqsize=0 gfreecnt=0</div><div class="line">  P5: status=0 schedtick=0 syscalltick=0 m=-1 runqsize=0 gfreecnt=0</div><div class="line">  P6: status=0 schedtick=0 syscalltick=0 m=-1 runqsize=0 gfreecnt=0</div><div class="line">  P7: status=0 schedtick=0 syscalltick=0 m=-1 runqsize=0 gfreecnt=0</div><div class="line">  M8: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 helpgc=0 spinning=false blocked=true lockedg=-1</div><div class="line">  M7: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 helpgc=0 spinning=false blocked=true lockedg=-1</div><div class="line">  M6: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 helpgc=0 spinning=false blocked=true lockedg=-1</div><div class="line">  M5: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 helpgc=0 spinning=false blocked=true lockedg=-1</div><div class="line">  M4: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 helpgc=0 spinning=false blocked=true lockedg=-1</div><div class="line">  M3: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 helpgc=0 spinning=false blocked=true lockedg=-1</div><div class="line">  M2: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 helpgc=0 spinning=false blocked=true lockedg=-1</div><div class="line">  M1: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=1 dying=0 helpgc=0 spinning=false blocked=false lockedg=-1</div><div class="line">  M0: p=-1 curg=14 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 helpgc=0 spinning=false blocked=true lockedg=-1</div><div class="line">  G1: status=4(sleep) m=-1 lockedm=-1</div><div class="line">  G2: status=4(force gc (idle)) m=-1 lockedm=-1</div><div class="line">  G3: status=4(GC sweep wait) m=-1 lockedm=-1</div><div class="line">  G4: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G5: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G6: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G7: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G8: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G9: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G10: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G11: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G12: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G13: status=4(chan receive) m=-1 lockedm=-1</div><div class="line">  G14: status=3(timer goroutine (idle)) m=0 lockedm=-1</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="同步"><a href="#同步" class="headerlink" title="同步"></a>同步</h2><ul>
+<li>通道倾向于解决逻辑层次的并发处理架构，而锁来保护局部范围内的数据安全．</li>
+<li>sync提供了互斥和读写锁，还有原子操作．</li>
+<li>Mutex作为匿名字段使用时，相关方法必须实现了pointer-receiver的，否则就会因为复制导致锁机制的失效．</li>
+<li>应该将Mutex的锁粒控制在最小范围内，而且应该减少锁的持有时间</li>
+<li>Mutex不支持递归，即使在同一个goroutine下也会导致死锁（重入）．</li>
+<li>建议:<ul>
+<li>对性能要求高时候, 避免使用defer Unlock.</li>
+<li>读写并发时候, 使用RWMutex性能会更好</li>
+<li>对单个数据进行读写保护, 可以使用原子操作</li>
+<li>严格的测试, 打开数据竞争检查.</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">type</span> data <span class="keyword">struct</span> &#123;</div><div class="line">	sync.Mutex</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 效果因该是一个线程打印顺序的结果．而不是交叉打印．</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d data)</span> <span class="title">lockTest</span><span class="params">(s <span class="keyword">string</span>)</span></span> &#123;</div><div class="line">	d.Lock()</div><div class="line">	<span class="keyword">defer</span> d.Unlock()</div><div class="line"></div><div class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">5</span>; i++ &#123;</div><div class="line">		<span class="built_in">println</span>(s, i)</div><div class="line">		time.Sleep(time.Second)</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</div><div class="line">	<span class="keyword">var</span> wg sync.WaitGroup</div><div class="line">	wg.Add(<span class="number">2</span>)</div><div class="line"></div><div class="line">	<span class="keyword">var</span> d data</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		d.lockTest(<span class="string">"read"</span>)</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</div><div class="line">		<span class="keyword">defer</span> wg.Done()</div><div class="line">		d.lockTest(<span class="string">"write"</span>)</div><div class="line">	&#125;()</div><div class="line"></div><div class="line">	wg.Wait()</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">write 0</div><div class="line">read 0</div><div class="line">read 1</div><div class="line">write 1</div><div class="line">write 2</div><div class="line">read 2</div><div class="line">read 3</div><div class="line">write 3</div><div class="line">write 4</div><div class="line">read 4</div><div class="line"> */</div><div class="line"> </div><div class="line"><span class="comment">/** fixed it.</span></div><div class="line">write 0</div><div class="line">write 1</div><div class="line">write 2</div><div class="line">write 3</div><div class="line">write 4</div><div class="line">read 0</div><div class="line">read 1</div><div class="line">read 2</div><div class="line">read 3</div><div class="line">read 4</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p><strong>解决方法: lockTest()的接收者声明为(d *data)</strong>, 结果如上．</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Golang/" rel="tag"># Golang</a>
+          
+            <a href="/tags/Concurrency/" rel="tag"># Concurrency</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/24/golang-about-interfaces/" rel="next" title="Golang-接口">
+                <i class="fa fa-chevron-left"></i> Golang-接口
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/MyDarcy" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/frobisher27149" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.zhenlanghuo.top/" title="zhenlang huo" target="_blank">zhenlang huo</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#并发"><span class="nav-number">1.</span> <span class="nav-text">并发</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Wait"><span class="nav-number">1.1.</span> <span class="nav-text">Wait</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOMAXPROCS"><span class="nav-number">1.2.</span> <span class="nav-text">GOMAXPROCS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Local-Storage"><span class="nav-number">1.3.</span> <span class="nav-text">Local Storage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Goexit"><span class="nav-number">1.4.</span> <span class="nav-text">Goexit</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#通道"><span class="nav-number">2.</span> <span class="nav-text">通道</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据处理"><span class="nav-number">2.1.</span> <span class="nav-text">数据处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#单向"><span class="nav-number">2.2.</span> <span class="nav-text">单向</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选择"><span class="nav-number">2.3.</span> <span class="nav-text">选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模式"><span class="nav-number">2.4.</span> <span class="nav-text">模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#资源泄漏"><span class="nav-number">2.5.</span> <span class="nav-text">资源泄漏</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同步"><span class="nav-number">3.</span> <span class="nav-text">同步</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
