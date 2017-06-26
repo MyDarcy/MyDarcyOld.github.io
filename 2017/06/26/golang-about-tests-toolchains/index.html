@@ -74,7 +74,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Java,Netty," />
+  <meta name="keywords" content="Golang,Test,ToolChain," />
 
 
 
@@ -90,21 +90,17 @@
 
 
 
-<meta name="description" content="线程模型指定了操作系统，编程语言，框架或者应用程序的上下文中线程管理的关键方面。这里，简要学习Netty的EventLoop和线程模型。">
-<meta name="keywords" content="Java,Netty">
+<meta name="description" content="刚学习Golang的时候，对测试和Beachmark，工具链一头雾水，这里进行小小的总结．">
+<meta name="keywords" content="Golang,Test,ToolChain">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Netty中EventLoop和线程模型">
-<meta property="og:url" content="http://yoursite.com/2017/06/02/netty-thread-model/index.html">
+<meta property="og:title" content="Golang-测试和工具链介绍">
+<meta property="og:url" content="http://yoursite.com/2017/06/26/golang-about-tests-toolchains/index.html">
 <meta property="og:site_name" content="Darcy">
-<meta property="og:description" content="线程模型指定了操作系统，编程语言，框架或者应用程序的上下文中线程管理的关键方面。这里，简要学习Netty的EventLoop和线程模型。">
-<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/fuxebwtuzouhooxn6krfghk9/ch7-eventloop2.png">
-<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/7x6gdbotzy9lh7hhg8bds0yi/ch7-asyncthread.png">
-<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/0xbl35r1gq456h7rfx9f7exw/ch7-oio-thread.png">
-<meta property="og:updated_time" content="2017-06-02T09:11:44.689Z">
+<meta property="og:description" content="刚学习Golang的时候，对测试和Beachmark，工具链一头雾水，这里进行小小的总结．">
+<meta property="og:updated_time" content="2017-06-26T15:21:55.734Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Netty中EventLoop和线程模型">
-<meta name="twitter:description" content="线程模型指定了操作系统，编程语言，框架或者应用程序的上下文中线程管理的关键方面。这里，简要学习Netty的EventLoop和线程模型。">
-<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/fuxebwtuzouhooxn6krfghk9/ch7-eventloop2.png">
+<meta name="twitter:title" content="Golang-测试和工具链介绍">
+<meta name="twitter:description" content="刚学习Golang的时候，对测试和Beachmark，工具链一头雾水，这里进行小小的总结．">
 
 
 
@@ -132,13 +128,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2017/06/02/netty-thread-model/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/06/26/golang-about-tests-toolchains/"/>
 
 
 
 
 
-  <title>Netty中EventLoop和线程模型 | Darcy</title>
+  <title>Golang-测试和工具链介绍 | Darcy</title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -288,7 +284,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/02/netty-thread-model/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/26/golang-about-tests-toolchains/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="darcy.q.cs">
@@ -305,7 +301,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Netty中EventLoop和线程模型</h1>
+          <h1 class="post-title" itemprop="name headline">Golang-测试和工具链介绍</h1>
         
 
         <div class="post-meta">
@@ -317,8 +313,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-02T17:09:55+08:00">
-                2017-06-02
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-26T23:19:52+08:00">
+                2017-06-26
               </time>
             
 
@@ -340,8 +336,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Netty/" itemprop="url" rel="index">
-                    <span itemprop="name">Netty</span>
+                  <a href="/categories/Golang/" itemprop="url" rel="index">
+                    <span itemprop="name">Golang</span>
                   </a>
                 </span>
 
@@ -357,7 +353,7 @@
 
           
           
-             <span id="/2017/06/02/netty-thread-model/" class="leancloud_visitors" data-flag-title="Netty中EventLoop和线程模型">
+             <span id="/2017/06/26/golang-about-tests-toolchains/" class="leancloud_visitors" data-flag-title="Golang-测试和工具链介绍">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -405,72 +401,105 @@
 
       
         <blockquote>
-<p>线程模型指定了操作系统，编程语言，框架或者应用程序的上下文中线程管理的关键方面。这里，简要学习Netty的EventLoop和线程模型。</p>
+<p>刚学习Golang的时候，对测试和Beachmark，工具链一头雾水，这里进行小小的总结．</p>
 </blockquote>
-<a id="more"></a>
-<h2 id="线程模型概述"><a href="#线程模型概述" class="headerlink" title="线程模型概述"></a>线程模型概述</h2><ul>
-<li>普通的创建Thread来执行任务的方式在高负载下表现很差。</li>
-<li>池化和重用线程相对于简单的为每个任务都创建和销毁线程是一种进步，但是它并不能消除由上下文切换所带来的开销，其将随着线程数目的增加很快变得明显，而且在高负载下表现更差。</li>
-</ul>
+ <a id="more"></a>
 <hr>
-<h2 id="EventLoop接口"><a href="#EventLoop接口" class="headerlink" title="EventLoop接口"></a>EventLoop接口</h2><ul>
-<li>一般网络框架都是使用<strong>事件循环</strong>来处理连接的生命周期内发生的事件。对应于Netty中就是<code>netty.io.channel.EventLoop</code>,基本编程模型如下</li>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><h3 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h3><ul>
+<li>工具链和标准库自带的单元框架使用起来有一定的规范．<ul>
+<li>测试代码必须放在当前包以”_test.go”结尾的文件中．</li>
+<li>测试函数以Test为名称前缀</li>
+<li>测试命令(go test)忽略以<code>_</code>和<code>.</code>开头的测试文件</li>
+<li>正常编译操作(go build / go install)会忽略测试文件．</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span> (!terminated) &#123;</div><div class="line">    List&lt;Runnable&gt; readyEvents = blockUntilEventsReady();</div><div class="line">        <span class="keyword">for</span> (Runnable ev: readyEvents) &#123;</div><div class="line">            ev.run();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="EventLoop类层次结果"><a href="#EventLoop类层次结果" class="headerlink" title="EventLoop类层次结果"></a>EventLoop类层次结果</h3><ul>
-<li>在这个模型中，一个EventLoop将由一个永远都不会改变的线程来驱动，同时任务(Runnable或者Callable)可以直接提交给EventLoop，以立即执行或者调度。可以创建多个EventLoop实例，而一个EventLoop可能被指派服务多个Channel。</li>
-<li>事件和任务总是以FIFO的方式顺序执行。</li>
+</li>
+<li>标准库testing提供<strong>T来控制结果和行为</strong><ul>
+<li>Fail  失败，继续执行当前测试函数</li>
+<li>FailNow 失败，终止执行当前测试函数</li>
+<li>SkipNow 跳过，停止执行当前测试函数．</li>
+<li>Log　输出错误信息，仅仅失败或者-v时候输出　LogF</li>
+<li>Parallel 和有同样设置的测试函数并行执行．</li>
+<li>Error Fail+Log  Errorf</li>
+<li>Fatal FailNow+Log Fatalf</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Will handle all the I/O operations for a &#123;Channel&#125; once registered.</div><div class="line"> *</div><div class="line"> * One &#123;EventLoop&#125; instance will usually handle more than one &#123;Channel&#125; but this may depend on implementation details and internals.</div><div class="line"> *</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">EventLoop</span> <span class="keyword">extends</span> <span class="title">OrderedEventExecutor</span>, <span class="title">EventLoopGroup</span> </span>&#123;</div><div class="line">    <span class="comment">// 当前EventLoop实例所属的EventLoopGroup。</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function">EventLoopGroup <span class="title">parent</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p><img src="http://static.zybuluo.com/csqiang1992/fuxebwtuzouhooxn6krfghk9/ch7-eventloop2.png" alt="ch7-eventloop2.png-60.6kB"></p>
-<h3 id="Netty4中的IO和事件处理"><a href="#Netty4中的IO和事件处理" class="headerlink" title="Netty4中的IO和事件处理"></a>Netty4中的IO和事件处理</h3><ul>
-<li>IO操作所触发的事件将流经安装了一个或者多个ChannelHandler的ChannelPipeline。传播这些事件的方法调用可以随后被ChannelHandler所拦截，并且按需处理事件。</li>
-<li><strong>Netty４中所有的IO操作和事件都由已经被分配给了EventLoop的那个Thread来处理，通过在同一个线程中处理某个给定的EventLoop所产生的所有事件，消除了在多个ChannelHandler中同步的必要。</strong>。</li>
+</li>
+<li>常用测试参数<ul>
+<li>-args cli参数，</li>
+<li>-v 详细信息</li>
+<li>-parallel 并发执行，默认值是GOMAXPROCS -parallel 8</li>
+<li>-run 指定测试函数，正则表达式</li>
+<li>-timeout　全部测试函数累加时间超时引发panic，默认值10ms，　-timeout 1m20s</li>
+<li>-count 重复测试次数，默认值1</li>
 </ul>
-<h3 id="Netty3中的IO操作"><a href="#Netty3中的IO操作" class="headerlink" title="Netty3中的IO操作"></a>Netty3中的IO操作</h3><ul>
-<li>入站事件在IO线程(对应于Netty4中的EventLoop)中处理，但是出站事件都由调度线程来处理，可能是IO线程或者其他线程，但是这可能需要在ChannelHandler中对出站事件进行同步(Channel可能跨越多个ChannelPipeline)。</li>
+</li>
 </ul>
-<hr>
-<h2 id="任务的调度"><a href="#任务的调度" class="headerlink" title="任务的调度"></a>任务的调度</h2><ul>
-<li>需要调度任务在稍后执行或者周期性的执行</li>
+<p><strong>demo</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> s1</div><div class="line"></div><div class="line"><span class="keyword">import</span> (</div><div class="line">	<span class="string">"testing"</span></div><div class="line">	<span class="string">"time"</span></div><div class="line">	<span class="string">"os"</span></div><div class="line">)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestA</span><span class="params">(t *testing.T)</span></span> &#123;</div><div class="line">	t.Parallel()</div><div class="line">	time.Sleep(time.Second * <span class="number">2</span>)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestB</span><span class="params">(t *testing.T)</span></span> &#123;</div><div class="line">	<span class="keyword">if</span> os.Args[<span class="built_in">len</span>(os.Args) - <span class="number">1</span>] == <span class="string">"b"</span> &#123;</div><div class="line">		t.Parallel()</div><div class="line">	&#125;</div><div class="line">	time.Sleep(time.Second * <span class="number">2</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">darcy@darcy-ubuntu:~/go/src/s1$ go test -v</div><div class="line">=== RUN   TestA</div><div class="line">=== RUN   TestB</div><div class="line">--- PASS: TestB (2.00s)</div><div class="line">--- PASS: TestA (2.00s)</div><div class="line">PASS</div><div class="line">ok  	s1	4.003s</div><div class="line">darcy@darcy-ubuntu:~/go/src/s1$ go test -v -args "b"</div><div class="line">=== RUN   TestA</div><div class="line">=== RUN   TestB</div><div class="line">--- PASS: TestB (2.00s)</div><div class="line">--- PASS: TestA (2.00s)</div><div class="line">PASS</div><div class="line">ok  	s1	2.003s // 两个Test并行执行．</div><div class="line">darcy@darcy-ubuntu:~/go/src/s1$</div></pre></td></tr></table></figure>
+<p><strong>单元测试就到这里了，其他的套路一样．</strong></p>
+<h3 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a>性能测试</h3><ul>
+<li><strong>性能测试函数以Benchmark为名称前缀，　同样保存在*_test.go文件中</strong></li>
 </ul>
-<h3 id="JDK的任务调度API"><a href="#JDK的任务调度API" class="headerlink" title="JDK的任务调度API"></a>JDK的任务调度API</h3><ul>
-<li><a href="http://docs.oracle.com/javase/8/docs/api/" target="_blank" rel="external">相关文档</a> (<code>java.util.concurrent.Executors</code>)</li>
-</ul>
-<p><strong>使用SchduleExecutorService调度任务</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">ScheduledExecutorService executor = Executors.newScheduledThreadPool(<span class="number">10</span>);</div><div class="line">ScheduledFuture&lt;?&gt; future = executor.schedule(</div><div class="line"><span class="keyword">new</span> Runnable() &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">    System.out.println(<span class="string">"60 seconds later"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;, <span class="number">60</span>, TimeUnit.SECONDS); <span class="comment">// 60s后执行</span></div><div class="line">...</div><div class="line">executor.shutdown();</div></pre></td></tr></table></figure>
-<h3 id="使用EventLoop调度任务"><a href="#使用EventLoop调度任务" class="headerlink" title="使用EventLoop调度任务"></a>使用EventLoop调度任务</h3><ul>
-<li><code>ScheduledExecutorService</code>需要额外的线程来管理线程池，所以有其局限性。</li>
-<li>EventLoop实现了　<code>ScheduledExecutorService</code>,所以可以使用JDK提供的所有方法。</li>
-</ul>
-<p><strong>使用EventLoop调度任务</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Channel ch = ...</div><div class="line">ScheduledFuture&lt;?&gt; future = ch.eventLoop().schedule(</div><div class="line">    <span class="keyword">new</span> Runnable() &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"60 seconds later"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;, <span class="number">60</span>, TimeUnit.SECONDS);　<span class="comment">// 60之后执行</span></div></pre></td></tr></table></figure>
-<p><strong>使用EventLoop周期性调度任务</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Channel ch = ...</div><div class="line">ScheduledFuture&lt;?&gt; future = ch.eventLoop().scheduleAtFixedRate( // 固定频率</div><div class="line">    new Runnable() &#123;</div><div class="line">    @Override</div><div class="line">    public void run() &#123;</div><div class="line">        System.out.println(&quot;Run every 60 seconds&quot;);</div><div class="line">    &#125;</div><div class="line">&#125;, 60, 60, TimeUnit.Seconds);</div></pre></td></tr></table></figure>
-<p><strong>使用EventLoop取消任务的执行</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">ScheduledFuture&lt;?&gt; future = ch.eventLoop().scheduleAtFixedRate(...);</div><div class="line"><span class="comment">// Some other code that runs...</span></div><div class="line"><span class="keyword">boolean</span> mayInterruptIfRunning = <span class="keyword">false</span>;</div><div class="line">future.cancel(mayInterruptIfRunning); <span class="comment">// 取消该任务，防止再次执行。</span></div></pre></td></tr></table></figure>
-<hr>
-<h2 id="实现细节"><a href="#实现细节" class="headerlink" title="实现细节"></a>实现细节</h2><h3 id="线程管理"><a href="#线程管理" class="headerlink" title="线程管理"></a>线程管理</h3><ul>
-<li>Netty线程模型的卓越性能取决于<strong>对于当前执行的Thread的身份的确定</strong>，即确实它是否是分配给当前Channel以及它的EventLoop的那一个线程(<strong>一个EventLoop将处理一个Channel整个生命周期内的所有事件</strong>)。</li>
-<li>如果当前的调度线程是支撑EventLoop的线程，那么所提交的代码块将会被直接执行；否则，EventLoop将调度该任务以便稍后执行，并且将它放入内部队列中，当EventLoop下次处理它事件时，就会执行队列中的那些任务事件。(This explains how any Thread can interact directly with the Channel without requiring synchronization in the ChannelHandlers.)这就解释了Thread如何与Channel直接交互而不需要在ChannelHandlers中同步。</li>
-<li><strong>每个EventLoop都有自己的任务队列，独立于任务其他的EventLoop</strong>。</li>
-<li>不要将一个长时间运行的任务放入到执行队列中，因为它将<strong>阻塞需要在同一个线程上运行的其他任务</strong>。<strong>如果需要执行阻塞调用或者耗时任务，可以使用一个专门的EventExecutor</strong>(<a href="http://frobisher.me/2017/06/02/netty-channelhandler-channelpipeline/#more" target="_blank" rel="external">参见上一篇文章</a> Pipleline代码的注释中)。</li>
-</ul>
-<h3 id="EventLoop线程的分配"><a href="#EventLoop线程的分配" class="headerlink" title="EventLoop线程的分配"></a>EventLoop线程的分配</h3><ul>
-<li>服务于Channel IO和事件的EventLoop包含在EventLoopGroup中，不同的传输实现中EventLoop的创建和分配不一样</li>
-</ul>
-<p><strong>异步传输</strong></p>
+<p>go文件见<a href="http://frobisher.me/2017/06/26/golang-about-reflects/#more" target="_blank" rel="external">上一篇文章</a>的最后两个go文件．</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">darcy@darcy-ubuntu:~/go/src/ch10$ go test -run Node -bench . -benchmem</div><div class="line">BenchmarkCall-8    	1000000000	         2.83 ns/op	       0 B/op	       0 allocs/op</div><div class="line">BenchmarkRCall-8   	 3000000	       529 ns/op	       8 B/op	       1 allocs/op</div><div class="line">BenchmarkSet-8     	2000000000	         0.94 ns/op	       0 B/op	       0 allocs/op</div><div class="line">BenchmarkRset-8    	 5000000	       257 ns/op	      16 B/op	       2 allocs/op</div><div class="line">PASS</div><div class="line">ok  	ch10	8.778s</div><div class="line">darcy@darcy-ubuntu:~/go/src/ch10$ go test -bench .</div><div class="line">BenchmarkCall-8    	1000000000	         2.83 ns/op</div><div class="line">BenchmarkRCall-8   	 3000000	       515 ns/op</div><div class="line">BenchmarkSet-8     	2000000000	         0.94 ns/op</div><div class="line">BenchmarkRset-8    	 5000000	       257 ns/op</div><div class="line">PASS</div><div class="line">ok  	ch10	8.739s</div><div class="line"><span class="meta"></span></div><div class="line"># 设定CPU个数</div><div class="line">darcy@darcy-ubuntu:~/go/src/ch10$ go test -bench . -cpu 1,2,4,8</div><div class="line">BenchmarkCall      	1000000000	         2.83 ns/op</div><div class="line">BenchmarkCall-2    	1000000000	         2.83 ns/op</div><div class="line">BenchmarkCall-4    	1000000000	         2.86 ns/op</div><div class="line">BenchmarkCall-8    	1000000000	         2.83 ns/op</div><div class="line">BenchmarkRCall     	 3000000	       521 ns/op</div><div class="line">BenchmarkRCall-2   	 3000000	       531 ns/op</div><div class="line">BenchmarkRCall-4   	 3000000	       530 ns/op</div><div class="line">BenchmarkRCall-8   	 3000000	       526 ns/op</div><div class="line">BenchmarkSet       	2000000000	         0.94 ns/op</div><div class="line">BenchmarkSet-2     	2000000000	         0.94 ns/op</div><div class="line">BenchmarkSet-4     	2000000000	         0.94 ns/op</div><div class="line">BenchmarkSet-8     	2000000000	         0.94 ns/op</div><div class="line">BenchmarkRset      	 5000000	       257 ns/op</div><div class="line">BenchmarkRset-2    	 5000000	       255 ns/op</div><div class="line">BenchmarkRset-4    	 5000000	       258 ns/op</div><div class="line">BenchmarkRset-8    	 5000000	       257 ns/op</div><div class="line">PASS</div><div class="line">ok  	ch10	35.191s</div><div class="line"><span class="meta"></span></div><div class="line"># 设置最小测试时间</div><div class="line">darcy@darcy-ubuntu:~/go/src/ch10$ go test -bench . -benchtime 20s</div><div class="line">BenchmarkCall-8    	10000000000	         2.82 ns/op</div><div class="line">BenchmarkRCall-8   	50000000	       529 ns/op</div><div class="line">BenchmarkSet-8     	10000000000	         0.94 ns/op</div><div class="line">BenchmarkRset-8    	100000000	       256 ns/op</div><div class="line">PASS</div><div class="line">ok  	ch10	91.052s</div></pre></td></tr></table></figure>
+<p>其他还有<strong>测试内存，代码覆盖率，性能监控</strong>的．这里不详细列了．</p>
+<h3 id="性能监控"><a href="#性能监控" class="headerlink" title="性能监控"></a>性能监控</h3><p><strong>可以提供参数保存采样数据</strong></p>
 <ul>
-<li>异步传输实现只使用了少量的EventLoop(1:1对应的Thread),而且在当前的线程模型中，可能会被<strong>多个Channel所共享</strong>，这样就可以通过少量的Thread来支持大量的Channel，而不是每个Channel都分配一个Thread.</li>
-<li>EventLoopGroup为每个新创建的Channel分配一个EventLoop(可以通过轮询保证公平)，在Channel的生命周期内，所有的操作都是分配的这个唯一线程进行处理</li>
-<li>EventLoop的分配方式对于ThreaLocal的使用有影响，因为一个EventLoop会支持多个Channel，所以对于所有相关联的Channel而言，ThreadLocal都将是一样的。</li>
+<li>-cpuprofile 执行时间采样到<strong>指定文件</strong></li>
+<li>-memprofile 内存分配</li>
+<li>-memprofilerate 内存采样起始值，默认512kb</li>
+<li>-blockprofile 阻塞时间采样</li>
+<li>-blockprofilerate 阻塞时间采样起始值</li>
 </ul>
-<p><img src="http://static.zybuluo.com/csqiang1992/7x6gdbotzy9lh7hhg8bds0yi/ch7-asyncthread.png" alt="ch7-asyncthread.png-148.1kB"></p>
-<p><strong>阻塞传输</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span> 性能监控</div><div class="line">darcy@darcy-ubuntu:~/go/src/ch10$ go test -bench . -memprofile mem.out -cpuprofile cpu.out  net/http</div><div class="line">BenchmarkCookieString-8                      	 1000000	      2208 ns/op	     384 B/op	       3 allocs/op</div><div class="line">//...</div><div class="line">B/op	       0 allocs/op</div><div class="line">BenchmarkReadRequestChrome-8                 	  200000	      8938 ns/op	  68.36 MB/s	    1809 B/op	      14 allocs/op</div><div class="line">BenchmarkReadRequestCurl-8                   	  300000	      4460 ns/op	  17.49 MB/s	     880 B/op	       9 allocs/op</div><div class="line">BenchmarkReadRequestApachebench-8            	  300000	      4467 ns/op	  18.35 MB/s	     883 B/op	       9 allocs/op</div><div class="line">BenchmarkReadRequestSiege-8                  	  300000	      5873 ns/op	  25.71 MB/s	     965 B/op	      11 allocs/op</div><div class="line">BenchmarkReadRequestWrk-8                    	  500000	      3272 ns/op	  12.22 MB/s	     832 B/op	       7 allocs/op</div><div class="line">//...</div><div class="line">BenchmarkCloseNotifier-8                     	   10000	    165677 ns/op	    3427 B/op	      55 allocs/op</div><div class="line">PASS</div><div class="line">ok  	net/http	79.762s</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="工具链"><a href="#工具链" class="headerlink" title="工具链"></a>工具链</h2><h3 id="go-build"><a href="#go-build" class="headerlink" title="go build"></a>go build</h3><ul>
+<li>默认每次都会重新编译除了标准库以外的所有依赖包</li>
+<li><p>参数列表<br>  -　-o 可执行文件名，默认和目录同名<br>  -　-a 强制重新编译包括标准库在内的所有包<br>  -　-p 并行编译所使用的CPU数目<br>  -　-v 显示待编译包的名字<br>  -　-race　启动数据竞争检查<br>  -　-gcflags 编译器参数<br>  -　- ldflags 链接器参数</p>
+</li>
+<li><p>gcflags</p>
 <ul>
-<li>每个Channel都会被分配一个EventLoop(1:1对应的线程)。每个Channel的IO事件也是被一个线程所处理。这一点上和异步的方式保持一致。</li>
+<li>-B 禁止越界检查</li>
+<li>-N 禁用优化</li>
+<li>-l 禁用内联</li>
+<li>-u 禁用unsafe</li>
+<li>-S 输出汇编代码</li>
+<li>-m 输出优化信息</li>
 </ul>
-<p><img src="http://static.zybuluo.com/csqiang1992/0xbl35r1gq456h7rfx9f7exw/ch7-oio-thread.png" alt="ch7-oio-thread.png-89.8kB"></p>
+</li>
+<li><p>ldflags </p>
+<ul>
+<li>-s　禁用符号表</li>
+<li>-w 禁用DRAWF调试信息</li>
+<li>-X 设置字符串全局变量</li>
+<li>-H 设置可执行文件格式</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>more 参数：　go tool compile -h ; go tool link -h; src/cmd/compile or link目录．</p>
+</blockquote>
+<h3 id="go-install"><a href="#go-install" class="headerlink" title="go install"></a>go install</h3><ul>
+<li>和build参数相同，但是会<strong>将编译结果安装到bin, pkg目录下．而且go install支持增量编译，没有修改的情况下，直接链接pkg目录中的静态包</strong>．(对比静态库和所有源文件修改时间来判断源代码是否改变.来决定是否对包进行重新编译．采用buildin算法：将包中的全部文件名，运行时版本号，导入的第三方包信息数据合并后hash)</li>
+</ul>
+<h3 id="go-get"><a href="#go-get" class="headerlink" title="go get"></a>go get</h3><ul>
+<li>将第三方包下载到GOPATH列表中的第一个工作空间，</li>
+<li>参数<br>  -　-d　仅仅下载，不安装<br>  -　-u 更新包以及依赖项<br>  -　-f 和－u配合使用，强制更新，不检查是否过期<br>  -　-t 下载测试代码所需的包<br>  -　-insecure 使用HTTP等非安全的协议<br>  -　-v 输出详细信息<br>  -　-x 显示正在执行的命令</li>
+</ul>
+<h3 id="go-env"><a href="#go-env" class="headerlink" title="go env　"></a>go env　</h3><ul>
+<li>全部指定的环境参数</li>
+</ul>
+<h3 id="go-clean"><a href="#go-clean" class="headerlink" title="go clean"></a>go clean</h3><ul>
+<li>清理工作目录，删除编译和安装遗留的目标文件</li>
+<li>参数<ul>
+<li>-i　清理go install安装的文件</li>
+<li>-r 递归清理所有依赖的包</li>
+<li>-x </li>
+<li>-n</li>
+</ul>
+</li>
+</ul>
+<p>还有一些交叉编译，条件编译，预处理的知识暂时用不到，以后再说把．</p>
 
       
     </div>
@@ -500,9 +529,11 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Java/" rel="tag"># Java</a>
+            <a href="/tags/Golang/" rel="tag"># Golang</a>
           
-            <a href="/tags/Netty/" rel="tag"># Netty</a>
+            <a href="/tags/Test/" rel="tag"># Test</a>
+          
+            <a href="/tags/ToolChain/" rel="tag"># ToolChain</a>
           
         </div>
       
@@ -515,8 +546,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/06/02/netty-channelhandler-channelpipeline/" rel="next" title="Netty中的ChannelHandler和ChannelPipeline">
-                <i class="fa fa-chevron-left"></i> Netty中的ChannelHandler和ChannelPipeline
+              <a href="/2017/06/26/golang-about-reflects/" rel="next" title="Golang-反射">
+                <i class="fa fa-chevron-left"></i> Golang-反射
               </a>
             
           </div>
@@ -524,10 +555,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2017/06/02/netty-bootstrap/" rel="prev" title="Netty中的引导(Boostrap)">
-                Netty中的引导(Boostrap) <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -699,7 +726,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#线程模型概述"><span class="nav-number">1.</span> <span class="nav-text">线程模型概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EventLoop接口"><span class="nav-number">2.</span> <span class="nav-text">EventLoop接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#EventLoop类层次结果"><span class="nav-number">2.1.</span> <span class="nav-text">EventLoop类层次结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty4中的IO和事件处理"><span class="nav-number">2.2.</span> <span class="nav-text">Netty4中的IO和事件处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty3中的IO操作"><span class="nav-number">2.3.</span> <span class="nav-text">Netty3中的IO操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务的调度"><span class="nav-number">3.</span> <span class="nav-text">任务的调度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JDK的任务调度API"><span class="nav-number">3.1.</span> <span class="nav-text">JDK的任务调度API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用EventLoop调度任务"><span class="nav-number">3.2.</span> <span class="nav-text">使用EventLoop调度任务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现细节"><span class="nav-number">4.</span> <span class="nav-text">实现细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#线程管理"><span class="nav-number">4.1.</span> <span class="nav-text">线程管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EventLoop线程的分配"><span class="nav-number">4.2.</span> <span class="nav-text">EventLoop线程的分配</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#测试"><span class="nav-number">1.</span> <span class="nav-text">测试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单元测试"><span class="nav-number">1.1.</span> <span class="nav-text">单元测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能测试"><span class="nav-number">1.2.</span> <span class="nav-text">性能测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能监控"><span class="nav-number">1.3.</span> <span class="nav-text">性能监控</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工具链"><span class="nav-number">2.</span> <span class="nav-text">工具链</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#go-build"><span class="nav-number">2.1.</span> <span class="nav-text">go build</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#go-install"><span class="nav-number">2.2.</span> <span class="nav-text">go install</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#go-get"><span class="nav-number">2.3.</span> <span class="nav-text">go get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#go-env"><span class="nav-number">2.4.</span> <span class="nav-text">go env　</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#go-clean"><span class="nav-number">2.5.</span> <span class="nav-text">go clean</span></a></li></ol></li></ol></div>
             
 
           </div>
