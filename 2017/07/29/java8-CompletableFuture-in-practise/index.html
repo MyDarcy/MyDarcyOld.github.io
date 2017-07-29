@@ -1,0 +1,1113 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Java8,CompletableFuture," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="CompletableFuture进行组合式异步编程，包括： 创建异步计算，并获取计算结果；使用非阻塞操作提升吞吐量；设计和实现异步API；如何以异步的方式使用同步的API；如何对两个或多个异步操作进行流水线和合并操作；如何处理异步操作的完成状态">
+<meta name="keywords" content="Java,Java8,CompletableFuture">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java8-CompletableFuture组合式异步编程">
+<meta property="og:url" content="http://yoursite.com/2017/07/29/java8-CompletableFuture-in-practise/index.html">
+<meta property="og:site_name" content="darcy he">
+<meta property="og:description" content="CompletableFuture进行组合式异步编程，包括： 创建异步计算，并获取计算结果；使用非阻塞操作提升吞吐量；设计和实现异步API；如何以异步的方式使用同步的API；如何对两个或多个异步操作进行流水线和合并操作；如何处理异步操作的完成状态">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/eqx4tjrjfo6w5ye5n9md0hsw/java8-future-1.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/od6ig2jfibjkvy7y7zzkz7uo/java8-completabefuture-lazy-1.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/u20e5gmnfe9hokfnlheyx6m1/java8-completableFuture-2.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/1ffslpykh74x6hle224lsn0n/java8-completablefuture-async-2.png">
+<meta property="og:updated_time" content="2017-07-29T03:54:56.856Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java8-CompletableFuture组合式异步编程">
+<meta name="twitter:description" content="CompletableFuture进行组合式异步编程，包括： 创建异步计算，并获取计算结果；使用非阻塞操作提升吞吐量；设计和实现异步API；如何以异步的方式使用同步的API；如何对两个或多个异步操作进行流水线和合并操作；如何处理异步操作的完成状态">
+<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/eqx4tjrjfo6w5ye5n9md0hsw/java8-future-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/07/29/java8-CompletableFuture-in-practise/"/>
+
+
+
+
+
+  <title>Java8-CompletableFuture组合式异步编程 | darcy he</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?594cf3672b18c8c9a97689d1dfffaa39";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">darcy he</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知 孤勇 温柔</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/29/java8-CompletableFuture-in-practise/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="darcy he">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java8-CompletableFuture组合式异步编程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-29T11:47:35+08:00">
+                2017-07-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/07/29/java8-CompletableFuture-in-practise/" class="leancloud_visitors" data-flag-title="Java8-CompletableFuture组合式异步编程">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>CompletableFuture进行组合式异步编程，包括： 创建异步计算，并获取计算结果；使用非阻塞操作提升吞吐量；设计和实现异步API；如何以异步的方式使用同步的API；如何对两个或多个异步操作进行流水线和合并操作；如何处理异步操作的完成状态</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="Future接口"><a href="#Future接口" class="headerlink" title="Future接口"></a>Future接口</h2><ul>
+<li>Future接口在Java5中被引入，设计初衷是<strong>对将来某个时刻会发生的结果进行建模</strong>。它建模了一种异步计算，返回一个执行运算结果的引用，当运算结束后，这个引用被返回给调用方。在Future中触发那些潜在耗时的操作，从而把调用线程解放出来，让它能继续执行其他有价值的工作．</li>
+<li>Future比更底层的Thread更易用。要使用Future，通常你只需要将耗时的操作封装在一个Callable对象中，再将它提交给ExecutorService．</li>
+<li>可以在ExecutorService以并发方式调用另一个线程执行耗时操作的同时，去执行一些其他的任务。接着，如果你已经<strong>运行到没有异步操作的结果就无法继续任何有意义的工作时，可以调用它的get方法去获取操作的结果</strong>。如果操作已经完成，该方法会立刻返回操作的结果，否则它会阻塞你的线程，直到操作完成，返回相应的结果。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 创建ExecutorService，通过它你可以向线程池提交任务</span></div><div class="line"> ExecutorService executor = Executors.newCachedThreadPool();</div><div class="line">    <span class="comment">// 向ExecutorService提交一个Callable对象</span></div><div class="line">    Future&lt;Double&gt; future = executor.submit(<span class="keyword">new</span> Callable&lt;Double&gt;() &#123;</div><div class="line">      <span class="function"><span class="keyword">public</span> Double <span class="title">call</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="comment">// 以异步方式在新的线程中执异步操作进行的同时， 行耗时的操作</span></div><div class="line">        <span class="keyword">return</span> doSomeLongComputation();</div><div class="line">      &#125;&#125;);</div><div class="line">      <span class="comment">// 异步操作进行的同时，行耗时的操作你可以做其他的事情</span></div><div class="line">    doSomethingElse();</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">// 获取异步操作的结果，如果最终被阻塞， 无法得到结果，那么在最多等待1秒钟之后退出</span></div><div class="line">      Double result = future.get(<span class="number">1</span>, TimeUnit.SECONDS);</div><div class="line">    &#125; <span class="keyword">catch</span> (ExecutionException ee) &#123;</div><div class="line">    <span class="comment">// 计算抛出一个异常</span></div><div class="line">    &#125; <span class="keyword">catch</span> (InterruptedException ie) &#123;</div><div class="line">    <span class="comment">// 当前线程在等待过程中被中断</span></div><div class="line">    &#125; <span class="keyword">catch</span> (TimeoutException te) &#123;</div><div class="line">    <span class="comment">// 在Future对象完成之前超过已过期</span></div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p><img src="http://static.zybuluo.com/csqiang1992/eqx4tjrjfo6w5ye5n9md0hsw/java8-future-1.png" alt="java8-future-1.png-38.9kB"></p>
+<h3 id="Future-接口不能做什么"><a href="#Future-接口不能做什么" class="headerlink" title="Future 接口不能做什么"></a>Future 接口不能做什么</h3><ul>
+<li>Future接口提供了方法来检测异步计算是否已经结束（使用isDone方法），等待异步操作结束，以及获取计算的结果。</li>
+<li>Future不易实现的需求（可以利用<strong>CompletableFuture</strong>(implements Future)结合Java8来完成）<ul>
+<li>将两个<strong>异步计算合并</strong>为一个 – 这两个异步计算之间相互独立，同时第二个又依赖于第一个的结果。</li>
+<li>等待Future集合中的所有任务都完成。</li>
+<li>仅等待Future集合中最快结束的任务完成（有可能因为它们试图通过不同的方式计算同一个值），并返回它的结果。</li>
+<li>通过编程方式完成一个Future任务的执行（即以手工<strong>设定异步操作结果</strong>的方式）。</li>
+<li>应对Future的<strong>完成事件</strong>（即当Future的完成事件发生时会收到通知，并能使用Future计算的结果进行下一步的操作，不只是简单地阻塞等待操作的结果）。</li>
+</ul>
+</li>
+<li>Stream和CompletableFuture的设计都遵循了类似的模式：它们都使用了Lambda表达式以及流水线的思想。所以说，CompletableFuture和Future的关系就跟Stream和Collection的关系一样。</li>
+</ul>
+<h3 id="使用-CompletableFuture-构建异步应用"><a href="#使用-CompletableFuture-构建异步应用" class="headerlink" title="使用 CompletableFuture 构建异步应用"></a>使用 CompletableFuture 构建异步应用</h3><blockquote>
+<p>需求：创建一个名为“最佳价格查询器”（best-price-finder）的应用，它会查询多个在线商店，依据给定的产品或服务找出最低的价格。</p>
+</blockquote>
+<ul>
+<li>同步API与异步API<ul>
+<li>同步API:调用了某个方法，调用方在被调用方运行的过程中会等待，被调用方运行结束返回，调用方取得被调用方的返回值并继续运行。即使调用方和被调用方在不同的线程中运行，调用方还是需要等待被调用方结束运行，这就是<strong>阻塞式调用</strong>这个名词的由来。</li>
+<li>异步API会直接返回，或者至少在被调用方计算完成之前，将它剩余的计算任务交给另一个线程去做，该线程和调用方是异步的 – 这就是<strong>非阻塞式调用</strong>的由来。执行剩余计算任务的线程会将它的计算结果返回给调用方。返回的方式要么是通过<strong>回调函数</strong>，要么是由调用方再次执行一个<strong>“等待，直到计算完成”的方法调用</strong>(基本上就是一个阻塞式调用了)。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="实现异步-API"><a href="#实现异步-API" class="headerlink" title="实现异步 API"></a>实现异步 API</h2><ul>
+<li><code>CompletableFuture.complete</code>方法，结束completableFuture对象的运行，并设置变量的值。</li>
+</ul>
+<ul>
+<li><code>delay()</code>引入延时，同步阻塞式调用</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// getPrice的调用者每次调用都会被阻塞，因为delay()</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getPrice</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> calculatePrice(product);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">double</span> <span class="title">calculatePrice</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    delay();</div><div class="line">    <span class="keyword">return</span> random.nextDouble() * product.charAt(<span class="number">0</span>) + product.charAt(<span class="number">1</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>异步API</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> Future&lt;Double&gt; <span class="title">getPriceAsync</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    CompletableFuture&lt;Double&gt; futurePrice = <span class="keyword">new</span> CompletableFuture&lt;&gt;(); <span class="comment">// 包含计算结果．</span></div><div class="line">    <span class="comment">// 新开一个线程处理耗时调用．</span></div><div class="line">    <span class="keyword">new</span> Thread( () -&gt; &#123;</div><div class="line">                <span class="keyword">double</span> price = calculatePrice(product);</div><div class="line">                <span class="comment">// 耗时任务结束，设置Future的返回值</span></div><div class="line">                futurePrice.complete(price);</div><div class="line">    &#125;).start();</div><div class="line">    </div><div class="line">    <span class="comment">// 调用者线程直接返回</span></div><div class="line">    <span class="keyword">return</span> futurePrice;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>测试异步API<ul>
+<li>如果所有<strong>有意义的工作都已经完成</strong>(程序员根据业务逻辑确定)，客户所有要执行的工作都依赖于商品价格时，再调用Future的get方法。执行了这个操作后，<strong>客户要么获得Future中封装的值（如果异步任务已经完成），要么发生阻塞</strong>（插入到最合适的位置调用，之后的计算都依赖于此值，那么即使它花费的时间再长，此时也是不可避免的） ，直到该异步任务完成，期望的值能够访问。</li>
+<li>Future执行完毕可以发送一个通知，仅在计算结果可用时执行一个由Lambda表达式或者方法引用定义的回调函数。（这里没有）</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShopMain</span> </span>&#123;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    Shop shop = <span class="keyword">new</span> Shop(<span class="string">"BestShop"</span>);</div><div class="line">    <span class="keyword">long</span> start = System.nanoTime();</div><div class="line">    <span class="comment">// 调用立刻返回了一个Future对象，通过该对象客户可以在将来的某个时刻取得商品的价格</span></div><div class="line">    Future&lt;Double&gt; futurePrice = shop.getPriceAsync(<span class="string">"my favorite product"</span>);</div><div class="line">    <span class="keyword">long</span> invocationTime = ((System.nanoTime() - start) / <span class="number">1_000_000</span>);</div><div class="line">    System.out.println(<span class="string">"Invocation returned after "</span> + invocationTime </div><div class="line">                                                    + <span class="string">" msecs"</span>);</div><div class="line">    <span class="comment">// 执行更多任务，比如查询其他商店</span></div><div class="line">    doSomethingElse();</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">// 从Future对象中读取价格，如果价格未知，会发生阻塞</span></div><div class="line">        <span class="keyword">double</span> price = futurePrice.get();</div><div class="line">        System.out.printf(<span class="string">"Price is %.2f%n"</span>, price);</div><div class="line">    &#125; <span class="keyword">catch</span> (ExecutionException | InterruptedException e) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">long</span> retrievalTime = ((System.nanoTime() - start) / <span class="number">1_000_000</span>);</div><div class="line">    System.out.println(<span class="string">"Price returned after "</span> + retrievalTime + <span class="string">" msecs"</span>);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">doSomethingElse</span><span class="params">()</span> </span>&#123;</div><div class="line">      System.out.println(<span class="string">"Doing something else..."</span>);</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">// 执行结果</span></div><div class="line">Invocation returned after <span class="number">87</span> msecs <span class="comment">// 调用getPriceAsync()立即返回.</span></div><div class="line">Doing something <span class="keyword">else</span>...</div><div class="line">Price is <span class="number">123.26</span></div><div class="line">Price returned after <span class="number">1140</span> msecs</div></pre></td></tr></table></figure>
+<h3 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h3><ul>
+<li>如上如果价格计算过程中产生了错误，那么该异常会被限制在试图计算商品价格的当前线程的范围内，最终会杀死该线程，而这会导致等待get方法返回结果的客户端永久地被阻塞。（实际抛出一个RuntimeException好像可以直接捕获到）</li>
+<li>为了让客户端能了解商店无法提供请求商品价格的原因，你需要使用CompletableFuture的completeExceptionally方法将导致CompletableFuture内发生问题的异常抛出。</li>
+</ul>
+<h3 id="使用工厂方法supplyAsync创建CompletableFuture"><a href="#使用工厂方法supplyAsync创建CompletableFuture" class="headerlink" title="使用工厂方法supplyAsync创建CompletableFuture"></a>使用工厂方法supplyAsync创建CompletableFuture</h3><ul>
+<li><p><code>supplyAsync</code>方法接受一个生产者（<strong>Supplier</strong>）作为参数，<strong>返回一个CompletableFuture对象</strong>，该对象完成异步执行后会读取调用<strong>生产者方法的返回值</strong>。生产者方法会交由ForkJoinPool池中的某个执行线程（Executor）运行，但是你也可以使用supplyAsync方法的重载版本，传递第二个参数指定不同的执行线程执行生产者方法。</p>
+</li>
+<li><p>重构getPriceAsync()</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> Future&lt;Double&gt; <span class="title">getPrice</span><span class="params">(String product)</span> </span>&#123;</div><div class="line"><span class="comment">/*</span></div><div class="line">    CompletableFuture&lt;Double&gt; futurePrice = new CompletableFuture&lt;&gt;();</div><div class="line">    new Thread( () -&gt; &#123;</div><div class="line">                try &#123;</div><div class="line">                    double price = calculatePrice(product);</div><div class="line">                    futurePrice.complete(price);</div><div class="line">                &#125; catch (Exception ex) &#123;</div><div class="line">                    futurePrice.completeExceptionally(ex);</div><div class="line">                &#125;</div><div class="line">    &#125;).start();</div><div class="line">    return futurePrice;</div><div class="line">*/</div><div class="line"><span class="comment">// 重构如上的步骤．</span></div><div class="line"><span class="comment">// CompletableFuture包含calculatePrice()时返回的值</span></div><div class="line">    <span class="keyword">return</span> CompletableFuture.supplyAsync(() -&gt; calculatePrice(product));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="避免阻塞"><a href="#避免阻塞" class="headerlink" title="避免阻塞"></a>避免阻塞</h2><blockquote>
+<p>需求：给定一个商店列表List，同时实现一个方法，它接受产品名作为参数，返回一个字符串列表，<br>这个字符串列表中包括商店的名称、该商店中指定商品的价格．</p>
+</blockquote>
+<h3 id="顺序查询"><a href="#顺序查询" class="headerlink" title="顺序查询"></a>顺序查询</h3><ul>
+<li>总花费大概是4秒钟，因为对这4个商店的查询是顺序进行的，并且一个查询操作会阻塞另一个，每一个操作都要花费大约1秒左右的时间计算请求商品的价格．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> List&lt;Shop&gt; shops = Arrays.asList(</div><div class="line">      <span class="keyword">new</span> Shop(<span class="string">"BestPrice"</span>),</div><div class="line">      <span class="keyword">new</span> Shop(<span class="string">"LetsSaveBig"</span>),</div><div class="line">      <span class="keyword">new</span> Shop(<span class="string">"MyFavoriteShop"</span>),</div><div class="line">      <span class="keyword">new</span> Shop(<span class="string">"BuyItAll"</span>)<span class="comment">/*,</span></div><div class="line">      new Shop("ShopEasy")*/);</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesSequential</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> shops.stream()</div><div class="line">        .map(shop -&gt; shop.getName() + <span class="string">" price is "</span> + shop.getPrice(product))</div><div class="line">        .collect(Collectors.toList());</div><div class="line"> &#125;</div><div class="line"> <span class="comment">// 执行结果</span></div><div class="line">[BestPrice price is <span class="number">123.25651664705744</span>, LetsSaveBig price is <span class="number">169.4653393606115</span>, MyFavoriteShop price is <span class="number">214.12914480588853</span>, BuyItAll price is <span class="number">184.74384995303313</span>]</div><div class="line">sequential done in <span class="number">4045</span> msecs</div></pre></td></tr></table></figure>
+<h3 id="并行流对请求进行并行操作"><a href="#并行流对请求进行并行操作" class="headerlink" title="并行流对请求进行并行操作"></a>并行流对请求进行并行操作</h3><ul>
+<li>对四个不同商店的查询实现了并行，所以完成所有操作的总耗时只有1秒多一点儿。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesParallel</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> shops.parallelStream() <span class="comment">// 只是这里改成了并行流</span></div><div class="line">        .map(shop -&gt; shop.getName() + <span class="string">" price is "</span> + shop.getPrice(product))</div><div class="line">        .collect(Collectors.toList());</div><div class="line"> &#125;</div><div class="line"> <span class="comment">// 执行结果</span></div><div class="line"> [BestPrice price is <span class="number">197.15388829450728</span>, LetsSaveBig price is <span class="number">167.59404755738808</span>, MyFavoriteShop price is <span class="number">192.48730292081552</span>, BuyItAll price is <span class="number">199.67823140124116</span>]</div><div class="line">parallel done in <span class="number">1006</span> msecs</div></pre></td></tr></table></figure>
+<h3 id="使用-CompletableFuture-发起异步请求"><a href="#使用-CompletableFuture-发起异步请求" class="headerlink" title="使用 CompletableFuture 发起异步请求"></a>使用 CompletableFuture 发起异步请求</h3><ul>
+<li>CompletableFuture的工厂方法<code>supplyAsync</code>创建CompletableFuture对象，发起异步请求进行异步处理．</li>
+<li>CompletableFuture类中的<code>join</code>方法和Future接口中的<code>get</code>有相同的含义，并且也声明在Future接口中，它们唯一的不同<strong>是join不会抛出任何检测到的</strong>异常。使用它你不再需要使用try/catch语句块让你传递给第二个map方法的Lambda表达式变得过于臃肿。</li>
+<li>实现中使用了两个不同的Stream流水线，而不是在同一个处理流的流水线上一个接一个地放置两个map操作．这是要考虑<strong>流操作之间的延迟特性</strong>，如果你在单一流水线中处理流，发向不同商家的请求只能以同步、顺序执行的方式才会成功。因此，每个创建CompletableFuture对象只能在前一个操作结束之后执行查询指定商家的动作、通知join方法返回计算结果。</li>
+<li><strong>CompletableFuture版本</strong>的程序跟<strong>并行流版本</strong>的程序时间复杂度相差不多。究其原因都一样：它们内部采用的是同样的通用线程池(如果异步请求没有提供executor的话)，默认都使用固定数目的线程，具体线程数取决于<code>Runtime.getRuntime().availableProcessors()</code>的返回值。然而，CompletableFuture具有一定的优势，因为它允许你<strong>对执行器（Executor）进行配置，尤其是线程池的大小</strong>，让它以更适合应用需求的方式进行配置，满足程序的要求，而这是并行流API无法提供的。</li>
+<li>关于自定义执行器线程设置为<strong>守护线程(Daemon)</strong>：Java程序无法终止或者退出一个正在运行中的线程，所以最后剩下的那个线程会由于一直等待无法发生的事件而引发问题。与此相反，如果将线程标记为守护进程，意味着程序退出时该线程也会被回收。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 使用定制的执行器</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Executor executor = Executors.newFixedThreadPool(shops.size(), <span class="keyword">new</span> ThreadFactory() &#123; <span class="comment">// 配置线程的数目．</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Thread <span class="title">newThread</span><span class="params">(Runnable r)</span> </span>&#123;</div><div class="line">      Thread t = <span class="keyword">new</span> Thread(r);</div><div class="line">      <span class="comment">// 守护线程构成的线程池</span></div><div class="line">      t.setDaemon(<span class="keyword">true</span>);</div><div class="line">      <span class="keyword">return</span> t;</div><div class="line">    &#125;</div><div class="line"> &#125;);</div><div class="line"> </div><div class="line"> <span class="comment">// 组合两条流水线</span></div><div class="line"> <span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesFuture</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    List&lt;CompletableFuture&lt;String&gt;&gt; priceFutures =</div><div class="line">        shops.stream()</div><div class="line">            .map(shop -&gt; CompletableFuture.supplyAsync(() -&gt; shop.getName() + <span class="string">" price is "</span></div><div class="line">                + shop.getPrice(product), executor)) <span class="comment">// 指定线程池执行生产者方法，如果不配置此选项，</span></div><div class="line">            .collect(Collectors.toList());  <span class="comment">// 得到一个List&lt;CompletableFuture&lt;String&gt;&gt;，列表中的每个CompletableFuture对象在计算完成后都包含商店的String类型的名称。</span></div><div class="line"></div><div class="line">    <span class="comment">// 要得到List&lt;String&gt;,需要等待所有的future执行完毕，将其包含的值抽取出来，填充到列表中才能返回。使用join方法获取CompletableFuture包含的值．</span></div><div class="line">    List&lt;String&gt; prices = priceFutures.stream()</div><div class="line">        .map(CompletableFuture::join) <span class="comment">// 等待所有异步操作结束</span></div><div class="line">        .collect(Collectors.toList());</div><div class="line">    <span class="keyword">return</span> prices;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line"><span class="comment">// 单条流水线</span></div><div class="line"><span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesFutureOnePipeline</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    List&lt;String&gt; result = shops.stream()</div><div class="line">        .map(shop -&gt; CompletableFuture.supplyAsync(() -&gt; shop.getName() + <span class="string">" price is "</span></div><div class="line">            + shop.getPrice(product), executor))</div><div class="line">        .map(CompletableFuture::join)</div><div class="line">        .collect(Collectors.toList());</div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line"><span class="comment">// 组合两条流水线执行结果</span></div><div class="line">  [BestPrice price is <span class="number">171.10524235618578</span>, LetsSaveBig price is <span class="number">168.59369176671822</span>, MyFavoriteShop price is <span class="number">174.79155890558252</span>, BuyItAll price is <span class="number">154.82955565763797</span>]</div><div class="line">    <span class="comment">//　书上显示是2000ms左右，这里貌似跟直接并行流差不多．</span></div><div class="line">composed CompletableFuture done in <span class="number">1006</span> msecs</div><div class="line"></div><div class="line"><span class="comment">// 单条流水线执行结果．</span></div><div class="line">[BestPrice price is <span class="number">227.53480147033423</span>, LetsSaveBig price is <span class="number">200.89398407500244</span>, MyFavoriteShop price is <span class="number">161.14747297059597</span>, BuyItAll price is <span class="number">155.9041805933185</span>]</div><div class="line">one pipeline composed CompletableFuture done in <span class="number">4004</span> msecs</div></pre></td></tr></table></figure>
+<ul>
+<li>执行示意图<ul>
+<li>单一流水线中，执行的流程（以虚线标识）是顺序的。事实上，新的CompletableFuture对象只有在前一个操作完全结束之后，才能创建。</li>
+<li>双流水线中，则将CompletableFutures对象聚集到一个列表中（即图中以椭圆表示的部分），让对象们可以在等待其他对象完成操作之前就能启动。</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/od6ig2jfibjkvy7y7zzkz7uo/java8-completabefuture-lazy-1.png" alt="java8-completabefuture-lazy-1.png-130.4kB"></p>
+<h3 id="使用流还是CompletableFutures"><a href="#使用流还是CompletableFutures" class="headerlink" title="使用流还是CompletableFutures"></a>使用流还是CompletableFutures</h3><ul>
+<li>如果你进行的是<strong>计算密集型的操作，并且没有I/O</strong>，那么推荐<strong>使用Stream接口</strong>，因为实现简单，同时效率也可能是最高的（如果所有的线程都是计算密集型的，那就没有必要创建比处理器核数更多的线程）</li>
+<li>反之，如果你并行的工作单元还涉及<strong>等待I/O的操作（包括网络连接等待）</strong>，那么使用<strong>CompletableFuture灵活性</strong>更好，你可以设定需要使用的线程数。这种情况不使用并行流的另一个原因是，处理流的流水线中如果发生I/O等待，流的延迟特性会让我们很难判断到底什么时候触发了等待。</li>
+</ul>
+<hr>
+<h2 id="对多个异步任务进行流水线操作"><a href="#对多个异步任务进行流水线操作" class="headerlink" title="对多个异步任务进行流水线操作"></a>对多个异步任务进行流水线操作</h2><blockquote>
+<p>需求：商店都同意使用一个集中式的折扣服务,利用此折扣服务计算报价．</p>
+<ol>
+<li>getPrice()现在以ShopName:price:DiscountCode的格式返回一个String类型的值，计算价格也是耗时的．</li>
+<li>对商店返回字符串的解析操作封装到了Quote类之中</li>
+<li>每个折扣代码的实际折扣比率有可能发生变化，所以你每次都需要查询折扣服务，查询折扣也是耗时的．</li>
+</ol>
+</blockquote>
+<p><strong>Quote.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Quote</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String shopName;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">double</span> price;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Discount.Code discountCode;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Quote</span><span class="params">(String shopName, <span class="keyword">double</span> price, Discount.Code discountCode)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.shopName = shopName;</div><div class="line">        <span class="keyword">this</span>.price = price;</div><div class="line">        <span class="keyword">this</span>.discountCode = discountCode;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Quote <span class="title">parse</span><span class="params">(String s)</span> </span>&#123;</div><div class="line">        String[] split = s.split(<span class="string">":"</span>);</div><div class="line">        String shopName = split[<span class="number">0</span>];</div><div class="line">        <span class="keyword">double</span> price = Double.parseDouble(split[<span class="number">1</span>]);</div><div class="line">        Discount.Code discountCode = Discount.Code.valueOf(split[<span class="number">2</span>]);</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Quote(shopName, price, discountCode);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getShopName</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> shopName;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getPrice</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> price;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> Discount.<span class="function">Code <span class="title">getDiscountCode</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> discountCode;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>Discount.java</strong></p>
+<ul>
+<li>折扣服务是远程服务，查询有耗时．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Discount</span> </span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">enum</span> Code &#123;</div><div class="line">        NONE(<span class="number">0</span>), SILVER(<span class="number">5</span>), GOLD(<span class="number">10</span>), PLATINUM(<span class="number">15</span>), DIAMOND(<span class="number">20</span>);</div><div class="line"></div><div class="line">        <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> percentage;</div><div class="line"></div><div class="line">        Code(<span class="keyword">int</span> percentage) &#123;</div><div class="line">            <span class="keyword">this</span>.percentage = percentage;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">applyDiscount</span><span class="params">(Quote quote)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> quote.getShopName() + <span class="string">" price is "</span> + Discount.apply(quote.getPrice(), quote.getDiscountCode());</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">double</span> <span class="title">apply</span><span class="params">(<span class="keyword">double</span> price, Code code)</span> </span>&#123;</div><div class="line">        <span class="comment">// 延时．</span></div><div class="line">        delay();</div><div class="line">        <span class="comment">// 利用一个非线程安全的formatter进行格式化，所以访问此formatter的时候需要进行加锁互斥访问．</span></div><div class="line">        <span class="keyword">return</span> format(price * (<span class="number">100</span> - code.percentage) / <span class="number">100</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="顺序同步方法"><a href="#顺序同步方法" class="headerlink" title="顺序同步方法"></a>顺序同步方法</h3><ul>
+<li>第一个map操作将每个shop对象转换成了一个字符串，该字符串包含了该shop中指定商品的价格和折扣代码。</li>
+<li>第二个map操作对这些字符串进行了解析，在Quote对象中对它们进行转换。</li>
+<li>第三个map会操作联系远程的Discount服务，计算出最终的折扣价格，并返回该价格及提供该价格商品的shop。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 计算价格和请求折扣都需要1s.</span></div><div class="line"><span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesSequential</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> shops.stream()</div><div class="line">            .map(shop -&gt; shop.getPrice(product)) <span class="comment">// name + ":" + price + ":" + code;</span></div><div class="line">            .map(Quote::parse) <span class="comment">// return new Quote(shopName, price, discountCode);</span></div><div class="line">            .map(Discount::applyDiscount) <span class="comment">// 应用价格和折扣.</span></div><div class="line">            .collect(Collectors.toList());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 结果耗时</span></div><div class="line">[BestPrice price is <span class="number">110.93</span>, LetsSaveBig price is <span class="number">135.58</span>, MyFavoriteShop price is <span class="number">192.72</span>, BuyItAll price is <span class="number">184.74</span>, ShopEasy price is <span class="number">167.28</span>]</div><div class="line">sequential done in <span class="number">10070</span> msecs</div></pre></td></tr></table></figure>
+<h3 id="CompletableFuture异步调用方法"><a href="#CompletableFuture异步调用方法" class="headerlink" title="CompletableFuture异步调用方法"></a>CompletableFuture异步调用方法</h3><ul>
+<li>步骤解析<ul>
+<li>只需要将Lambda表达式作为参数传递给<strong>supplyAsync工厂方法</strong>就可以以<strong>异步方式</strong>对shop进行查询。第一个map转换的结果是一个<code>Stream&lt;CompletableFuture&lt;String&gt;&gt;</code>，一旦运行结束，每个CompletableFuture对象中都会包含对应shop返回的字符串。同时传入了一个定制的执行器executor.</li>
+<li>对第一步中生成的CompletableFuture对象调用它的thenApply进行parse解析．parse解析不涉及任何远程服务，也不会进行任何I/O操作，它几乎可以在第一时间进行，所以能够采用<strong>同步操作</strong>，不会带来太多的延迟。</li>
+<li>第三个map操作涉及联系远程的Discount服务，为从商店中得到的原始价格申请折扣率。因为这一转换需要远程执行,可能耗时较大，所以也是<strong>异步的方式执行</strong>．同样，将这一操作以Lambda表达式的方式传递给了supplyAsync工厂方法，该方法最终会返回另一个CompletableFuture对象。</li>
+</ul>
+</li>
+<li>以上的价格查询和查询远程折扣服务都是异步任务执行，这样就相当于有两个异步任务了．</li>
+<li><code>CompletableFuture.thenCompose()</code>方法允许你对<strong>两个异步操作进行流水线，第一个操作完成时，将其结果作为参数传递给第二个操作</strong>。换句话说，你可以创建两个CompletableFutures对象，对第一个CompletableFuture 对象调用thenCompose，并向其传递一个函数。当第一个CompletableFuture执行完毕后，它的结果将作为该函数的参数，这个函数的返回值是以第一个CompletableFuture的返回值作为输入计算出的第二个CompletableFuture对象。使用这种方式，即使Future在向不同的商店收集报价，主线程还是能继续执行其他重要的操作，比如响应UI事件。</li>
+<li>三次map操作的返回的Stream元素收集到一个列表，就得到了一个<code>List&lt;CompletableFuture&lt;String&gt;&gt;</code>，等这些CompletableFuture对象最终执行完毕，就可以利用<code>join</code>取得它们的返回值。</li>
+<li><code>thenCompose</code> vs <code>thenComposeAsync</code><ul>
+<li>名称中不带Async的方法和它的前一个任务一样，在同一个线程中运行</li>
+<li>名称以Async结尾的方法会将后续的任务提交到一个线程池，所以每个任务是由不同的线程处理的。(本例中，前后两个CompletabelFuture存在数据的依赖关系，所以放在一个线程中执行就好)</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesFuture</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">        List&lt;CompletableFuture&lt;String&gt;&gt; priceFutures = findPricesStream(product)</div><div class="line">                .collect(Collectors.&lt;CompletableFuture&lt;String&gt;&gt;toList());</div><div class="line"></div><div class="line">        <span class="keyword">return</span> priceFutures.stream()</div><div class="line">                <span class="comment">// 等待流中的所有Future执行完毕，并提取各自的返回值</span></div><div class="line">                .map(CompletableFuture::join)</div><div class="line">                .collect(Collectors.toList());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> Stream&lt;CompletableFuture&lt;String&gt;&gt; findPricesStream(String product) &#123;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> shops.stream()</div><div class="line">            <span class="comment">// 以异步方式取得每个shop中指定产品的原始价格, 返回值　Stream&lt;CompletableFuture&lt;String&gt;&gt;</span></div><div class="line">                .map(shop -&gt; CompletableFuture.supplyAsync(() -&gt; shop.getPrice(product), executor))</div><div class="line">                <span class="comment">// 不需要异步, 因为只是price+折扣字符串-&gt;Quota对象，返回　Stream&lt;CompletableFuture&lt;Quote&gt;&gt;</span></div><div class="line">                .map(future -&gt; future.thenApply(Quote::parse)) <span class="comment">// 取future中的string进行解析.</span></div><div class="line">                <span class="comment">// 使用另一个异步任务构造期望的Future，申请折扣</span></div><div class="line">                .map(future -&gt; future.thenCompose(quote -&gt; CompletableFuture.supplyAsync(() -&gt; Discount.applyDiscount(quote), executor)));</div><div class="line">    &#125;</div><div class="line">    </div><div class="line"><span class="comment">// 执行时间</span></div><div class="line">[BestPrice price is <span class="number">204.78</span>, LetsSaveBig price is <span class="number">190.85</span>, MyFavoriteShop price is <span class="number">128.92</span>, BuyItAll price is <span class="number">140.31</span>, ShopEasy price is <span class="number">166.1</span>]</div><div class="line">composed CompletableFuture done in <span class="number">2009</span> msecs</div></pre></td></tr></table></figure>
+<ul>
+<li>执行流程</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/u20e5gmnfe9hokfnlheyx6m1/java8-completableFuture-2.png" alt="java8-completableFuture-2.png-47.8kB"></p>
+<h3 id="整合两个无依赖的-CompletableFuture-对象"><a href="#整合两个无依赖的-CompletableFuture-对象" class="headerlink" title="整合两个无依赖的 CompletableFuture 对象"></a>整合两个无依赖的 CompletableFuture 对象</h3><blockquote>
+<p>需求：一家商店提供的价格是以欧元（EUR）计价的，但是希望以美元的方式提供给的客户。可以用异步的方式向商店查询指定商品的价格，同时从远程的汇率服务那里查到欧元和美元之间的汇率。当二者都结束时，再将这两个结果结合起来，用返回的商品价格乘以当时的汇率，得到以美元计价的商品价格。用这种方式，你需要使用第三个CompletableFuture 对象 ， 当前两个CompletableFuture 计算出结果 ，并由BiFunction方法完成合并后，由它来最终结束这一任务</p>
+</blockquote>
+<ul>
+<li>上一个例子中，对一个CompletableFuture对象调用了<code>thenCompose</code>方法，并向其传递了第二个CompletableFuture ，而第二个CompletableFuture又需要使用第一个CompletableFuture的执行结果作为输入。</li>
+<li>另一种比较常见的情况是，需要将两个完全不相干的CompletableFuture对象的结果整合起来，而且没有必要等到第一个任务完全结束才开始第二项任务。这种情况下应该使用<code>thenCombine</code>方法，它接收名为<strong><code>BiFunction</code></strong>的第二个参数：<strong>定义了当两个CompletableFuture对象完成计算后，结果如何合并</strong>。</li>
+<li><code>thenCombine</code>同样有一个异步版本<code>thenCombineAsync</code>,使用thenCombineAsync会导致BiFunction中定义的合并操作被提交到线程池中，由另一个任务以异步的方式执行。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 实现1</span></div><div class="line">  <span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesInUSD</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    List&lt;CompletableFuture&lt;Double&gt;&gt; priceFutures = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    <span class="keyword">for</span> (Shop shop : shops) &#123;</div><div class="line">      <span class="comment">// Start of Listing 10.20.</span></div><div class="line">      <span class="comment">// Only the type of futurePriceInUSD has been changed to</span></div><div class="line">      <span class="comment">// CompletableFuture so that it is compatible with the</span></div><div class="line">      <span class="comment">// CompletableFuture::join operation below.</span></div><div class="line">      CompletableFuture&lt;Double&gt; futurePriceInUSD =</div><div class="line">          <span class="comment">// 创建第一个任务查询商店取得商品的价格</span></div><div class="line">          CompletableFuture.supplyAsync(() -&gt; shop.getPrice(product))</div><div class="line">              <span class="comment">// 没有使用异步版本的thenCombineAsync, 因为组合计算直接可以利用第一个获取完价格的线程来执行．</span></div><div class="line">              .thenCombine(</div><div class="line">                  <span class="comment">// 因为不依赖于上一个CompletableFuture的值，所以不需要一个额外的Lambda，参见上一个例子,</span></div><div class="line">                  <span class="comment">// 创建第二个独立任务，查询美元和欧元之间的转换汇率</span></div><div class="line">                  CompletableFuture.supplyAsync(</div><div class="line">                      () -&gt; ExchangeService.getRate(ExchangeService.Money.EUR, ExchangeService.Money.USD)),</div><div class="line">                  (price, rate) -&gt; price * rate <span class="comment">// 组合计算.</span></div><div class="line">              );</div><div class="line">      priceFutures.add(futurePriceInUSD);</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// Drawback: The shop is not accessible anymore outside the loop,</span></div><div class="line">    <span class="comment">// so the getName() call below has been commented out.</span></div><div class="line">    List&lt;String&gt; prices = priceFutures</div><div class="line">        .stream()</div><div class="line">        .map(CompletableFuture::join)</div><div class="line">        .map(price -&gt; <span class="comment">/*shop.getName() +*/</span> <span class="string">" price is "</span> + price)</div><div class="line">        .collect(Collectors.toList());</div><div class="line">    <span class="keyword">return</span> prices;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line"><span class="comment">// 实现2</span></div><div class="line">  <span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesInUSD2</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    List&lt;CompletableFuture&lt;String&gt;&gt; priceFutures = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    <span class="keyword">for</span> (Shop shop : shops) &#123;</div><div class="line">      <span class="comment">// Here, an extra operation has been added so that the shop name</span></div><div class="line">      <span class="comment">// is retrieved within the loop. As a result, we now deal with</span></div><div class="line">      <span class="comment">// CompletableFuture&lt;String&gt; instances.</span></div><div class="line">      CompletableFuture&lt;String&gt; futurePriceInUSD =</div><div class="line">          CompletableFuture.supplyAsync(() -&gt; shop.getPrice(product))</div><div class="line">              .thenCombine(</div><div class="line">                  CompletableFuture.supplyAsync(</div><div class="line">                      () -&gt; ExchangeService.getRate(ExchangeService.Money.EUR, ExchangeService.Money.USD)),</div><div class="line">                  (price, rate) -&gt; price * rate</div><div class="line">              ).thenApply(price -&gt; shop.getName() + <span class="string">" price is "</span> + price);</div><div class="line">      priceFutures.add(futurePriceInUSD);</div><div class="line">    &#125;</div><div class="line">    List&lt;String&gt; prices = priceFutures</div><div class="line">        .stream()</div><div class="line">        .map(CompletableFuture::join)</div><div class="line">        .collect(Collectors.toList());</div><div class="line">    <span class="keyword">return</span> prices;</div><div class="line">  &#125;</div><div class="line"><span class="comment">// 实现3</span></div><div class="line">  <span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesInUSD3</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    <span class="comment">// Here, the for loop has been replaced by a mapping function...</span></div><div class="line">    Stream&lt;CompletableFuture&lt;String&gt;&gt; priceFuturesStream = shops</div><div class="line">        .stream()</div><div class="line">        .map(shop -&gt; CompletableFuture</div><div class="line">            .supplyAsync(() -&gt; shop.getPrice(product))</div><div class="line">            .thenCombine(</div><div class="line">                CompletableFuture.supplyAsync(() -&gt; ExchangeService.getRate(ExchangeService.Money.EUR, ExchangeService.Money.USD)),</div><div class="line">                (price, rate) -&gt; price * rate)</div><div class="line">            .thenApply(price -&gt; shop.getName() + <span class="string">" price is "</span> + price));</div><div class="line">    <span class="comment">// However, we should gather the CompletableFutures into a List so that the asynchronous</span></div><div class="line">    <span class="comment">// operations are triggered before being "joined."</span></div><div class="line">    List&lt;CompletableFuture&lt;String&gt;&gt; priceFutures = priceFuturesStream.collect(Collectors.toList());</div><div class="line">    List&lt;String&gt; prices = priceFutures</div><div class="line">        .stream()</div><div class="line">        .map(CompletableFuture::join)</div><div class="line">        .collect(Collectors.toList());</div><div class="line">    <span class="keyword">return</span> prices;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>执行流程</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/1ffslpykh74x6hle224lsn0n/java8-completablefuture-async-2.png" alt="java8-completablefuture-async-2.png-74.3kB"></p>
+<h3 id="简要回顾Future-和-CompletableFuture"><a href="#简要回顾Future-和-CompletableFuture" class="headerlink" title="简要回顾Future 和 CompletableFuture"></a>简要回顾Future 和 CompletableFuture</h3><ul>
+<li>CompletableFuture利用Lambda表达式以声明式的API提供了一种机制，能够用最有效的方式，非常容易地将多个以同步或异步方式执行复杂操作的任务结合到一起。</li>
+<li>Java 7中提供的特性实现带汇率的价格计算，以下实现同上一个实现效果相同，但是明显<code>CompletableFuture</code>更加简洁．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> List&lt;String&gt; <span class="title">findPricesInUSDJava7</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">    <span class="comment">// 创建一个ExecutorService将任务提交到线程池</span></div><div class="line">    ExecutorService executor = Executors.newCachedThreadPool();</div><div class="line">    List&lt;Future&lt;Double&gt;&gt; priceFutures = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    <span class="keyword">for</span> (Shop shop : shops) &#123;</div><div class="line">      <span class="comment">// 创建一个查询欧元到美元转换汇率的Future</span></div><div class="line">      <span class="keyword">final</span> Future&lt;Double&gt; futureRate = executor.submit(<span class="keyword">new</span> Callable&lt;Double&gt;() &#123;</div><div class="line">        <span class="function"><span class="keyword">public</span> Double <span class="title">call</span><span class="params">()</span> </span>&#123;</div><div class="line">          <span class="keyword">return</span> ExchangeService.getRate(ExchangeService.Money.EUR, ExchangeService.Money.USD);</div><div class="line">        &#125;</div><div class="line">      &#125;);</div><div class="line"></div><div class="line">      <span class="comment">// 在第二个Future中查询指定商店中特定商品的价格</span></div><div class="line">      Future&lt;Double&gt; futurePriceInUSD = executor.submit(<span class="keyword">new</span> Callable&lt;Double&gt;() &#123;</div><div class="line">        <span class="function"><span class="keyword">public</span> Double <span class="title">call</span><span class="params">()</span> </span>&#123;</div><div class="line">          <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">double</span> priceInEUR = shop.getPrice(product);</div><div class="line">            <span class="keyword">return</span> priceInEUR * futureRate.get(); <span class="comment">// 在同一个线程中进行计算.</span></div><div class="line">          &#125; <span class="keyword">catch</span> (InterruptedException | ExecutionException e) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e.getMessage(), e);</div><div class="line">          &#125;</div><div class="line">        &#125;</div><div class="line">      &#125;);</div><div class="line">      priceFutures.add(futurePriceInUSD);</div><div class="line">    &#125;</div><div class="line">    List&lt;String&gt; prices = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    <span class="keyword">for</span> (Future&lt;Double&gt; priceFuture : priceFutures) &#123;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">// 获取异步计算的结果.</span></div><div class="line">        prices.add(<span class="comment">/*shop.getName() +*/</span> <span class="string">" price is "</span> + priceFuture.get());</div><div class="line">      &#125; <span class="keyword">catch</span> (ExecutionException | InterruptedException e) &#123;</div><div class="line">        e.printStackTrace();</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> prices;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="响应-CompletableFuture-的-completion-事件"><a href="#响应-CompletableFuture-的-completion-事件" class="headerlink" title="响应 CompletableFuture 的 completion 事件"></a>响应 CompletableFuture 的 completion 事件</h2><blockquote>
+<p>注：以上有示例代码都是通过在响应之前添加1秒钟的等待延迟(<code>delay</code>)模拟方法的远程调用。现在模拟一下随机时延.<br>需求：之前实现的findPrices方法只有在取得所有商店的返回值时才显示商品的价格。而现在希望的效果是，只要有商店返回商品价格就在第一时间显示返回值，不再等待那些还未返回的商店（有些甚至会发生超时）。</p>
+</blockquote>
+<h3 id="对最佳价格查询器应用的优化"><a href="#对最佳价格查询器应用的优化" class="headerlink" title="对最佳价格查询器应用的优化"></a>对最佳价格查询器应用的优化</h3><ul>
+<li>要完成以上的目标，要避免等待一个包含了所有价格的List创建完成。应该做的是直接处理CompletableFuture流，这样每个CompletableFuture都在为某个商店执行必要的操作。</li>
+<li>第4个map利用thenAccept操作在每个CompletableFuture（第三个map操作后stream中的值）上<strong>注册一个操作</strong>，该操作会在这些CompletableFuture完成执行后使用它的返回值（这里是一个String） 。 </li>
+<li><code>thenAccept</code> vs <code>thenAcceptAsync</code>。异步版本的方法会对处理结果的消费者进行调度，从线程池中选择一个新的线程继续执行，不再由同一个线程完成CompletableFuture的所有任务。</li>
+<li>thenAccept方法定义了如何处理CompletableFuture返回的结果，一旦CompletableFuture计算得到结果，它就返回一个<code>CompletableFuture&lt;Void&gt;</code>。所以，最后一个map操作返回的是一个<code>Stream&lt;CompletableFuture&lt;Void&gt;&gt;</code>。对这个<code>&lt;CompletableFuture&lt;Void&gt;&gt;</code>对象，你能做的事非常有限，只能等待其运行结束，不过这也是你所期望的。你还希望能给最慢的商店一些机会，让它有机会打印输出返回的价格。为了实现这一目的，你可以<strong>把构成Stream的所有CompletableFuture<void>对象放到一个数组中，等待所有的任务执行完成</void></strong></li>
+<li><code>allOf</code>工厂方法接收一个由<code>CompletableFuture</code>构成的数组，数组中的所有CompletableFuture对象执行完成之后，它返回一个<code>CompletableFuture&lt;Void&gt;</code>对象。如果你需要等待最初Stream中的所有CompletableFuture对象执行完毕，需要对allOf方法返回的CompletableFuture执行<code>join</code>操作。</li>
+<li>如果需要CompletableFuture对象数组中有任何一个执行完毕就不再等待，在这种情况下，你可以使用一个类似的工厂方法<code>anyOf</code>。该方法接收一个<code>CompletableFuture</code>对象构成的数组，返回由第一个执行完毕的CompletableFuture对象的返回值构成的<code>CompletableFuture&lt;Object&gt;</code>。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> Stream&lt;CompletableFuture&lt;String&gt;&gt; findPricesStream(String product) &#123;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> shops.stream()</div><div class="line">            <span class="comment">// 以异步方式取得每个shop中指定产品的原始价格, 返回值　Stream&lt;CompletableFuture&lt;String&gt;&gt;</span></div><div class="line">                .map(shop -&gt; CompletableFuture.supplyAsync(() -&gt; shop.getPrice(product), executor))</div><div class="line">                <span class="comment">// 不需要异步, 因为只是price+折扣字符串-&gt;Quota对象，返回　Stream&lt;CompletableFuture&lt;Quote&gt;&gt;</span></div><div class="line">                .map(future -&gt; future.thenApply(Quote::parse)) <span class="comment">// 取future中的string进行解析.</span></div><div class="line">                <span class="comment">// 使用另一个异步任务构造期望的Future，申请折扣</span></div><div class="line">                <span class="comment">// Discount.apply的实现: return quote.getShopName() + " price is " + Discount.apply(quote.getPrice(), quote.getDiscountCode());</span></div><div class="line">                .map(future -&gt; future.thenCompose(quote -&gt; CompletableFuture.supplyAsync(() -&gt; Discount.applyDiscount(quote), executor)));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 对返回的Stream&lt;CompletableFuture&lt;String&gt;&gt;进行新增一个map操作，在每个CompletableFuture上注册一个操作．</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">printPricesStream</span><span class="params">(String product)</span> </span>&#123;</div><div class="line">        <span class="keyword">long</span> start = System.nanoTime();</div><div class="line">        CompletableFuture[] futures = findPricesStream(product)</div><div class="line">                <span class="comment">// 在每个CompletableFuture上注册一个操作，该操作会在CompletableFuture完成执行后使用它的返回值 。</span></div><div class="line">                <span class="comment">//  thenAccept方法接收CompletableFuture执行完毕后的返回值做参数。即接受的是一个字符串．</span></div><div class="line">                .map(f -&gt; f.thenAccept(s -&gt; System.out.println(s + <span class="string">" (done in "</span> + ((System.nanoTime() - start) / <span class="number">1_000_000</span>) + <span class="string">" msecs)"</span>))) </div><div class="line">                .toArray(size -&gt; <span class="keyword">new</span> CompletableFuture[size]);</div><div class="line">        CompletableFuture.allOf(futures).join();</div><div class="line">        System.out.println(<span class="string">"All shops have now responded in "</span> + ((System.nanoTime() - start) / <span class="number">1_000_000</span>) + <span class="string">" msecs"</span>);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line"><span class="comment">// 执行结果示意</span></div><div class="line">BestPrice price is <span class="number">127.88</span> (done in <span class="number">2024</span> msecs)</div><div class="line">LetsSaveBig price is <span class="number">147.21</span> (done in <span class="number">2025</span> msecs)</div><div class="line">MyFavoriteShop price is <span class="number">119.11</span> (done in <span class="number">2025</span> msecs)</div><div class="line">ShopEasy price is <span class="number">224.23</span> (done in <span class="number">2026</span> msecs)</div><div class="line">BuyItAll price is <span class="number">111.53</span> (done in <span class="number">2026</span> msecs)</div><div class="line">All shops have now responded in <span class="number">2026</span> msecs</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
+<li>执行比较耗时的操作时，尤其是那些依赖一个或多个远程服务的操作，使用异步任务可以改善程序的性能，加快程序的响应速度。</li>
+<li>使用CompletableFuture类提供的特性尽可能地为客户提供异步API。</li>
+<li>CompletableFuture类提供了异常管理的机制，可以抛出/管理异步任务执行中发生的异常。</li>
+<li><strong>将同步API的调用封装到一个CompletableFuture中，你能够以异步的方式使用其结果</strong>。</li>
+<li>如果异步任务之间相互独立，或者它们之间某一些的结果是另一些的输入，你可以将这些异步任务构造或者<strong>合并</strong>成一个。</li>
+<li>你可以为CompletableFuture注册(accept)一个<strong>回调函数</strong>，在Future执行完毕或者它们计算的结果可用时，针对性地执行一些程序。</li>
+<li>你可以决定在什么时候结束程序的运行，是等待由CompletableFuture对象构成的列表中所有的对象都执行完毕，还是只要其中任何一个首先完成就中止程序的运行。</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Java8/" rel="tag"># Java8</a>
+          
+            <a href="/tags/CompletableFuture/" rel="tag"># CompletableFuture</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/26/java8-stream-collectors/" rel="next" title="Java8-流收集数据">
+                <i class="fa fa-chevron-left"></i> Java8-流收集数据
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">47</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">32</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/MyDarcy" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/frobisher27149" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.zhenlanghuo.top/" title="zhenlang huo" target="_blank">zhenlang huo</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://xawei.me/" title="xinan wei" target="_blank">xinan wei</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Future接口"><span class="nav-number">1.</span> <span class="nav-text">Future接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Future-接口不能做什么"><span class="nav-number">1.1.</span> <span class="nav-text">Future 接口不能做什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-CompletableFuture-构建异步应用"><span class="nav-number">1.2.</span> <span class="nav-text">使用 CompletableFuture 构建异步应用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现异步-API"><span class="nav-number">2.</span> <span class="nav-text">实现异步 API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#错误处理"><span class="nav-number">2.1.</span> <span class="nav-text">错误处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用工厂方法supplyAsync创建CompletableFuture"><span class="nav-number">2.2.</span> <span class="nav-text">使用工厂方法supplyAsync创建CompletableFuture</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#避免阻塞"><span class="nav-number">3.</span> <span class="nav-text">避免阻塞</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#顺序查询"><span class="nav-number">3.1.</span> <span class="nav-text">顺序查询</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#并行流对请求进行并行操作"><span class="nav-number">3.2.</span> <span class="nav-text">并行流对请求进行并行操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-CompletableFuture-发起异步请求"><span class="nav-number">3.3.</span> <span class="nav-text">使用 CompletableFuture 发起异步请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用流还是CompletableFutures"><span class="nav-number">3.4.</span> <span class="nav-text">使用流还是CompletableFutures</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对多个异步任务进行流水线操作"><span class="nav-number">4.</span> <span class="nav-text">对多个异步任务进行流水线操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#顺序同步方法"><span class="nav-number">4.1.</span> <span class="nav-text">顺序同步方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CompletableFuture异步调用方法"><span class="nav-number">4.2.</span> <span class="nav-text">CompletableFuture异步调用方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#整合两个无依赖的-CompletableFuture-对象"><span class="nav-number">4.3.</span> <span class="nav-text">整合两个无依赖的 CompletableFuture 对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简要回顾Future-和-CompletableFuture"><span class="nav-number">4.4.</span> <span class="nav-text">简要回顾Future 和 CompletableFuture</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#响应-CompletableFuture-的-completion-事件"><span class="nav-number">5.</span> <span class="nav-text">响应 CompletableFuture 的 completion 事件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#对最佳价格查询器应用的优化"><span class="nav-number">5.1.</span> <span class="nav-text">对最佳价格查询器应用的优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
