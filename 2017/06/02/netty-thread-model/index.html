@@ -100,7 +100,7 @@
 <meta property="og:image" content="http://static.zybuluo.com/csqiang1992/fuxebwtuzouhooxn6krfghk9/ch7-eventloop2.png">
 <meta property="og:image" content="http://static.zybuluo.com/csqiang1992/7x6gdbotzy9lh7hhg8bds0yi/ch7-asyncthread.png">
 <meta property="og:image" content="http://static.zybuluo.com/csqiang1992/0xbl35r1gq456h7rfx9f7exw/ch7-oio-thread.png">
-<meta property="og:updated_time" content="2017-06-02T09:11:44.689Z">
+<meta property="og:updated_time" content="2017-08-01T15:20:38.043Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Netty中EventLoop和线程模型">
 <meta name="twitter:description" content="线程模型指定了操作系统，编程语言，框架或者应用程序的上下文中线程管理的关键方面。这里，简要学习Netty的EventLoop和线程模型。">
@@ -409,39 +409,42 @@
 </blockquote>
 <a id="more"></a>
 <h2 id="线程模型概述"><a href="#线程模型概述" class="headerlink" title="线程模型概述"></a>线程模型概述</h2><ul>
-<li>普通的创建Thread来执行任务的方式在高负载下表现很差。</li>
-<li>池化和重用线程相对于简单的为每个任务都创建和销毁线程是一种进步，但是它并不能消除由上下文切换所带来的开销，其将随着线程数目的增加很快变得明显，而且在高负载下表现更差。</li>
+<li>按需创建和启动新的Thread来执行任务的方式在高负载下表现很差。</li>
+<li><code>Executor API</code>: 池化和重用线程相对于简单的为每个任务都创建和销毁线程是一种进步，但是它并不能消除由上下文切换所带来的开销，并且开销将随着线程数目的增加很快变得明显，而且在高负载下表现更差。</li>
 </ul>
 <hr>
 <h2 id="EventLoop接口"><a href="#EventLoop接口" class="headerlink" title="EventLoop接口"></a>EventLoop接口</h2><ul>
-<li>一般网络框架都是使用<strong>事件循环</strong>来处理连接的生命周期内发生的事件。对应于Netty中就是<code>netty.io.channel.EventLoop</code>,基本编程模型如下</li>
+<li>网络框架都是通过<strong>运行任务</strong>来处理在<strong>连接的生命周期</strong>内发生的事件, 通过<strong>事件循环</strong>来描述，其对应于Netty中就是<code>netty.io.channel.EventLoop</code>,基本编程模型如下
+　<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 在循环中处理事件</span></div><div class="line"><span class="keyword">while</span> (!terminated) &#123;</div><div class="line">    List&lt;Runnable&gt; readyEvents = blockUntilEventsReady();</div><div class="line">        <span class="keyword">for</span> (Runnable ev: readyEvents) &#123;</div><div class="line">            ev.run();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span> (!terminated) &#123;</div><div class="line">    List&lt;Runnable&gt; readyEvents = blockUntilEventsReady();</div><div class="line">        <span class="keyword">for</span> (Runnable ev: readyEvents) &#123;</div><div class="line">            ev.run();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h3 id="EventLoop类层次结果"><a href="#EventLoop类层次结果" class="headerlink" title="EventLoop类层次结果"></a>EventLoop类层次结果</h3><ul>
-<li>在这个模型中，一个EventLoop将由一个永远都不会改变的线程来驱动，同时任务(Runnable或者Callable)可以直接提交给EventLoop，以立即执行或者调度。可以创建多个EventLoop实例，而一个EventLoop可能被指派服务多个Channel。</li>
-<li>事件和任务总是以FIFO的方式顺序执行。</li>
+<li><code>io.netty.util.concurrent</code> 包构建于JDK的 <code>java.util.concurrent</code> 基础之上，用来提供线程执行器．<code>io.netty.channel</code>包中的类为了与Channel的事件进行交互，拓展了这些接口类．</li>
+<li>在这个模型中，一个EventLoop将由一个永远都不会改变的线程来驱动，同时任务(Runnable或者Callable)可以直接提交给EventLoop，以立即执行或者调度执行。可以创建多个EventLoop实例以优化资源的使用，并且单个EventLoop可能被指派服务于多个Channel。</li>
+<li>事件和任务总是以FIFO的方式顺序执行，数据内容总能被顺序处理。</li>
 </ul>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Will handle all the I/O operations for a &#123;Channel&#125; once registered.</div><div class="line"> *</div><div class="line"> * One &#123;EventLoop&#125; instance will usually handle more than one &#123;Channel&#125; but this may depend on implementation details and internals.</div><div class="line"> *</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">EventLoop</span> <span class="keyword">extends</span> <span class="title">OrderedEventExecutor</span>, <span class="title">EventLoopGroup</span> </span>&#123;</div><div class="line">    <span class="comment">// 当前EventLoop实例所属的EventLoopGroup。</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function">EventLoopGroup <span class="title">parent</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><img src="http://static.zybuluo.com/csqiang1992/fuxebwtuzouhooxn6krfghk9/ch7-eventloop2.png" alt="ch7-eventloop2.png-60.6kB"></p>
 <h3 id="Netty4中的IO和事件处理"><a href="#Netty4中的IO和事件处理" class="headerlink" title="Netty4中的IO和事件处理"></a>Netty4中的IO和事件处理</h3><ul>
-<li>IO操作所触发的事件将流经安装了一个或者多个ChannelHandler的ChannelPipeline。传播这些事件的方法调用可以随后被ChannelHandler所拦截，并且按需处理事件。</li>
-<li><strong>Netty４中所有的IO操作和事件都由已经被分配给了EventLoop的那个Thread来处理，通过在同一个线程中处理某个给定的EventLoop所产生的所有事件，消除了在多个ChannelHandler中同步的必要。</strong>。</li>
+<li><strong>IO操作所触发的事件将流经安装了一个或者多个ChannelHandler的ChannelPipeline</strong>。传播这些事件的方法调用可以随后被ChannelHandler所拦截，并且按需处理事件。</li>
+<li><strong>Netty4 中所有的IO操作和事件都由已经被分配给了EventLoop的那个Thread来处理，通过在同一个线程中处理某个给定的EventLoop中所产生的所有事件，消除了在多个ChannelHandler中同步的必要。</strong>。</li>
 </ul>
 <h3 id="Netty3中的IO操作"><a href="#Netty3中的IO操作" class="headerlink" title="Netty3中的IO操作"></a>Netty3中的IO操作</h3><ul>
-<li>入站事件在IO线程(对应于Netty4中的EventLoop)中处理，但是出站事件都由调度线程来处理，可能是IO线程或者其他线程，但是这可能需要在ChannelHandler中对出站事件进行同步(Channel可能跨越多个ChannelPipeline)。</li>
+<li>入站事件在IO线程(对应于Netty4中的EventLoop)中处理，但是出站事件都由调度线程来处理，可能是IO线程或者其他线程，但是这可能需要在ChannelHandler中对出站事件进行同步(Channel可能跨越多个ChannelPipeline)，或者在调度线程和IO线程中进行上下文切换。</li>
 </ul>
 <hr>
 <h2 id="任务的调度"><a href="#任务的调度" class="headerlink" title="任务的调度"></a>任务的调度</h2><ul>
-<li>需要调度任务在稍后执行或者周期性的执行</li>
+<li>需要调度任务在稍后执行或者周期性的执行．</li>
 </ul>
 <h3 id="JDK的任务调度API"><a href="#JDK的任务调度API" class="headerlink" title="JDK的任务调度API"></a>JDK的任务调度API</h3><ul>
 <li><a href="http://docs.oracle.com/javase/8/docs/api/" target="_blank" rel="external">相关文档</a> (<code>java.util.concurrent.Executors</code>)</li>
+<li>Executors可以创建<code>ScheduledThreadPool</code>进行任务的调度执行．</li>
 </ul>
 <p><strong>使用SchduleExecutorService调度任务</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">ScheduledExecutorService executor = Executors.newScheduledThreadPool(<span class="number">10</span>);</div><div class="line">ScheduledFuture&lt;?&gt; future = executor.schedule(</div><div class="line"><span class="keyword">new</span> Runnable() &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">    System.out.println(<span class="string">"60 seconds later"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;, <span class="number">60</span>, TimeUnit.SECONDS); <span class="comment">// 60s后执行</span></div><div class="line">...</div><div class="line">executor.shutdown();</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">ScheduledExecutorService executor = Executors.newScheduledThreadPool(<span class="number">10</span>);</div><div class="line">ScheduledFuture&lt;?&gt; future = executor.schedule(</div><div class="line"><span class="keyword">new</span> Runnable() &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">    System.out.println(<span class="string">"60 seconds later"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;, <span class="number">60</span>, TimeUnit.SECONDS); <span class="comment">// 60s后执行</span></div><div class="line"><span class="comment">// ...</span></div><div class="line">executor.shutdown();</div></pre></td></tr></table></figure>
 <h3 id="使用EventLoop调度任务"><a href="#使用EventLoop调度任务" class="headerlink" title="使用EventLoop调度任务"></a>使用EventLoop调度任务</h3><ul>
-<li><code>ScheduledExecutorService</code>需要额外的线程来管理线程池，所以有其局限性。</li>
-<li>EventLoop实现了　<code>ScheduledExecutorService</code>,所以可以使用JDK提供的所有方法。</li>
+<li><code>ScheduledExecutorService</code>需要额外的线程来管理线程池，所以有其局限性。Netty通过<strong>Channel的EventLoop实现任务调度</strong>解决了这一问题．</li>
+<li>EventLoop实现了<code>ScheduledExecutorService</code>,所以可以使用JDK提供的所有方法。</li>
 </ul>
 <p><strong>使用EventLoop调度任务</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Channel ch = ...</div><div class="line">ScheduledFuture&lt;?&gt; future = ch.eventLoop().schedule(</div><div class="line">    <span class="keyword">new</span> Runnable() &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"60 seconds later"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;, <span class="number">60</span>, TimeUnit.SECONDS);　<span class="comment">// 60之后执行</span></div></pre></td></tr></table></figure>
@@ -451,8 +454,9 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">ScheduledFuture&lt;?&gt; future = ch.eventLoop().scheduleAtFixedRate(...);</div><div class="line"><span class="comment">// Some other code that runs...</span></div><div class="line"><span class="keyword">boolean</span> mayInterruptIfRunning = <span class="keyword">false</span>;</div><div class="line">future.cancel(mayInterruptIfRunning); <span class="comment">// 取消该任务，防止再次执行。</span></div></pre></td></tr></table></figure>
 <hr>
 <h2 id="实现细节"><a href="#实现细节" class="headerlink" title="实现细节"></a>实现细节</h2><h3 id="线程管理"><a href="#线程管理" class="headerlink" title="线程管理"></a>线程管理</h3><ul>
-<li>Netty线程模型的卓越性能取决于<strong>对于当前执行的Thread的身份的确定</strong>，即确实它是否是分配给当前Channel以及它的EventLoop的那一个线程(<strong>一个EventLoop将处理一个Channel整个生命周期内的所有事件</strong>)。</li>
-<li>如果当前的调度线程是支撑EventLoop的线程，那么所提交的代码块将会被直接执行；否则，EventLoop将调度该任务以便稍后执行，并且将它放入内部队列中，当EventLoop下次处理它事件时，就会执行队列中的那些任务事件。(This explains how any Thread can interact directly with the Channel without requiring synchronization in the ChannelHandlers.)这就解释了Thread如何与Channel直接交互而不需要在ChannelHandlers中同步。</li>
+<li>Netty线程模型的卓越性能取决于<strong>对于当前执行的Thread的身份的确定</strong>，即确定它是否是分配给<strong>当前Channel以及它的EventLoop</strong>（Channel在其生命周期内只注册一个EventLoop, 而一个EventLoop可以被分配给1个或者多个Channel，EventLoop在其生命周期内也只和一个Thread绑定）的那一个线程(<strong>一个EventLoop将处理一个Channel整个生命周期内的所有事件</strong>)。</li>
+<li>如果当前的调度线程是支撑EventLoop的线程，那么所提交的代码块将会被<strong>直接执行</strong>；否则，EventLoop将调度该任务以便稍后执行，并且将它放入内部队列中，当EventLoop下次处理它的事件时，就会执行队列中的那些任务/事件。(This explains how any Thread can interact directly with the Channel without requiring synchronization in the ChannelHandlers.)这就解释了Thread如何与Channel直接交互而不需要在ChannelHandlers中同步。</li>
+<li>EventLoop的执行逻辑: 将要<strong>在EventLoop执行的任务</strong> -&gt; 在把任务传递给execute()方法之后，执行检查以确定<strong>当前调用线程</strong>是否就是分配给EventLoop的那个线程；-&gt; 如果是，那么在eventLoop中，可以直接执行任务，否则，将任务放入到EventLoop队列中以便EventLoop下一次处理它的事件时执行．</li>
 <li><strong>每个EventLoop都有自己的任务队列，独立于任务其他的EventLoop</strong>。</li>
 <li>不要将一个长时间运行的任务放入到执行队列中，因为它将<strong>阻塞需要在同一个线程上运行的其他任务</strong>。<strong>如果需要执行阻塞调用或者耗时任务，可以使用一个专门的EventExecutor</strong>(<a href="http://frobisher.me/2017/06/02/netty-channelhandler-channelpipeline/#more" target="_blank" rel="external">参见上一篇文章</a> Pipleline代码的注释中)。</li>
 </ul>
@@ -462,13 +466,13 @@
 <p><strong>异步传输</strong></p>
 <ul>
 <li>异步传输实现只使用了少量的EventLoop(1:1对应的Thread),而且在当前的线程模型中，可能会被<strong>多个Channel所共享</strong>，这样就可以通过少量的Thread来支持大量的Channel，而不是每个Channel都分配一个Thread.</li>
-<li>EventLoopGroup为每个新创建的Channel分配一个EventLoop(可以通过轮询保证公平)，在Channel的生命周期内，所有的操作都是分配的这个唯一线程进行处理</li>
+<li>EventLoopGroup为每个新创建的Channel分配一个EventLoop(可以通过轮询保证均衡分布)，并且相同的EventLoop可能被分配给多个Channel，一旦一个Channel被分配给了一个EventLoop,那么在Channel的生命周期内，所有的操作都是由这个EventLoop以及相关联的线程进行处理．</li>
 <li>EventLoop的分配方式对于ThreaLocal的使用有影响，因为一个EventLoop会支持多个Channel，所以对于所有相关联的Channel而言，ThreadLocal都将是一样的。</li>
 </ul>
 <p><img src="http://static.zybuluo.com/csqiang1992/7x6gdbotzy9lh7hhg8bds0yi/ch7-asyncthread.png" alt="ch7-asyncthread.png-148.1kB"></p>
 <p><strong>阻塞传输</strong></p>
 <ul>
-<li>每个Channel都会被分配一个EventLoop(1:1对应的线程)。每个Channel的IO事件也是被一个线程所处理。这一点上和异步的方式保持一致。</li>
+<li>每个Channel都会被分配一个EventLoop(1:1对应的线程)。每个Channel的IO事件也是被一个线程所处理。这一点上和异步的方式保持一致 – 每个Channel的IO事件都是由关联的唯一线程进行处理。</li>
 </ul>
 <p><img src="http://static.zybuluo.com/csqiang1992/0xbl35r1gq456h7rfx9f7exw/ch7-oio-thread.png" alt="ch7-oio-thread.png-89.8kB"></p>
 
