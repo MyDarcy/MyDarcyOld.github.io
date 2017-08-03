@@ -1,0 +1,1061 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Netty," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Netty内置了很多的基于协议的编解码器和处理器．包括对SSL/TLS, Http/Https,Websockets的支持． 以及解码基于分隔符和基于长度的协议．">
+<meta name="keywords" content="Java,Netty">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty-预置的ChannelHandler和编解码器">
+<meta property="og:url" content="http://yoursite.com/2017/06/06/netty-built-in-channelhandler-encoder-decoder/index.html">
+<meta property="og:site_name" content="darcy he">
+<meta property="og:description" content="Netty内置了很多的基于协议的编解码器和处理器．包括对SSL/TLS, Http/Https,Websockets的支持． 以及解码基于分隔符和基于长度的协议．">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/5zkcrtfnp90i7c92ud1p8hn3/webwxgetmsgimg.jpg">
+<meta property="og:updated_time" content="2017-08-03T09:41:04.829Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Netty-预置的ChannelHandler和编解码器">
+<meta name="twitter:description" content="Netty内置了很多的基于协议的编解码器和处理器．包括对SSL/TLS, Http/Https,Websockets的支持． 以及解码基于分隔符和基于长度的协议．">
+<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/5zkcrtfnp90i7c92ud1p8hn3/webwxgetmsgimg.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/06/06/netty-built-in-channelhandler-encoder-decoder/"/>
+
+
+
+
+
+  <title>Netty-预置的ChannelHandler和编解码器 | darcy he</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?594cf3672b18c8c9a97689d1dfffaa39";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">darcy he</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知 孤勇 温柔</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/06/netty-built-in-channelhandler-encoder-decoder/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="darcy he">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Netty-预置的ChannelHandler和编解码器</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-06T17:30:01+08:00">
+                2017-06-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Netty/" itemprop="url" rel="index">
+                    <span itemprop="name">Netty</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/06/06/netty-built-in-channelhandler-encoder-decoder/" class="leancloud_visitors" data-flag-title="Netty-预置的ChannelHandler和编解码器">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>Netty内置了很多的基于协议的编解码器和处理器．包括对SSL/TLS, Http/Https,Websockets的支持． 以及解码基于分隔符和基于长度的协议．</p>
+</blockquote>
+<a id="more"></a>
+<hr>
+<h2 id="通过SSL-TLS包含Netty应用程序"><a href="#通过SSL-TLS包含Netty应用程序" class="headerlink" title="通过SSL/TLS包含Netty应用程序"></a>通过SSL/TLS包含Netty应用程序</h2><ul>
+<li>SSL/TLS安全协议层叠于其他协议之上 – 包括但不限于HTTP,SMTP,关系型数据库等，以实现数据的安全．</li>
+<li>JDK内置了<code>javax.net.ssl</code>包以提供对SSL/TLS的支持．它的<code>SSLContext</code>和<code>SSLEngine</code>用来实现加解密．Netty中提供了<code>SslHandler</code>的ChannelHandler的实现．<code>SslHandler</code>的内部使用<code>SSLEngine</code>来完成工作．</li>
+<li>Netty也提供了OpenSSL的SSLEngine的实现<code>OpensslEngine</code>，比原生的JDK的SSLEngine性能好．如果Openssl可用，那么可以将Netty应用程序(client&amp;server)配置为默认使用<code>OpenSslEngine</code>, 如果不可用，Netty会回退到JDK的实现．Netty屏蔽了这两种实现的差异．</li>
+<li>SslHandler拦截加密的入站数据，解密后传给入站端．拦截出站数据，加密后传递给出站端．</li>
+</ul>
+<p><strong>添加SSL/TLS支持</strong></p>
+<ul>
+<li>使用ChanelInitializer将SslHandler添加到ChannelPipeline中．ChannelInitializer用于在Channel注册（注册到Eventloop）好时设置ChannelPipeline</li>
+<li>一般情况下，<strong>SslHandler是ChannelPipeline中的第一个ChannelHandler</strong>，保证被其他的ChannelHandler处理后才会加密，或者解密后才会被其他ChannelHandler进行处理．</li>
+<li>SslHandler在握手阶段，两个节点互相验证并商定一种加密方式．可以通过配置SslHandler来修改它的行为，或者在SSL/TLS握手一旦完成之后提供通知，握手阶段完成以后，所有的数据都会被加密．SSL/TLS握手阶段自动执行．具体API见(<code>io.netty.handler.ssl.SslHandler</code>)</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SslChannelInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> SslContext context;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> startTls;</div><div class="line">    <span class="comment">// 传入待使用的SslContext</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SslChannelInitializer</span><span class="params">(SslContext context,</span></span></div><div class="line">        <span class="keyword">boolean</span> startTls) &#123; <span class="comment">// 如果被设置为true，那么第一个写入的消息不会被加密（此值在client端设置为true）</span></div><div class="line">        <span class="keyword">this</span>.context = context;</div><div class="line">        <span class="keyword">this</span>.startTls = startTls;</div><div class="line">    &#125;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    <span class="comment">// 对于每个SslHandler实例，都使用Channel的ByteBufAllocator从SslContext获取一个新的SslEngine.</span></div><div class="line">        SSLEngine engine = context.newEngine(ch.alloc());</div><div class="line">        <span class="comment">// 将SslHandler作为第一个ChannelHandler添加到ChannelPipeline中．</span></div><div class="line">        ch.pipeline().addFirst(<span class="string">"ssl"</span>,</div><div class="line">            <span class="keyword">new</span> SslHandler(engine, startTls));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="构建基于Netty的Http-Https的应用程序"><a href="#构建基于Netty的Http-Https的应用程序" class="headerlink" title="构建基于Netty的Http/Https的应用程序"></a>构建基于Netty的Http/Https的应用程序</h2><h3 id="HTTP解码器，编码器，编解码器"><a href="#HTTP解码器，编码器，编解码器" class="headerlink" title="HTTP解码器，编码器，编解码器"></a>HTTP解码器，编码器，编解码器</h3><ul>
+<li><code>io.netty.handler.http</code>包含了大量的http请求和响应及其组件对应的实体类</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/5zkcrtfnp90i7c92ud1p8hn3/webwxgetmsgimg.jpg" alt="webwxgetmsgimg.jpg-274kB"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 所有这些类都直接或者间接的实现了HttpObject接口</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FullHttpMessage</span> <span class="keyword">extends</span> <span class="title">HttpMessage</span>, <span class="title">LastHttpContent</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FullHttpRequest</span> <span class="keyword">extends</span> <span class="title">HttpRequest</span>, <span class="title">FullHttpMessage</span> </span>&#123; &#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FullHttpResponse</span> <span class="keyword">extends</span> <span class="title">HttpResponse</span>, <span class="title">FullHttpMessage</span> </span>&#123; &#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HttpMessage</span> <span class="keyword">extends</span> <span class="title">HttpObject</span> </span>&#123;&#125;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HttpContent</span> <span class="keyword">extends</span> <span class="title">HttpObject</span>, <span class="title">ByteBufHolder</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HttpRequest</span> <span class="keyword">extends</span> <span class="title">HttpMessage</span> </span>&#123;&#125;</div><div class="line"><span class="comment">// HttpRequest的编解码器</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpRequestDecoder</span> <span class="keyword">extends</span> <span class="title">HttpObjectDecoder</span> </span>&#123;&#125;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpRequestEncoder</span> <span class="keyword">extends</span> <span class="title">HttpObjectEncoder</span>&lt;<span class="title">HttpRequest</span>&gt; </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">HttpResponse</span> <span class="keyword">extends</span> <span class="title">HttpMessage</span> </span>&#123;&#125;</div><div class="line"><span class="comment">// HttpResponse的编解码器</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpResponseDecoder</span> <span class="keyword">extends</span> <span class="title">HttpObjectDecoder</span> </span>&#123;&#125;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpResponseEncoder</span> <span class="keyword">extends</span> <span class="title">HttpObjectEncoder</span>&lt;<span class="title">HttpResponse</span>&gt; </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">// 拓展了ChannelInboundHandlerAdapter/OutboundHandlerAdapter.</span></div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageToMessageDecoder</span>&lt;<span class="title">I</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;&#125;</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageToMessageEncoder</span>&lt;<span class="title">I</span>&gt; <span class="keyword">extends</span> <span class="title">ChannelOutboundHandlerAdapter</span> </span>&#123;&#125;</div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ByteToMessageDecoder</span> <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpObjectEncoder</span>&lt;<span class="title">H</span> <span class="keyword">extends</span> <span class="title">HttpMessage</span>&gt; <span class="keyword">extends</span> <span class="title">MessageToMessageEncoder</span>&lt;<span class="title">Object</span>&gt; </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpObjectDecoder</span> <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;&#125;</div></pre></td></tr></table></figure>
+<p><strong>HttpPipelineInitializer.java</strong></p>
+<ul>
+<li>支持HTTP，添加正确的handler，下面添加的是编解码器，其实编码器是实现了<code>ChannelOutboundHandlerAdapter</code>类的．而解码器是实现了<code>ChannelInBoundHandlerAdapter</code>的．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpPipelineInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> client;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HttpPipelineInitializer</span><span class="params">(<span class="keyword">boolean</span> client)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.client = client;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        <span class="keyword">if</span> (client) &#123;</div><div class="line">        <span class="comment">// 如果是client端，那么需要对发出的请求进行编码，需要对收到的响应进行解码</span></div><div class="line">        <span class="comment">// 参见上面的继承关系，HttpResponseDecoder()实现了</span></div><div class="line">            pipeline.addLast(<span class="string">"decoder"</span>, <span class="keyword">new</span> HttpResponseDecoder());</div><div class="line">            pipeline.addLast(<span class="string">"encoder"</span>, <span class="keyword">new</span> HttpRequestEncoder());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">// 如果是server端，那么需要对发出的响应进行编码，对收到的请求进行解码</span></div><div class="line">            pipeline.addLast(<span class="string">"decoder"</span>, <span class="keyword">new</span> HttpRequestDecoder());</div><div class="line">            pipeline.addLast(<span class="string">"encoder"</span>, <span class="keyword">new</span> HttpResponseEncoder());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="聚合Http消息"><a href="#聚合Http消息" class="headerlink" title="聚合Http消息"></a>聚合Http消息</h3><ul>
+<li>Http的请求和响应一般会包括多个部分，包括头部，内容等实体，对应到Netty中相应的类．Netty提供了<strong>聚合器</strong>，可以将多个消息部分合并为<code>FullHttpRequest</code>或者<code>FullHttpResponse</code>消息．所以总是能看到完整的消息内容．</li>
+<li>消息分段需要被缓冲，直到可以转发一个完整的消息给下一个ChannelInBoundHandler,所以有轻微的开销但是也不必关心消息碎片了．引入这种自动聚合机制需要往Channel的Pipeline中添加另一个ChannelHandler.</li>
+</ul>
+<p><strong>HttpAggregatorInitializer.java</strong></p>
+<ul>
+<li>自动聚合Http消息片段</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpClientCodec</span> <span class="keyword">extends</span> <span class="title">CombinedChannelDuplexHandler</span>&lt;<span class="title">HttpResponseDecoder</span>, <span class="title">HttpRequestEncoder</span>&gt;</span></div><div class="line">        <span class="keyword">implements</span> <span class="title">HttpClientUpgradeHandler</span>.<span class="title">SourceCodec</span> &#123;&#125;</div><div class="line">        </div><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpServerCodec</span> <span class="keyword">extends</span> <span class="title">CombinedChannelDuplexHandler</span>&lt;<span class="title">HttpRequestDecoder</span>, <span class="title">HttpResponseEncoder</span>&gt;</span></div><div class="line">        <span class="keyword">implements</span> <span class="title">HttpServerUpgradeHandler</span>.<span class="title">SourceCodec</span> &#123;&#125;</div><div class="line">    </div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpAggregatorInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> isClient;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HttpAggregatorInitializer</span><span class="params">(<span class="keyword">boolean</span> isClient)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.isClient = isClient;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        <span class="keyword">if</span> (isClient) &#123;</div><div class="line">            <span class="comment">// client端添加请求编码器，响应解码器的复合实例</span></div><div class="line">            pipeline.addLast(<span class="string">"codec"</span>, <span class="keyword">new</span> HttpClientCodec());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">        　　<span class="comment">// server端添加响应编码器，请求解码器的复合实例</span></div><div class="line">            pipeline.addLast(<span class="string">"codec"</span>, <span class="keyword">new</span> HttpServerCodec());</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 添加一个最大消息为512*1024的HttpObjectAggregator实例．</span></div><div class="line">        pipeline.addLast(<span class="string">"aggregator"</span>,</div><div class="line">                <span class="keyword">new</span> HttpObjectAggregator(<span class="number">512</span> * <span class="number">1024</span>));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="Http压缩"><a href="#Http压缩" class="headerlink" title="Http压缩"></a>Http压缩</h3><ul>
+<li>http压缩可以减少传输数据的大小，Netty为压缩解解压缩提供了ChannelHandler的实现，同时支持zip和deflate编码．</li>
+</ul>
+<p><strong>HttpCompressionInitializer.java</strong></p>
+<ul>
+<li><code>compressor</code>和<code>decompressor</code>添加到pipeline末尾，其作用可以参考　<code>sslHandler</code>添加到pipeline的头部起的作用来考虑．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpCompressionInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> isClient;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HttpCompressionInitializer</span><span class="params">(<span class="keyword">boolean</span> isClient)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.isClient = isClient;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        <span class="keyword">if</span> (isClient) &#123;</div><div class="line">            <span class="comment">// 读进来的时候是上到下．</span></div><div class="line">            pipeline.addLast(<span class="string">"codec"</span>, <span class="keyword">new</span> HttpClientCodec());</div><div class="line">            <span class="comment">// client端添加解压缩器来解压来自服务器的压缩数据．</span></div><div class="line">            <span class="comment">// client端接收的时候，先解码，然后解压缩．</span></div><div class="line">            pipeline.addLast(<span class="string">"decompressor"</span>,　<span class="keyword">new</span> HttpContentDecompressor());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">　　　　　　　　　　　　<span class="comment">// 写出去的时候是下到上．</span></div><div class="line">            pipeline.addLast(<span class="string">"codec"</span>, <span class="keyword">new</span> HttpServerCodec());</div><div class="line">            <span class="comment">// 服务器添加压缩器进行数据的压缩，然后发给client.</span></div><div class="line">            <span class="comment">// server端，先压缩，后编码．（考虑到响应是text文本性质的，所以也很好理解）</span></div><div class="line">            pipeline.addLast(<span class="string">"compressor"</span>, <span class="keyword">new</span> HttpContentCompressor());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="使用HTTPS"><a href="#使用HTTPS" class="headerlink" title="使用HTTPS"></a>使用HTTPS</h3><ul>
+<li>启用https,只需要将一个<code>SslHandler</code>作为第一个<code>ChannelHandler</code>添加到Pipeline中即可．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpsCodecInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> SslContext context;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> isClient;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">HttpsCodecInitializer</span><span class="params">(SslContext context, <span class="keyword">boolean</span> isClient)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.context = context;</div><div class="line">        <span class="keyword">this</span>.isClient = isClient;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        SSLEngine engine = context.newEngine(ch.alloc());</div><div class="line">        <span class="comment">// 作为第一个ChannelHandler.</span></div><div class="line">        <span class="comment">// 发送的时候都是需要先编解码，然后加密发送．</span></div><div class="line">        <span class="comment">// 接收的时候都是需要先解密，然后编解码进行处理．</span></div><div class="line">        pipeline.addFirst(<span class="string">"ssl"</span>, <span class="keyword">new</span> SslHandler(engine));</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (isClient) &#123;</div><div class="line">            pipeline.addLast(<span class="string">"codec"</span>, <span class="keyword">new</span> HttpClientCodec());</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            pipeline.addLast(<span class="string">"codec"</span>, <span class="keyword">new</span> HttpServerCodec());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="WebSocket"><a href="#WebSocket" class="headerlink" title="WebSocket"></a>WebSocket</h3><ul>
+<li>http协议是一个请求和响应模式的交互协议．很难做到实时的发布信息．即使是Ajax也是客户端请求驱动的．</li>
+<li>WebSocket提供了＂在单个TCP连接上提供双向通信，为client和server端双向通信提供了一种替代HTTP轮询的方案＂，WebSocket为client和server提供了真正的双向数据交换．</li>
+<li>要添加对WebSocket的支持，需要添加适当的client或者server　WebSocketChannelHandler. 它将处理帧数据．包括控制帧和数据帧．<ul>
+<li>控制帧：CloseWebSocketFrame, PingWebSocketFrame, PongWebSocketFrame</li>
+<li>数据帧：BinaryWebSocketFrame, TextWebSocketFrame, ContinuationWebSocketFrame</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebSocketServerInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ch.pipeline().addLast(</div><div class="line">            <span class="keyword">new</span> HttpServerCodec(),</div><div class="line">            <span class="keyword">new</span> HttpObjectAggregator(<span class="number">65536</span>), <span class="comment">// 聚合</span></div><div class="line">            <span class="comment">// 如果被请求的断点是/websock,那么处理升级握手．</span></div><div class="line">            <span class="keyword">new</span> WebSocketServerProtocolHandler(<span class="string">"/websocket"</span>),</div><div class="line">            <span class="comment">// 处理TextWebSocketFrame</span></div><div class="line">            <span class="keyword">new</span> TextFrameHandler(),</div><div class="line">            <span class="comment">// 处理BinaryWebSocketFrame</span></div><div class="line">            <span class="keyword">new</span> BinaryFrameHandler(),</div><div class="line">            <span class="keyword">new</span> ContinuationFrameHandler());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TextFrameHandler</span> <span class="keyword">extends</span></span></div><div class="line">        <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">TextWebSocketFrame</span>&gt; &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx,</span></span></div><div class="line">            TextWebSocketFrame msg) <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="comment">// Handle text frame</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">BinaryFrameHandler</span> <span class="keyword">extends</span></span></div><div class="line">        <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">BinaryWebSocketFrame</span>&gt; &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx,</span></span></div><div class="line">            BinaryWebSocketFrame msg) <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="comment">// Handle binary frame</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ContinuationFrameHandler</span> <span class="keyword">extends</span></span></div><div class="line">        <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">ContinuationWebSocketFrame</span>&gt; &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx,</span></span></div><div class="line">            ContinuationWebSocketFrame msg) <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="comment">// Handle continuation frame</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="空闲的连接和超时"><a href="#空闲的连接和超时" class="headerlink" title="空闲的连接和超时"></a>空闲的连接和超时</h2><ul>
+<li>Netty提供了几个ChannelHandler来处理空闲连接和超时连接．<ul>
+<li><code>IdleStateHandler</code> – 连接空闲时间太长，将会触发<code>IdelStateEvent</code>事件，可以重写ChannelInBoundHandler的userEventTriggered()方法来处理此事件．</li>
+<li><code>ReadTimeoutHandler</code> – 指定时间没有收集到任何的入站数据，抛出一个ReadTimeoutException异常，然后关闭对应的Channel.可以重写ChannelHandler中的exceptionCaught()方法来检测此TimeoutException异常．</li>
+<li><code>WriteTimeoutHandler</code> – 指定时间没有收集到任何的出站数据，抛出一个WriteimeoutException异常，然后关闭对应的Channel.可以重写ChannelHandler中的exceptionCaught()方法来检测此TimeoutException异常．</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Triggers an &#123;IdleStateEvent&#125; when a &#123;Channel&#125; has not performed</div><div class="line"> * read, write, or both operation for a while.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IdleStateHandler</span> <span class="keyword">extends</span> <span class="title">ChannelDuplexHandler</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * Raises a &#123;ReadTimeoutException&#125; when no data was read within a certain</div><div class="line"> * period of time.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReadTimeoutHandler</span> <span class="keyword">extends</span> <span class="title">IdleStateHandler</span> </span>&#123; &#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * Raises a &#123;WriteTimeoutException&#125; when a write operation cannot finish in a certain period of time.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WriteTimeoutHandler</span> <span class="keyword">extends</span> <span class="title">ChannelOutboundHandlerAdapter</span> </span>&#123;&#125;</div></pre></td></tr></table></figure>
+<p><strong>IdleStateHandlerInitializer.java</strong></p>
+<ul>
+<li>使用IdleStateHandler来测试远程节点是否仍然存活，并且在失活时通过关闭连接来释放资源．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IdleStateHandlerInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt;</span></div><div class="line">    &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        pipeline.addLast(</div><div class="line">                <span class="comment">// 超时触发一个IdleStateEvent事件来调用fireUserEventTriggered()方法．</span></div><div class="line">                <span class="keyword">new</span> IdleStateHandler(<span class="number">0</span>, <span class="number">0</span>, <span class="number">60</span>, TimeUnit.SECONDS));</div><div class="line">        pipeline.addLast(<span class="keyword">new</span> HeartbeatHandler());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">HeartbeatHandler</span></span></div><div class="line">        <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> &#123;</div><div class="line">        <span class="comment">// 发送到远程节点的心跳消息．</span></div><div class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ByteBuf HEARTBEAT_SEQUENCE =</div><div class="line">                Unpooled.unreleasableBuffer(Unpooled.copiedBuffer(</div><div class="line">                <span class="string">"HEARTBEAT"</span>, CharsetUtil.ISO_8859_1));</div><div class="line">                </div><div class="line">        <span class="comment">// 发送心跳消息．</span></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">userEventTriggered</span><span class="params">(ChannelHandlerContext ctx,</span></span></div><div class="line">            Object evt) <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="keyword">if</span> (evt <span class="keyword">instanceof</span> IdleStateEvent) &#123;</div><div class="line">                <span class="comment">// 检测到IdleStateEvent事件，发送心跳消息，发送失败时关闭该连接．</span></div><div class="line">                ctx.writeAndFlush(HEARTBEAT_SEQUENCE.duplicate())</div><div class="line">                    <span class="comment">// 添加一个在发送失败关闭连接的ChannelFutureListener</span></div><div class="line">                     .addListener(</div><div class="line">                         ChannelFutureListener.CLOSE_ON_FAILURE);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">// 不是IdleStateEvent事件，所以将其传递给下一个ChannelInboundHandler</span></div><div class="line">                <span class="keyword">super</span>.userEventTriggered(ctx, evt);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="基于分隔符的协议和基于长度的协议"><a href="#基于分隔符的协议和基于长度的协议" class="headerlink" title="基于分隔符的协议和基于长度的协议"></a>基于分隔符的协议和基于长度的协议</h2><h3 id="基于分隔符的协议"><a href="#基于分隔符的协议" class="headerlink" title="基于分隔符的协议"></a>基于分隔符的协议</h3><ul>
+<li>基于分隔符的消息协议使用定义的字符来标记消息或者消息段（帧），这样的协议包括但不限于SMTP，POP3,Telnet.</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * A decoder that splits the received &#123;ByteBuf&#125;s by one or more</div><div class="line"> * delimiters.  It is particularly useful for decoding the frames which ends</div><div class="line"> * with a delimiter such as &#123;Delimiters#nulDelimiter() NUL&#125; or</div><div class="line"> * &#123;Delimiters#lineDelimiter() newline characters&#125;.</div><div class="line"> */</div><div class="line"> <span class="comment">// 处理任何用户提供的分隔符来提取帧的通用解码器</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DelimiterBasedFrameDecoder</span> <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * A decoder that splits the received &#123;ByteBuf&#125;s on line endings.</div><div class="line"> * &lt;p&gt;</div><div class="line"> * Both &#123;"\n"&#125; and &#123;"\r\n"&#125; are handled.</div><div class="line"> * For a more general delimiter-based decoder, see &#123;DelimiterBasedFrameDecoder&#125;.</div><div class="line"> */</div><div class="line"> <span class="comment">// 提取\n或者\r\n分隔的帧的解码器．比上一个更快，但是功能受限．</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LineBasedFrameDecoder</span> <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;&#125;</div></pre></td></tr></table></figure>
+<p><strong>LineBasedHandlerInitializer.java</strong></p>
+<ul>
+<li><p>这里使用的LineBaseFrameDecoder同样可以使用DelimiterBasedFrameDecoder．只需要使用特定的构造函数来初始化其构造函数．</p>
+</li>
+<li><p>帧尾为<code>\r\n</code></p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LineBasedHandlerInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt;</span></div><div class="line">    &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        <span class="comment">// LineBasedFrameDecoder将提取的帧转发给下一个ChannelInBoundHandler.</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> LineBasedFrameDecoder(<span class="number">64</span> * <span class="number">1024</span>));</div><div class="line">        <span class="comment">// 接收帧</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> FrameHandler());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">FrameHandler</span></span></div><div class="line">        <span class="keyword">extends</span> <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">ByteBuf</span>&gt; &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx,</span></span></div><div class="line">            ByteBuf msg) <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="comment">// Do something with the data extracted from the frame</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="基于长度的协议"><a href="#基于长度的协议" class="headerlink" title="基于长度的协议"></a>基于长度的协议</h3><ul>
+<li>基于长度的协议将帧长编码到帧的头部来定义帧．<ul>
+<li>LengthFieldBasedFrameDecoder: 根据编码进帧头部的长度值来提取帧．</li>
+<li>FixedLengthFrameDecoder: 提取在调用构造函数时指定的定长帧．</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * A decoder that splits the received &#123;ByteBuf&#125;s dynamically by the</div><div class="line"> * value of the length field in the message.  It is particularly useful when you</div><div class="line"> * decode a binary message which has an integer header field that represents the</div><div class="line"> * length of the message body or the whole message.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LengthFieldBasedFrameDecoder</span> <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Creates a new instance.</div><div class="line">     * <span class="doctag">@param</span> maxFrameLength</div><div class="line">     *        the maximum length of the frame.  If the length of the frame is</div><div class="line">     *        greater than this value, &#123;<span class="doctag">@link</span> TooLongFrameException&#125; will be</div><div class="line">     *        thrown.</div><div class="line">     * <span class="doctag">@param</span> lengthFieldOffset</div><div class="line">     *        the offset of the length field</div><div class="line">     * <span class="doctag">@param</span> lengthFieldLength</div><div class="line">     *        the length of the length field</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LengthFieldBasedFrameDecoder</span><span class="params">(</span></span></div><div class="line">            <span class="keyword">int</span> maxFrameLength,</div><div class="line">            <span class="keyword">int</span> lengthFieldOffset, <span class="keyword">int</span> lengthFieldLength) &#123;</div><div class="line">        <span class="keyword">this</span>(maxFrameLength, lengthFieldOffset, lengthFieldLength, <span class="number">0</span>, <span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * A decoder that splits the received &#123;<span class="doctag">@link</span> ByteBuf&#125;s by the fixed number</div><div class="line"> * of bytes. For example, if you received the following four fragmented packets:</div><div class="line"> * +---+----+------+----+</div><div class="line"> * | A | BC | DEFG | HI |</div><div class="line"> * +---+----+------+----+</div><div class="line"> * A &#123;FixedLengthFrameDecoder&#125;&#123;(3)&#125; will decode them into the</div><div class="line"> * following three packets with the fixed length:</div><div class="line"> * +-----+-----+-----+</div><div class="line"> * | ABC | DEF | GHI |</div><div class="line"> * +-----+-----+-----+</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FixedLengthFrameDecoder</span> <span class="keyword">extends</span> <span class="title">ByteToMessageDecoder</span> </span>&#123;&#125;</div></pre></td></tr></table></figure>
+<p><strong>LengthBasedInitializer.java</strong></p>
+<ul>
+<li>帧长度被编码到帧起始的8个字节里面．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LengthBasedInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        pipeline.addLast(</div><div class="line">        <span class="comment">// 解码将帧长度编码到帧头8个字节的消息．</span></div><div class="line">                <span class="keyword">new</span> LengthFieldBasedFrameDecoder(<span class="number">64</span> * <span class="number">1024</span>, <span class="number">0</span>, <span class="number">8</span>));</div><div class="line">        pipeline.addLast(<span class="keyword">new</span> FrameHandler());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">FrameHandler</span></span></div><div class="line">        <span class="keyword">extends</span> <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">ByteBuf</span>&gt; &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx,</span></span></div><div class="line">             ByteBuf msg) <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="comment">// Do something with the frame</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="写大型数据"><a href="#写大型数据" class="headerlink" title="写大型数据"></a>写大型数据</h2><ul>
+<li>需求：Netty是异步框架，而且一般带宽也是有限的，那么如何在netty中高效的写大块的数据??</li>
+<li>NIO的零拷贝特性：消除了将文件的内容从文件系统移动到网络栈的复制过程．在Netty中，只需要使用一个<code>FileRegion</code>接口的实现．</li>
+</ul>
+<p><strong>FileRegionWriteHandler.java</strong></p>
+<ul>
+<li>文件内容的直接传输，不包括任何的处理．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FileRegionWriteHandler</span> <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Channel CHANNEL_FROM_SOMEWHERE = <span class="keyword">new</span> NioSocketChannel();</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> File FILE_FROM_SOMEWHERE = <span class="keyword">new</span> File(<span class="string">""</span>);</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelActive</span><span class="params">(<span class="keyword">final</span> ChannelHandlerContext ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        File file = FILE_FROM_SOMEWHERE; <span class="comment">//get reference from somewhere</span></div><div class="line">        Channel channel = CHANNEL_FROM_SOMEWHERE; <span class="comment">//get reference from somewhere</span></div><div class="line">        <span class="comment">//...</span></div><div class="line">        FileInputStream in = <span class="keyword">new</span> FileInputStream(file);</div><div class="line">        <span class="comment">// 以文件长度创建一个FileRegion</span></div><div class="line">        FileRegion region = <span class="keyword">new</span> DefaultFileRegion(in.getChannel(), <span class="number">0</span>, file.length());</div><div class="line">        <span class="comment">// 发送该FileRegion并注册Listener.</span></div><div class="line">        channel.writeAndFlush(region).addListener(</div><div class="line">            <span class="keyword">new</span> ChannelFutureListener() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">operationComplete</span><span class="params">(ChannelFuture future)</span></span></div><div class="line">               <span class="keyword">throws</span> Exception &#123;</div><div class="line">               <span class="keyword">if</span> (!future.isSuccess()) &#123;</div><div class="line">                   Throwable cause = future.cause();</div><div class="line">                   <span class="comment">// Do something</span></div><div class="line">               &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>ChunkedWriteHandlerInitializer.java</strong></p>
+<ul>
+<li>4个ChunkedInput的实现类，每个都代表一个将由ChunkedWriteHandler处理的不定长的数据流．<ul>
+<li><code>io.netty.handler.stream.ChunkFile</code> : 从文件中逐块的获取数据．</li>
+<li><code>io.netty.handler.stream.ChunkedNioFile</code>: 和ChunkFile相似，但是它使用了FileChannel</li>
+<li><code>io.netty.handler.stream.ChunkedStream</code> : 从InputStream中逐块的传输数据</li>
+<li><code>io.netty.handler.stream.ChunkedNioStream</code> : 从ReadableByteChannel中逐块的传输数据．</li>
+</ul>
+</li>
+<li>ssl作为第一个ChannelHandler，可以思考一下addLast添加的ChannelHandler所处理数据的顺序和方向．</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChunkedWriteHandlerInitializer</span></span></div><div class="line">    <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; &#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> File file;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> SslContext sslCtx;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ChunkedWriteHandlerInitializer</span><span class="params">(File file, SslContext sslCtx)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.file = file;</div><div class="line">        <span class="keyword">this</span>.sslCtx = sslCtx;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="comment">// 这三个ChannelHandler的方向是下到上．</span></div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        <span class="comment">// 添加sslHandler支持．</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> SslHandler(sslCtx.newEngine(ch.alloc())));</div><div class="line">        <span class="comment">// 处理ChunkInput传入的数据</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> ChunkedWriteHandler());</div><div class="line">        <span class="comment">// 连接建立，WriteStreamHandler开始写文件数据．</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> WriteStreamHandler());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">WriteStreamHandler</span></span></div><div class="line">        <span class="keyword">extends</span> <span class="title">ChannelInboundHandlerAdapter</span> &#123;</div><div class="line">        <span class="comment">// 连接建立的时候，channelActive方法将使用ChunkInput写文件数据．</span></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelActive</span><span class="params">(ChannelHandlerContext ctx)</span></span></div><div class="line">            <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="keyword">super</span>.channelActive(ctx);</div><div class="line">            ctx.writeAndFlush(<span class="keyword">new</span> ChunkedStream(<span class="keyword">new</span> FileInputStream(file)));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="序列化数据"><a href="#序列化数据" class="headerlink" title="序列化数据"></a>序列化数据</h2><h3 id="JDK序列化"><a href="#JDK序列化" class="headerlink" title="JDK序列化"></a>JDK序列化</h3><ul>
+<li>Netty提供了和JDK及进行互操作的序列化类．</li>
+</ul>
+<h3 id="JBoss-Marshaling序列化"><a href="#JBoss-Marshaling序列化" class="headerlink" title="JBoss Marshaling序列化"></a>JBoss Marshaling序列化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MarshallingInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> MarshallerProvider marshallerProvider;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UnmarshallerProvider unmarshallerProvider;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MarshallingInitializer</span><span class="params">(</span></span></div><div class="line">            UnmarshallerProvider unmarshallerProvider,</div><div class="line">            MarshallerProvider marshallerProvider) &#123;</div><div class="line">        <span class="keyword">this</span>.marshallerProvider = marshallerProvider;</div><div class="line">        <span class="keyword">this</span>.unmarshallerProvider = unmarshallerProvider;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel channel)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = channel.pipeline();</div><div class="line">        <span class="comment">// 添加decoder将byteBuf转为POJO</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> MarshallingDecoder(unmarshallerProvider));</div><div class="line">        <span class="comment">// 相反</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> MarshallingEncoder(marshallerProvider));</div><div class="line">        <span class="comment">// 处理实现了Serializable接口的POJO</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> ObjectHandler());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectHandler</span></span></div><div class="line">        <span class="keyword">extends</span> <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">Serializable</span>&gt; &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(</span></span></div><div class="line">            ChannelHandlerContext channelHandlerContext,</div><div class="line">            Serializable serializable) <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="comment">// Do something</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="Protocol-Buffers序列化"><a href="#Protocol-Buffers序列化" class="headerlink" title="Protocol Buffers序列化"></a>Protocol Buffers序列化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProtoBufInitializer</span> <span class="keyword">extends</span> <span class="title">ChannelInitializer</span>&lt;<span class="title">Channel</span>&gt; </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> MessageLite lite;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ProtoBufInitializer</span><span class="params">(MessageLite lite)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.lite = lite;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initChannel</span><span class="params">(Channel ch)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        ChannelPipeline pipeline = ch.pipeline();</div><div class="line">        <span class="comment">// 分隔帧</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> ProtobufVarint32FrameDecoder());</div><div class="line">        <span class="comment">// 处理消息的编码</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> ProtobufEncoder());</div><div class="line">        <span class="comment">// 解码消息</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> ProtobufDecoder(lite));</div><div class="line">        <span class="comment">// 处理解码消息．</span></div><div class="line">        pipeline.addLast(<span class="keyword">new</span> ObjectHandler());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectHandler</span></span></div><div class="line">        <span class="keyword">extends</span> <span class="title">SimpleChannelInboundHandler</span>&lt;<span class="title">Object</span>&gt; &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead0</span><span class="params">(ChannelHandlerContext ctx, Object msg)</span></span></div><div class="line">            <span class="keyword">throws</span> Exception &#123;</div><div class="line">            <span class="comment">// Do something with the object</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Netty/" rel="tag"># Netty</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/05/netty-encoder-decoder-framework/" rel="next" title="netty编码解码框架">
+                <i class="fa fa-chevron-left"></i> netty编码解码框架
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/10/github-delete-files-folders/" rel="prev" title="Github上同步了工程文件，如何删除">
+                Github上同步了工程文件，如何删除 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">48</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">32</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/MyDarcy" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/frobisher27149" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.zhenlanghuo.top/" title="zhenlang huo" target="_blank">zhenlang huo</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://xawei.me/" title="xinan wei" target="_blank">xinan wei</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#通过SSL-TLS包含Netty应用程序"><span class="nav-number">1.</span> <span class="nav-text">通过SSL/TLS包含Netty应用程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构建基于Netty的Http-Https的应用程序"><span class="nav-number">2.</span> <span class="nav-text">构建基于Netty的Http/Https的应用程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP解码器，编码器，编解码器"><span class="nav-number">2.1.</span> <span class="nav-text">HTTP解码器，编码器，编解码器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#聚合Http消息"><span class="nav-number">2.2.</span> <span class="nav-text">聚合Http消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Http压缩"><span class="nav-number">2.3.</span> <span class="nav-text">Http压缩</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用HTTPS"><span class="nav-number">2.4.</span> <span class="nav-text">使用HTTPS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WebSocket"><span class="nav-number">2.5.</span> <span class="nav-text">WebSocket</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空闲的连接和超时"><span class="nav-number">3.</span> <span class="nav-text">空闲的连接和超时</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于分隔符的协议和基于长度的协议"><span class="nav-number">4.</span> <span class="nav-text">基于分隔符的协议和基于长度的协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于分隔符的协议"><span class="nav-number">4.1.</span> <span class="nav-text">基于分隔符的协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于长度的协议"><span class="nav-number">4.2.</span> <span class="nav-text">基于长度的协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写大型数据"><span class="nav-number">5.</span> <span class="nav-text">写大型数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列化数据"><span class="nav-number">6.</span> <span class="nav-text">序列化数据</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JDK序列化"><span class="nav-number">6.1.</span> <span class="nav-text">JDK序列化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JBoss-Marshaling序列化"><span class="nav-number">6.2.</span> <span class="nav-text">JBoss Marshaling序列化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Protocol-Buffers序列化"><span class="nav-number">6.3.</span> <span class="nav-text">Protocol Buffers序列化</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
