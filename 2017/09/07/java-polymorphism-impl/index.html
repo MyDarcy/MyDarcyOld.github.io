@@ -1,0 +1,1021 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,polymorphism," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="多态到底是什么，多态是如何实现的, 参考了几篇文章，这里汇总一下。">
+<meta name="keywords" content="Java,polymorphism">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java中多态以及原理">
+<meta property="og:url" content="http://yoursite.com/2017/09/07/java-polymorphism-impl/index.html">
+<meta property="og:site_name" content="darcy he">
+<meta property="og:description" content="多态到底是什么，多态是如何实现的, 参考了几篇文章，这里汇总一下。">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/6i7r32fefnhgwd3a221eo9zj/jvm-structure.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/worw1pv4fzyv048wvg69f4oo/PersonGirlBoy.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/tw1ygdpyellmx67gbx03s5oo/InvokeVirtual.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/p5frdekkrvsatqrmkrfge3zq/IDancePerson.png">
+<meta property="og:updated_time" content="2017-09-07T03:02:24.906Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java中多态以及原理">
+<meta name="twitter:description" content="多态到底是什么，多态是如何实现的, 参考了几篇文章，这里汇总一下。">
+<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/6i7r32fefnhgwd3a221eo9zj/jvm-structure.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/09/07/java-polymorphism-impl/"/>
+
+
+
+
+
+  <title>Java中多态以及原理 | darcy he</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?594cf3672b18c8c9a97689d1dfffaa39";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">darcy he</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知 孤勇 温柔</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/07/java-polymorphism-impl/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="darcy he">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java中多态以及原理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-07T10:58:59+08:00">
+                2017-09-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/09/07/java-polymorphism-impl/" class="leancloud_visitors" data-flag-title="Java中多态以及原理">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>多态到底是什么，多态是如何实现的, 参考了几篇文章，这里汇总一下。</p>
+</blockquote>
+<a id="more"></a>
+<hr>
+<h2 id="多态经典例子"><a href="#多态经典例子" class="headerlink" title="多态经典例子"></a>多态经典例子</h2><h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Author by darcy</div><div class="line"> * Date on 17-9-5 下午3:37.</div><div class="line"> * Description:</div><div class="line"> *</div><div class="line"> * http://blog.csdn.net/thinkGhoster/article/details/2307001</div><div class="line"> *</div><div class="line"> * A a2 = new B()</div><div class="line"> * a2.show(new B())</div><div class="line"> * a2.show(new C()) // 向上转型2次.</div><div class="line"> * a2.show(new D()) // 未转型之前调用父类方法(继承而来).</div><div class="line"> * 总的指导思路是先看是否重写了父类的相同签名的方法(方法名参数完全相同),如果重写了, 那么就利用多态的性质. 没有重写,但是父类中有相同签名的方法,那么就调用这个父类中这个方法.(可以理解为引用为父类的类型调用自己的方法，也可以理解为子类继承了父类的该方法进行调用);上面的两步都不满足, 那么将方法的传入参数向上转型为父类型,但是此时的引用仍然绑定到子类类型上,所以仍然重重复上面这个过程, 即先查看是否Override(多态性质), 没有则看是否父类实现了转型为父类型的方法, 没有, 继续向上转型.</div><div class="line"> */</div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">show</span><span class="params">(D obj)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> (<span class="string">"A and D"</span>);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">show</span><span class="params">(A obj)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> (<span class="string">"A and A"</span>);</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"> <span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">extends</span> <span class="title">A</span></span>&#123;</div><div class="line">  <span class="comment">// A a = new B() a.show(B)不能直接调用这个方法, 因为这个方法并不是被Override的.</span></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">show</span><span class="params">(B obj)</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> (<span class="string">"B and B"</span>);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">show</span><span class="params">(A obj)</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> (<span class="string">"B and A"</span>);</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">C</span> <span class="keyword">extends</span> <span class="title">B</span></span>&#123;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">D</span> <span class="keyword">extends</span> <span class="title">B</span></span>&#123;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ABCDTest</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    A a1 = <span class="keyword">new</span> A();</div><div class="line">    A a2 = <span class="keyword">new</span> B();</div><div class="line">    B b = <span class="keyword">new</span> B();</div><div class="line">    C c = <span class="keyword">new</span> C();</div><div class="line">    D d = <span class="keyword">new</span> D();</div><div class="line"></div><div class="line">    System.out.println(<span class="string">"1--"</span> + a1.show(b)); <span class="comment">// A and A</span></div><div class="line">    System.out.println(<span class="string">"2--"</span> + a1.show(c)); <span class="comment">// A and A</span></div><div class="line">    System.out.println(<span class="string">"3--"</span> + a1.show(d)); <span class="comment">// A and D</span></div><div class="line">    <span class="comment">/*</span></div><div class="line">     a2.show(b)，a2是一个引用变量，类型为A，则this为a2，b是B的一个实例，</div><div class="line">     于是它到类A里面找show(B obj)方法，没有找到，于是到A的super(超类)找，而A没有</div><div class="line">     超类，因此转到第三优先级this.show((super)O)，this仍然是a2，这里O为B，</div><div class="line">     (super)O即(super)B即A，因此它到类A里面找show(A obj)的方法，类A有这个方法，</div><div class="line">     但是由于a2引用的是类B的一个对象，B覆盖了A的show(A obj)方法，因此最终锁定到</div><div class="line">     类B的show(A obj)，输出为"B and A”。</div><div class="line">     */</div><div class="line">    System.out.println(<span class="string">"4--"</span> + a2.show(b)); <span class="comment">// B and A</span></div><div class="line">    System.out.println(<span class="string">"5--"</span> + a2.show(c)); <span class="comment">// B and A</span></div><div class="line">    System.out.println(<span class="string">"6--"</span> + a2.show(d)); <span class="comment">// A and D</span></div><div class="line">    System.out.println(<span class="string">"7--"</span> + b.show(b)); <span class="comment">// B and B</span></div><div class="line">    <span class="comment">/*</span></div><div class="line">    b.show(c)，b是一个引用变量，类型为B，则this为b，c是C的一个实例，于是它到</div><div class="line">    类B找show(C obj)方法，没有找到，转而到B的超类A里面找，A里面也没有，因此也</div><div class="line">    转到第三优先级this.show((super)O)，this为b，O为C，(super)O即(super)C即B，</div><div class="line">    因此它到B里面找show(B obj)方法，找到了，由于b引用的是类B的一个对象，因此直接</div><div class="line">    锁定到类B的show(B obj)，输出为"B and B”。</div><div class="line">     */</div><div class="line">    System.out.println(<span class="string">"8--"</span> + b.show(c)); <span class="comment">// B and B *</span></div><div class="line">    System.out.println(<span class="string">"9--"</span> + b.show(d)); <span class="comment">// A and D</span></div><div class="line">    <span class="comment">/*</span></div><div class="line">    运行结果</div><div class="line">    1--A and A // 1</div><div class="line">    2--A and A // 2</div><div class="line">    3--A and D // 3</div><div class="line">    4--B and A // 4</div><div class="line">    5--B and A // 5</div><div class="line">    6--A and D // 6</div><div class="line">    7--B and B // 7</div><div class="line">    8--B and B // 8</div><div class="line">    9--A and D // 9</div><div class="line">     */</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="解释"><a href="#解释" class="headerlink" title="解释"></a>解释</h3><h3 id="概念解释"><a href="#概念解释" class="headerlink" title="概念解释"></a>概念解释</h3><ul>
+<li>①②③比较好理解，一般不会出错。④⑤就有点糊涂了，为什么输出的不是”B and B”呢？！！先来回顾一下多态性。<strong>运行时多态性</strong>是面向对象程序设计代码重用的一个最强大机制，动态性的概念也可以被说成“一个接口，多个方法”。Java实现运行时多态性的基础是动态方法调度，它是一种在运行时而不是在编译期调用重载方法的机制。</li>
+<li>方法的重写Overriding和重载Overloading是Java多态性的不同表现。<strong>重写Overriding</strong>是父类与子类之间多态性的一种表现，<strong>重载Overloading</strong>是一个类中多态性的一种表现。如果在子类中定义某方法与其父类有相同的名称和参数，我们说该方法被重写(Overriding)。子类的对象使用这个方法时，将调用子类中的定义，对它而言，父类中的定义如同被“屏蔽”了。如果在一个类中定义了多个同名的方法，它们或有不同的参数个数或有不同的参数类型，则称为方法的重载(Overloading)。Overloaded的方法是可以改变返回值的类型。</li>
+<li><strong>当超类对象引用变量引用子类对象时，被引用对象的类型而不是引用变量的类型决定了调用谁的成员方法，但是这个被调用的方法必须是在超类中定义过的，也就是说被子类覆盖的方法。</strong>（但是如果强制把超类转换成子类的话，就可以调用子类中新添加而超类没有的方法了。）</li>
+<li>实际上这里涉及方法调用的优先问题，<strong>优先级由高到低</strong>依次为：<strong><code>this.show(O)、super.show(O)、this.show((super)O)、super.show((super)O)</code></strong>。让我们来看看它是怎么工作的。</li>
+</ul>
+<h3 id="难点解释"><a href="#难点解释" class="headerlink" title="难点解释"></a>难点解释</h3><ul>
+<li>比如④，a2.show(b)，a2是一个引用变量，类型为A，则this为a2，b是B的一个实例，于是它到类A里面找show(B obj)方法，没有找到，于是到A的super(超类)找，而A没有超类，因此转到第三优先级this.show((super)O)，this仍然是a2，这里O为B，(super)O即(super)B即A，因此它到类A里面找show(A obj)的方法，类A有这个方法，但是由于a2引用的是类B的一个对象，B覆盖了A的show(A obj)方法，因此最终锁定到类B的show(A obj)，输出为”B and A”。</li>
+<li>再比如⑧，b.show(c)，b是一个引用变量，类型为B，则this为b，c是C的一个实例，于是它到类B找show(C obj)方法，没有找到，转而到B的超类A里面找，A里面也没有，因此也转到第三优先级this.show((super)O)，this为b，O为C，(super)O即(super)C即B，因此它到B里面找show(B obj)方法，找到了，由于b引用的是类B的一个对象，因此直接锁定到类B的show(B obj)，输出为”B and B”。</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>现在我们再来看上面的分析过程是怎么体现出<strong>粗体字体</strong>那句话的内涵的。它说：当超类对象引用变量引用子类对象时，被引用对象的类型而不是引用变量的类型决定了调用谁的成员方法，但是这个被调用的方法必须是在超类中定义过的，也就是说被子类覆盖的方法。还是拿a2.show(b)来说吧。<ul>
+<li>a2是一个引用变量，类型为A，它引用的是B的一个对象，因此这句话的意思是由B来决定调用的是哪个方法。因此应该调用B的show(B obj)从而输出”B and B”才对。但是为什么跟前面的分析得到的结果不相符呢？问题在于我们不要忽略了粗体字体的后半部分，那里特别指明：<strong>这个被调用的方法必须是在超类中定义过的，也就是被子类覆盖的方法</strong>。B里面的show(B obj)在超类A中有定义吗？没有！那就更谈不上被覆盖了。实际上这句话隐藏了一条信息：它仍然是按照方法调用的优先级来确定的。它在类A中找到了show(A obj)，如果子类B没有覆盖show(A obj)方法，那么它就调用A的<code>show(A obj)</code>（由于B继承A，虽然没有覆盖这个方法，但从超类A那里继承了这个方法，从某种意义上说，还是由B确定调用的方法，只是方法是在A中实现而已）；现在子类B覆盖了 <code>show(A obj)</code>，因此它最终锁定到B的show(A obj)。这就是那句话的意义所在。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="多态的实现原理"><a href="#多态的实现原理" class="headerlink" title="多态的实现原理"></a>多态的实现原理</h2><h3 id="Java多态概述"><a href="#Java多态概述" class="headerlink" title="Java多态概述"></a>Java多态概述</h3><ul>
+<li>Java的方法重载，就是在类中可以创建多个方法，它们具有相同的名字，但可具有不同的参数列表、返回值类型。调用方法时通过传递的参数类型来决定具体使用哪个方法，这就是多态性。</li>
+<li>Java的方法重写，是父类与子类之间的多态性，子类可继承父类中的方法，但有时子类并不想原封不动地继承父类的方法，而是想作一定的修改，这就需要采用方法的重写。重写的参数列表和返回类型均不可修改。</li>
+</ul>
+<h3 id="方法重写后的动态绑定"><a href="#方法重写后的动态绑定" class="headerlink" title="方法重写后的动态绑定"></a>方法重写后的动态绑定</h3><ul>
+<li>多态允许具体访问时实现方法的动态绑定。Java对于动态绑定的实现主要依赖于方法表，通过继承和接口的多态实现有所不同。<ul>
+<li>继承：在执行某个方法时，在方法区中找到该类的方法表，再确认该方法在方法表中的偏移量，找到该方法后如果被重写则直接调用，否则认为没有重写父类该方法，这时会按照继承关系搜索父类的方法表中该偏移量对应的方法。 </li>
+<li>接口：Java 允许一个类实现多个接口，从某种意义上来说相当于多继承，这样同一个接口的的方法在不同类方法表中的位置就可能不一样了。所以不能通过偏移量的方法，而是通过搜索完整的方法表。</li>
+</ul>
+</li>
+</ul>
+<h3 id="JVM的结构"><a href="#JVM的结构" class="headerlink" title="JVM的结构"></a>JVM的结构</h3><ul>
+<li>当程序运行需要某个类时，类加载器会将相应的class文件载入到JVM中，并在方法区建立该类的类型信息（包括方法代码，类变量、成员变量、以及方法表）。 </li>
+<li><strong>方法表是实现动态调用的核心</strong>。为了优化对象调用方法的速度，方法区的类型信息会增加一个指针，该指针指向记录该类方法的方法表，方法表中的每一个项都是对应方法的指针。这些方法中包括从父类继承的所有方法以及自身重写（override）的方法。</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/6i7r32fefnhgwd3a221eo9zj/jvm-structure.png" alt="jvm-structure.png-82.3kB"></p>
+<h3 id="Java-的方法调用方式"><a href="#Java-的方法调用方式" class="headerlink" title="Java 的方法调用方式"></a>Java 的方法调用方式</h3><ul>
+<li>Java 的方法调用有两类，动态方法调用与静态方法调用。<ul>
+<li>静态方法调用是指对于类的静态方法的调用方式，是静态绑定的；而动态方法调用需要有方法调用所作用的对象，是动态绑定的。</li>
+<li>类调用 (invokestatic) 是在编译时就已经确定好具体调用方法的情况。</li>
+<li>实例调用 (invokevirtual)则是在调用的时候才确定具体的调用方法，这就是动态绑定，也是多态要解决的核心问题。</li>
+</ul>
+</li>
+<li>JVM 的方法调用指令有四个，分别是 invokestatic，invokespecial，invokesvirtual 和 invokeinterface。前两个是静态绑定，后两个是动态绑定。</li>
+</ul>
+<h3 id="方法表和方法调用"><a href="#方法表和方法调用" class="headerlink" title="方法表和方法调用"></a>方法表和方法调用</h3><p><strong>demo</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"I'm a person."</span>;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">eat</span><span class="params">()</span> </span>&#123;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">speak</span><span class="params">()</span> </span>&#123;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span> <span class="keyword">extends</span> <span class="title">Person</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"I'm a boy"</span>;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">speak</span><span class="params">()</span> </span>&#123;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fight</span><span class="params">()</span> </span>&#123;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Girl</span> <span class="keyword">extends</span> <span class="title">Person</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"I'm a girl"</span>;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">speak</span><span class="params">()</span> </span>&#123;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sing</span><span class="params">()</span> </span>&#123;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Party</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">void</span> <span class="title">happyHour</span><span class="params">()</span> </span>&#123;</div><div class="line">    Person girl = <span class="keyword">new</span> Girl();</div><div class="line">    girl.speak();</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PersonBoyGirl</span> </span>&#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>当这三个类被载入到Java虚拟机之后，方法区中就包含了各自的类的信息。Girl和Boy在方法区中的方法表可表示如下</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/worw1pv4fzyv048wvg69f4oo/PersonGirlBoy.png" alt="PersonGirlBoy.png-100.7kB"></p>
+<ul>
+<li>Girl 和 Boy 的方法表包含继承自Object的方法，继承自直接父类Person的方法及各自新定义的方法。注意方法表条目指向的具体的方法地址，如 Girl 继承自 Object 的方法中，只有 toString() 指向自己的实现（Girl 的方法代码），其余皆指向 Object 的方法代码；其继承自于 Person 的方法 eat() 和 speak() 分别指向 Person 的方法实现和本身的实现。</li>
+<li>如果子类改写了父类的方法，那么子类和父类的那些同名的方法共享一个方法表项。因此，方法表的偏移量总是固定的。所有继承父类的子类的方法表中，其父类所定义的方法的偏移量也总是一个定值。</li>
+<li>Person 或 Object中的任意一个方法，在它们的方法表和其子类 Girl 和 Boy 的方法表中的位置 (index) 是一样的。这样 JVM 在调用实例方法其实只需要指定调用方法表中的第几个方法即可。</li>
+</ul>
+<p><strong>调用示意图</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Person girl = <span class="keyword">new</span> Girl();   </div><div class="line">girl.speak(); &#125;</div></pre></td></tr></table></figure>
+<p><img src="http://static.zybuluo.com/csqiang1992/tw1ygdpyellmx67gbx03s5oo/InvokeVirtual.png" alt="InvokeVirtual.png-152.6kB"></p>
+<p><strong>调用步骤</strong></p>
+<ul>
+<li>在常量池（ClassReference常量池）中找到方法调用的符号引用 。</li>
+<li>查看Person的方法表，得到speak方法在该方法表的偏移量（假设为15），这样就得到该方法的直接引用。 </li>
+<li>根据this指针得到具体的对象（即 girl 所指向的位于堆中的对象）。</li>
+<li>根据对象得到该对象对应的方法表，根据偏移量15查看有无重写（override）该方法，如果重写，则可以直接调用（Girl的方法表的speak项指向自身的方法而非父类）；如果没有重写，则需要拿到按照继承关系从下往上的基类（这里是Person类）的方法表，同样按照这个偏移量15查看有无该方法。</li>
+</ul>
+<h3 id="接口调用"><a href="#接口调用" class="headerlink" title="接口调用"></a>接口调用</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IDance</span></span>&#123;</div><div class="line">  <span class="function"><span class="keyword">void</span> <span class="title">dance</span><span class="params">()</span></span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person2</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"I'm a person."</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">eat</span><span class="params">()</span></span>&#123;&#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">speak</span><span class="params">()</span></span>&#123;&#125;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dancer</span> <span class="keyword">extends</span> <span class="title">Person2</span> <span class="keyword">implements</span> <span class="title">IDance</span> </span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"I'm a dancer."</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dance</span><span class="params">()</span></span>&#123;&#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Snake</span> <span class="keyword">implements</span> <span class="title">IDance</span></span>&#123;</div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"A snake."</span>; &#125;</div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dance</span><span class="params">()</span></span>&#123;</div><div class="line">    <span class="comment">//snake dance</span></div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IDancePerson</span> </span>&#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>方法表示意图</strong></p>
+<p><img src="http://static.zybuluo.com/csqiang1992/p5frdekkrvsatqrmkrfge3zq/IDancePerson.png" alt="IDancePerson.png-119.8kB"></p>
+<ul>
+<li>由于接口的介入，继承自接口IDance的方法dance()在类Dancer和Snake的方法表中的位置已经不一样了，显然我们无法仅根据偏移量来进行方法的调用。</li>
+<li>Java 对于接口方法的调用是采用搜索方法表的方式，如，要在Dancer的方法表中找到dance()方法，必须搜索Dancer的整个方法表。</li>
+<li>因为每次接口调用都要搜索方法表，所以从效率上来说，接口方法的调用总是慢于类方法的调用的。</li>
+</ul>
+<hr>
+<h2 id="InvokeVirtual-和-InvokeSpecial"><a href="#InvokeVirtual-和-InvokeSpecial" class="headerlink" title="InvokeVirtual 和 InvokeSpecial"></a>InvokeVirtual 和 InvokeSpecial</h2><ul>
+<li>参见文章 <a href="http://blog.csdn.net/qc_liu/article/details/42584099" target="_blank" rel="external">多态在JVM中的实现——invokevirtual与invokespecial</a></li>
+<li>invokespecial指令调用实例初始化方法，私有方法，父类的方法</li>
+</ul>
+<hr>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="http://blog.csdn.net/thinkGhoster/article/details/2307001" target="_blank" rel="external">深入理解java多态性</a></li>
+<li><a href="http://blog.csdn.net/jianyuerensheng/article/details/51602015" target="_blank" rel="external">面向对象编程三大特性——封装、继承、多态</a></li>
+<li><a href="http://wiki.jikexueyuan.com/project/java-enhancement/java-three.html" target="_blank" rel="external">理解 Java 的三大特性之多态</a></li>
+<li><a href="http://blog.csdn.net/seu_calvin/article/details/52191321" target="_blank" rel="external">Java技术——多态的实现原理</a></li>
+<li><a href="http://blog.csdn.net/qc_liu/article/details/42584099" target="_blank" rel="external">多态在JVM中的实现——invokevirtual与invokespecial</a></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/polymorphism/" rel="tag"># polymorphism</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/07/jdk-design-patterns/" rel="next" title="JDK中的设计模式">
+                <i class="fa fa-chevron-left"></i> JDK中的设计模式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/MyDarcy" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/frobisher27149" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.zhenlanghuo.top/" title="zhenlang huo" target="_blank">zhenlang huo</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://xawei.me/" title="xinan wei" target="_blank">xinan wei</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#多态经典例子"><span class="nav-number">1.</span> <span class="nav-text">多态经典例子</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代码"><span class="nav-number">1.1.</span> <span class="nav-text">代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解释"><span class="nav-number">1.2.</span> <span class="nav-text">解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#概念解释"><span class="nav-number">1.3.</span> <span class="nav-text">概念解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#难点解释"><span class="nav-number">1.4.</span> <span class="nav-text">难点解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.5.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多态的实现原理"><span class="nav-number">2.</span> <span class="nav-text">多态的实现原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java多态概述"><span class="nav-number">2.1.</span> <span class="nav-text">Java多态概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法重写后的动态绑定"><span class="nav-number">2.2.</span> <span class="nav-text">方法重写后的动态绑定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM的结构"><span class="nav-number">2.3.</span> <span class="nav-text">JVM的结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-的方法调用方式"><span class="nav-number">2.4.</span> <span class="nav-text">Java 的方法调用方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法表和方法调用"><span class="nav-number">2.5.</span> <span class="nav-text">方法表和方法调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口调用"><span class="nav-number">2.6.</span> <span class="nav-text">接口调用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InvokeVirtual-和-InvokeSpecial"><span class="nav-number">3.</span> <span class="nav-text">InvokeVirtual 和 InvokeSpecial</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
