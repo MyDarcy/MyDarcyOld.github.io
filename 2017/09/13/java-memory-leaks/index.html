@@ -1,0 +1,1025 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="几次面试都遇到了Java内存泄漏的问题，哪些情况会导致内存泄漏倒还好理解，如何分析内存泄漏基本上都不懂，只直到JDK/bin目录下有几个工具可用。这里简单的总结一下。">
+<meta name="keywords" content="Java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java内存泄漏的原因和检测">
+<meta property="og:url" content="http://yoursite.com/2017/09/13/java-memory-leaks/index.html">
+<meta property="og:site_name" content="darcy he">
+<meta property="og:description" content="几次面试都遇到了Java内存泄漏的问题，哪些情况会导致内存泄漏倒还好理解，如何分析内存泄漏基本上都不懂，只直到JDK/bin目录下有几个工具可用。这里简单的总结一下。">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/5ki2jmp6rct90b59kqzamnkt/jstat-tools.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/rhp21y2qr5xki8jt10x5aquq/gc-pic.jpg">
+<meta property="og:updated_time" content="2017-09-13T15:07:59.551Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java内存泄漏的原因和检测">
+<meta name="twitter:description" content="几次面试都遇到了Java内存泄漏的问题，哪些情况会导致内存泄漏倒还好理解，如何分析内存泄漏基本上都不懂，只直到JDK/bin目录下有几个工具可用。这里简单的总结一下。">
+<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/5ki2jmp6rct90b59kqzamnkt/jstat-tools.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/09/13/java-memory-leaks/"/>
+
+
+
+
+
+  <title>Java内存泄漏的原因和检测 | darcy he</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?594cf3672b18c8c9a97689d1dfffaa39";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">darcy he</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知 孤勇 温柔</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/13/java-memory-leaks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="darcy he">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java内存泄漏的原因和检测</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-13T23:06:20+08:00">
+                2017-09-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/09/13/java-memory-leaks/" class="leancloud_visitors" data-flag-title="Java内存泄漏的原因和检测">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>几次面试都遇到了Java内存泄漏的问题，哪些情况会导致内存泄漏倒还好理解，如何分析内存泄漏基本上都不懂，只直到JDK/bin目录下有几个工具可用。这里简单的总结一下。</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="内存泄漏及其原因"><a href="#内存泄漏及其原因" class="headerlink" title="内存泄漏及其原因"></a>内存泄漏及其原因</h2><h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><ul>
+<li>内存泄露是指<strong>无用对象（不再使用的对象）持续占有内存或无用对象的内存得不到及时释放，从而造成的内存空间的浪费称为内存泄露</strong>。内存泄露有时不严重且不易察觉，但有时也会很严重，会提示你OutOfMemoryError异常。</li>
+</ul>
+<p><strong>导致内存泄漏的几种原因</strong></p>
+<h3 id="静态集合类引起内存泄露"><a href="#静态集合类引起内存泄露" class="headerlink" title="静态集合类引起内存泄露"></a>静态集合类引起内存泄露</h3><ul>
+<li>像HashMap、Vector等的使用最容易出现内存泄露，这些静态变量的生命周期和应用程序一致，他们所引用的所有的对象Object也不能被释放。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;Object&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</div><div class="line">        Object o = <span class="keyword">new</span> Object();</div><div class="line">        list.add(o)</div><div class="line">        <span class="comment">// list仍然持有Object对象。</span></div><div class="line">        o = <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="集合中的可变对象修改后，再次移除则不起作用"><a href="#集合中的可变对象修改后，再次移除则不起作用" class="headerlink" title="集合中的可变对象修改后，再次移除则不起作用"></a>集合中的可变对象修改后，再次移除则不起作用</h3><ul>
+<li>一般是HashSet, HashMap, 主键的key的hashCode变化以后，添加或者删除都是映射到不同的桶中。所以对于HashSet或者HashMap的Key，都应该是不可变类型。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">person</span></span>&#123;</div><div class="line"><span class="comment">//....</span></div><div class="line"><span class="meta">@Override</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> name.hashCode() + passwd.hashCode() + age;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    Set&lt;Person&gt; persons = <span class="keyword">new</span> HashSet&lt;&gt;();</div><div class="line">    Person p1 = <span class="keyword">new</span> Person(<span class="string">"AAAA"</span>, <span class="string">"aaaa"</span>, <span class="number">25</span>);</div><div class="line">    Person p2 = <span class="keyword">new</span> Person(<span class="string">"BBBB"</span>, <span class="string">"bbbb"</span>, <span class="number">27</span>);</div><div class="line">    Person p3 = <span class="keyword">new</span> Person(<span class="string">"CCCC"</span>, <span class="string">"cccc"</span>, <span class="number">30</span>);</div><div class="line">    persons.add(p1);</div><div class="line">    persons.add(p2);</div><div class="line">    persons.add(p3);</div><div class="line">    System.out.println(<span class="string">"size:"</span> + persons.size()); <span class="comment">// 3</span></div><div class="line"></div><div class="line">    p3.setAge(<span class="number">31</span>); <span class="comment">// 修改属性。</span></div><div class="line">    persons.remove(p3); <span class="comment">// 移除不掉.</span></div><div class="line">    persons.add(p3); <span class="comment">// 添加成功.</span></div><div class="line"></div><div class="line">    System.out.println(<span class="string">"size:"</span> + persons.size()); <span class="comment">// 4</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="监听器"><a href="#监听器" class="headerlink" title="监听器"></a>监听器</h3><ul>
+<li>addXXXListener()等方法来增加监听器，但往往在释放对象的时候却没有记住去删除这些监听器，从而增加了内存泄漏的机会。</li>
+</ul>
+<h3 id="各种连接"><a href="#各种连接" class="headerlink" title="各种连接"></a>各种连接</h3><ul>
+<li>比如数据库连接<code>dataSourse.getConnection()</code>，网络连接(socket)和io连接，除非其显式的调用了其<code>close()</code>方法将其连接关闭，否则是不会自动被GC回收的。对于Resultset和Statement对象可以不进行显式回收，但Connection一定要显式回收，因为Connection在任何时候都无法自动回收，而Connection一旦回收，Resultset 和Statement对象就会立即为NULL。但是如果使用连接池，情况就不一样了，除了要显式地关闭连接，还必须显式地关闭<code>Resultset, Statement</code>对象（关闭其中一个，另外一个也会关闭） ，否则就会造成大量的<code>Statement</code>对象无法释放，从而引起内存泄漏。这种情况下一般都会在try里面去的连接，在finally里面释放连接。</li>
+</ul>
+<h3 id="内部类和外部模块等的引用"><a href="#内部类和外部模块等的引用" class="headerlink" title="内部类和外部模块等的引用"></a>内部类和外部模块等的引用</h3><ul>
+<li>内部类的引用是比较容易遗忘的一种，而且一旦没释放可能导致一系列的后继类对象没有释放。<strong>非静态内部类的对象会隐式强引用其外围对象，所以在内部类未释放时，外围对象也不会被释放，从而造成内存泄漏</strong>。</li>
+<li>使用了第三方的Jar包，内部的对象的引用情况不明晰。</li>
+</ul>
+<h3 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h3><ul>
+<li>不正确使用单例模式是引起内存泄露的一个常见问题，单例对象在被初始化后将在JVM的整个生命周期中存在（ 以静态变量的方式），如果单例对象持有外部对象的引用，那么这个外部对象将不能被jvm正常回收，导致内存泄露。</li>
+</ul>
+<hr>
+<h2 id="虚拟机监控工具"><a href="#虚拟机监控工具" class="headerlink" title="虚拟机监控工具"></a>虚拟机监控工具</h2><h3 id="jps：虚拟机进程状况工具"><a href="#jps：虚拟机进程状况工具" class="headerlink" title="jps：虚拟机进程状况工具"></a>jps：虚拟机进程状况工具</h3><ul>
+<li>JDK的很多小工具的名字都参考了UNIX命令的命名方式，<code>jps（JVM Process Status Tool）</code>是其中的典型。 除了名字像UNIX的ps命令之外，它的功能也和ps命令类似：<strong>可以列出正在运行的虚拟机进程，并显示虚拟机执行主类（Main Class,main（）函数所在的类）名称以及这些进程的本地虚拟机唯一ID（Local Virtual Machine Identifier,LVMID）</strong>。 虽然功能比较单一，但它是使用频率最高的JDK命令行工具，因为其他的JDK工具大多需要输入它查询到的LVMID来确定要监控的是哪一个虚拟机进程。 </li>
+</ul>
+<h3 id="jstat：虚拟机统计信息监视工具"><a href="#jstat：虚拟机统计信息监视工具" class="headerlink" title="jstat：虚拟机统计信息监视工具"></a>jstat：虚拟机统计信息监视工具</h3><ul>
+<li>jstat（JVM Statistics Monitoring Tool）是用于<strong>监视虚拟机各种运行状态信息</strong>的命令行工具。 它可以显示本地或者远程虚拟机进程中的类装载、内存、垃圾收集、JIT编译等运行数据，在没有GUI图形界面，只提供了纯文本控制台环境的服务器上，它将是运行期定位虚拟机性能问题的首选工具。</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/5ki2jmp6rct90b59kqzamnkt/jstat-tools.png" alt="jstat-tools.png-423.7kB"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div></pre></td><td class="code"><pre><div class="line">1. jstat -gc pid</div><div class="line">   可以显示gc的信息，查看gc的次数，及时间。</div><div class="line">   其中最后五项，分别是young gc的次数，young gc的时间，full gc的次数，full gc的时间，gc的总时间。</div><div class="line">   </div><div class="line">2.jstat -gccapacity pid</div><div class="line">可以显示，VM内存中三代（young,old,perm）对象的使用和占用大小，如：PGCMN显示的是最小perm的内存使用量，PGCMX显示的是perm的内存最大使用量，PGC是当前新生成的perm内存占用量，PC是但前perm内存占用量。其他的可以根据这个类推， OC是old内纯的占用量。</div><div class="line"></div><div class="line">3.jstat -gcutil pid</div><div class="line">统计gc信息统计。</div><div class="line"></div><div class="line">4.jstat -gcnew pid</div><div class="line">年轻代对象的信息。</div><div class="line"></div><div class="line">5.jstat -gcnewcapacity pid</div><div class="line">年轻代对象的信息及其占用量。</div><div class="line"></div><div class="line">6.jstat -gcold pid</div><div class="line"></div><div class="line">old代对象的信息。</div><div class="line"></div><div class="line">7.stat -gcoldcapacity pid</div><div class="line">old代对象的信息及其占用量。</div><div class="line"></div><div class="line">8.jstat -gcpermcapacity pid</div><div class="line">perm对象的信息及其占用量。</div><div class="line"></div><div class="line">9.jstat -class pid</div><div class="line">显示加载class的数量，及所占空间等信息。</div><div class="line"></div><div class="line">10.jstat -compiler pid</div><div class="line">显示VM实时编译的数量等信息。</div><div class="line"></div><div class="line">11.stat -printcompilation pid</div><div class="line"></div><div class="line">当前VM执行的信息。</div><div class="line">一些术语的中文解释：</div><div class="line"> S0C：年轻代中第一个survivor（幸存区）的容量 (字节)</div><div class="line"> S1C：年轻代中第二个survivor（幸存区）的容量 (字节)</div><div class="line"> S0U：年轻代中第一个survivor（幸存区）目前已使用空间 (字节)</div><div class="line"> S1U：年轻代中第二个survivor（幸存区）目前已使用空间 (字节)</div><div class="line">  EC：年轻代中Eden（伊甸园）的容量 (字节)</div><div class="line">  EU：年轻代中Eden（伊甸园）目前已使用空间 (字节)</div><div class="line">  OC：Old代的容量 (字节)</div><div class="line">  OU：Old代目前已使用空间 (字节)</div><div class="line">  PC：Perm(持久代)的容量 (字节)</div><div class="line">  PU：Perm(持久代)目前已使用空间 (字节)</div><div class="line"> YGC：从应用程序启动到采样时年轻代中gc次数</div><div class="line">YGCT：从应用程序启动到采样时年轻代中gc所用时间(s)</div><div class="line"> FGC：从应用程序启动到采样时old代(全gc)gc次数</div><div class="line">FGCT：从应用程序启动到采样时old代(全gc)gc所用时间(s)</div><div class="line"> GCT：从应用程序启动到采样时gc用的总时间(s)</div><div class="line">NGCMN：年轻代(young)中初始化(最小)的大小 (字节)</div><div class="line">NGCMX：年轻代(young)的最大容量 (字节)</div><div class="line"> NGC：年轻代(young)中当前的容量 (字节)</div><div class="line">OGCMN：old代中初始化(最小)的大小 (字节) </div><div class="line">OGCMX：old代的最大容量 (字节)</div><div class="line">OGC：old代当前新生成的容量 (字节)</div><div class="line">PGCMN：perm代中初始化(最小)的大小 (字节) </div><div class="line">PGCMX：perm代的最大容量 (字节)   </div><div class="line"> PGC：perm代当前新生成的容量 (字节)</div><div class="line"> S0：年轻代中第一个survivor（幸存区）已使用的占当前容量百分比</div><div class="line">  S1：年轻代中第二个survivor（幸存区）已使用的占当前容量百分比</div><div class="line"> E：年轻代中Eden（伊甸园）已使用的占当前容量百分比</div><div class="line"> O：old代已使用的占当前容量百分比</div><div class="line"> P：perm代已使用的占当前容量百分比</div><div class="line">S0CMX：年轻代中第一个survivor（幸存区）的最大容量 (字节)</div><div class="line">S1CMX ：年轻代中第二个survivor（幸存区）的最大容量 (字节)</div><div class="line">ECMX：年轻代中Eden（伊甸园）的最大容量 (字节)</div><div class="line"> DSS：当前需要survivor（幸存区）的容量 (字节)（Eden区已满）</div><div class="line">  TT：持有次数限制</div><div class="line"> MTT ：最大持有次数限制</div></pre></td></tr></table></figure>
+<h3 id="jinfo：Java配置信息工具"><a href="#jinfo：Java配置信息工具" class="headerlink" title="jinfo：Java配置信息工具"></a>jinfo：Java配置信息工具</h3><ul>
+<li>jinfo（Configuration Info for Java）的作用是<strong>实时地查看和调整虚拟机各项参数</strong>。 使用jps命令的-v参数可以查看虚拟机启动时显式指定的参数列表，但如果想知道未被显式指定的参数的系统默认值，除了去找资料外，就只能使用jinfo的<code>-flag选项</code>进行查询了（如果只限于JDK 1.6或以上版本的话，使用java-XX：+PrintFlagsFinal查看参数默认值也是一个很好的选择），jinfo还可以使用-sysprops选项把虚拟机进程的System.getProperties（）的内容打印出来。 这个命令在JDK 1.5时期已经随着Linux版的JDK发布，当时只提供了信息查询的功能，JDK1.6之后，jinfo在Windows和Linux平台都有提供，并且加入了运行期修改参数的能力，可以使用-flag[+|-]name或者-flag name=value修改一部分运行期可写的虚拟机参数值。</li>
+</ul>
+<h3 id="jmap：Java内存映像工具"><a href="#jmap：Java内存映像工具" class="headerlink" title="jmap：Java内存映像工具"></a>jmap：Java内存映像工具</h3><ul>
+<li>jmap（Memory Map for Java）命令用于<strong>生成堆转储快照</strong>（一般称为heapdump或dump文件）。 如果不使用jmap命令，要想获取Java堆转储快照，还有一些比较“暴力”的手段：譬如在第2章中用过的-XX：+HeapDumpOnOutOfMemoryError参数，可以让虚拟机在OOM异常出现之后自动生成dump文件，通过-XX：+HeapDumpOnCtrlBreak参数则可以使用[Ctrl]+[Break]键让虚拟机生成dump文件，又或者在Linux系统下通过Kill-3命令发送进程退出信号“吓唬”一下虚拟机，也能拿到dump文件。</li>
+<li>jmap的作用并不仅仅是为了获取dump文件，它还可以<strong>查询finalize执行队列、Java堆和永久代的详细信息，如空间使用率、 当前用的是哪种收集器等</strong>。</li>
+</ul>
+<h3 id="jhat：虚拟机堆转储快照分析工具"><a href="#jhat：虚拟机堆转储快照分析工具" class="headerlink" title="jhat：虚拟机堆转储快照分析工具"></a>jhat：虚拟机堆转储快照分析工具</h3><ul>
+<li>JDK提供jhat（JVM Heap Analysis Tool）命令与jmap搭配使用，来<strong>分析jmap生成的堆转储快照</strong>。 jhat内置了一个微型的HTTP/HTML服务器，生成dump文件的分析结果后，可以在浏览器中查看。 不过实事求是地说，在实际工作中，除非笔者手上真的没有别的工具可用，否则一般都不会去直接使用jhat命令来分析dump文件，主要原因有二：一是一般不会在部署应用程序的服务器上直接分析dump文件，即使可以这样做，也会尽量将dump文件复制到其他机器上进行分析，因为分析工作是一个耗时而且消耗硬件资源的过程，既然都要在其他机器进行，就没有必要受到命令行工具的限制了；另一个原因是<strong>jhat的分析功能相对来说比较简陋</strong>，VisualVM，以及专业用于分析dump文件的Eclipse Memory<br>Analyzer、 IBM HeapAnalyzer等工具，都能实现比jhat更强大更专业的分析功能。</li>
+</ul>
+<h3 id="jstack：Java堆栈跟踪工具"><a href="#jstack：Java堆栈跟踪工具" class="headerlink" title="jstack：Java堆栈跟踪工具"></a>jstack：Java堆栈跟踪工具</h3><ul>
+<li>jstack（Stack Trace for Java）命令用于<strong>生成虚拟机当前时刻的线程快照（一般称为threaddump或者javacore文件）</strong>。线程快照就是当前虚拟机内每一条线程正在执行的方法堆栈的集合，<strong>生成线程快照的主要目的是定位线程出现长时间停顿的原因，如线程间死锁、死循环、请求外部资源导致的长时间等待等都是导致线程长时间停顿的常见原因</strong>。 线程出现停顿的时候通过jstack来查看各个线程的调用堆栈，就可以知道没有响应的线程到底在后台做些什么事情，或者等待着什么资源。</li>
+</ul>
+<h3 id="JConsole：Java监视与管理控制台"><a href="#JConsole：Java监视与管理控制台" class="headerlink" title="JConsole：Java监视与管理控制台"></a>JConsole：Java监视与管理控制台</h3><ul>
+<li>JConsole（Java Monitoring and Management Console）是一种基于JMX的可视化监视、 管理工具。 </li>
+<li>当JConsole成功建立连接，它从连接上的JMX代理处获取信息，并且以下面几个标签页呈现信息。<ul>
+<li><code>Summary tab</code>. 监控JVM和一些监控变量的信息。</li>
+<li><code>Memory tab</code>. 内存使用信息</li>
+<li><code>Threads tab</code>. 线程使用信息</li>
+<li><code>Classes tab</code>. 类调用信息</li>
+<li><code>VM tab</code>. JVM的信息</li>
+<li><code>MBeans tab</code>.所有MBeans的信息</li>
+</ul>
+</li>
+</ul>
+<h3 id="VisualVM：多合一故障处理工具"><a href="#VisualVM：多合一故障处理工具" class="headerlink" title="VisualVM：多合一故障处理工具"></a>VisualVM：多合一故障处理工具</h3><ul>
+<li>VisualVM基于NetBeans平台开发，因此它一开始就具备了插件扩展功能的特性，通过插件扩展支持，VisualVM可以做到：<ul>
+<li>显示虚拟机进程以及进程的配置、 环境信息（jps、 jinfo）。</li>
+<li>监视应用程序的CPU、 GC、 堆、 方法区以及线程的信息（jstat、 jstack）。</li>
+<li>dump以及分析堆转储快照（jmap、 jhat）。</li>
+<li>方法级的程序运行性能分析，找出被调用最多、 运行时间最长的方法。</li>
+<li>离线程序快照：收集程序的运行时配置、线程dump、内存dump等信息建立一个快照，可以将快照发送开发者处进行Bug反馈。</li>
+</ul>
+</li>
+<li>GC的时序图</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/rhp21y2qr5xki8jt10x5aquq/gc-pic.jpg" alt="gc-pic.jpg-32.8kB"></p>
+<h3 id="Eclipse-Memory-Analyzer-MAT"><a href="#Eclipse-Memory-Analyzer-MAT" class="headerlink" title="Eclipse Memory Analyzer(MAT)"></a>Eclipse Memory Analyzer(MAT)</h3><ul>
+<li><a href="https://www.eclipse.org/mat/" target="_blank" rel="external">MAT</a></li>
+<li>MAT可以对堆dump的文件进行分析，可以分析出内存泄漏的内存大小，然后去MAT中看什么方法占用了大量的内存。</li>
+</ul>
+<blockquote>
+<p>The Eclipse Memory Analyzer is a fast and feature-rich Java heap analyzer that helps you find memory leaks and reduce memory consumption.</p>
+<p>Use the Memory Analyzer to analyze productive heap dumps with hundreds of millions of objects, quickly calculate the retained sizes of objects, see who is preventing the Garbage Collector from collecting objects, run a report to automatically extract leak suspects.</p>
+</blockquote>
+<h2 id="一个例子"><a href="#一个例子" class="headerlink" title="一个例子"></a>一个例子</h2><ul>
+<li>首先通过<code>jps</code>找到java进程ID。然后<code>top -p [pid]</code>发现内存占用达到了最大值（-Xmx）。开始怀疑是由于频繁Full GC导致的，于是通过<code>jstat -gcutil [pid] 60000</code>查看GC的情况，其中60000表示每隔1分钟输出一次。果然是<code>Full GC</code>次数太多，JVM大部分时间都进行<code>Full GC</code>，而此时JVM会暂停其他一切工作，所以程序运行得非常慢。</li>
+<li>那到底的程序的哪一部分导致消耗了这么多的内存呢？<strong>通过<code>jmap -histo:live [pid]</code>查看进程中各种类型的对象创建了多少个，以及每种类型的对象占多少内存</strong>。当我看到有个对象被创建了5千多万个实例时，我就能定位到是哪儿的问题了。</li>
+<li>顺带说一下，通过jmap还可以生成JVM的内存dump文件，命令为<code>jmap -dump:format=b,file=文件名 [pid]</code>，然后通过<code>jhat</code>命令在浏览器中查看，或者通过<code>jvisualvm、mat</code>等工具进行查看。使用<code>jhat</code>命令查看的方式为：<code>jhat -J -Xmx1024M [file]</code>，等控制台输出<code>Started HTTP server on port 7000. Server is ready</code>.后在浏览器中输入ip:7000就可以查看各上类中各种实例被创建了多少个。</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="http://blog.csdn.net/gzh0222/article/details/8538727" target="_blank" rel="external">java内存泄漏的定位与分析</a></li>
+<li><a href="http://www.cnblogs.com/zhangchaoyang/articles/5538628.html" target="_blank" rel="external">java程序内存泄漏排查</a></li>
+<li><a href="https://yq.aliyun.com/articles/61148" target="_blank" rel="external">如何排查Java内存泄露</a></li>
+<li><a href="http://blog.csdn.net/ganyao939543405/article/details/52229059" target="_blank" rel="external">浅谈并小结java内存泄漏</a></li>
+<li><a href="http://javaprimary.iteye.com/blog/2286161" target="_blank" rel="external">JAVA内存泄漏问题处理方法经验总结</a></li>
+<li><a href="https://book.douban.com/subject/24722612/" target="_blank" rel="external">深入理解Java虚拟机第4章</a></li>
+<li><a href="http://blog.csdn.net/lifuxiangcaohui/article/details/36896199" target="_blank" rel="external">JConsole使用手册详解</a></li>
+<li><a href="http://zhouanya.blog.51cto.com/4944792/1370017/" target="_blank" rel="external"> Jvisualvm–JAVA性能分析工具</a></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/07/java-polymorphism-impl/" rel="next" title="Java中多态以及原理">
+                <i class="fa fa-chevron-left"></i> Java中多态以及原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">52</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/MyDarcy" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/frobisher27149" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.zhenlanghuo.top/" title="zhenlang huo" target="_blank">zhenlang huo</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://xawei.me/" title="xinan wei" target="_blank">xinan wei</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#内存泄漏及其原因"><span class="nav-number">1.</span> <span class="nav-text">内存泄漏及其原因</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义"><span class="nav-number">1.1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态集合类引起内存泄露"><span class="nav-number">1.2.</span> <span class="nav-text">静态集合类引起内存泄露</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#集合中的可变对象修改后，再次移除则不起作用"><span class="nav-number">1.3.</span> <span class="nav-text">集合中的可变对象修改后，再次移除则不起作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#监听器"><span class="nav-number">1.4.</span> <span class="nav-text">监听器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#各种连接"><span class="nav-number">1.5.</span> <span class="nav-text">各种连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内部类和外部模块等的引用"><span class="nav-number">1.6.</span> <span class="nav-text">内部类和外部模块等的引用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#单例模式"><span class="nav-number">1.7.</span> <span class="nav-text">单例模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#虚拟机监控工具"><span class="nav-number">2.</span> <span class="nav-text">虚拟机监控工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#jps：虚拟机进程状况工具"><span class="nav-number">2.1.</span> <span class="nav-text">jps：虚拟机进程状况工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jstat：虚拟机统计信息监视工具"><span class="nav-number">2.2.</span> <span class="nav-text">jstat：虚拟机统计信息监视工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jinfo：Java配置信息工具"><span class="nav-number">2.3.</span> <span class="nav-text">jinfo：Java配置信息工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jmap：Java内存映像工具"><span class="nav-number">2.4.</span> <span class="nav-text">jmap：Java内存映像工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jhat：虚拟机堆转储快照分析工具"><span class="nav-number">2.5.</span> <span class="nav-text">jhat：虚拟机堆转储快照分析工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jstack：Java堆栈跟踪工具"><span class="nav-number">2.6.</span> <span class="nav-text">jstack：Java堆栈跟踪工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JConsole：Java监视与管理控制台"><span class="nav-number">2.7.</span> <span class="nav-text">JConsole：Java监视与管理控制台</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VisualVM：多合一故障处理工具"><span class="nav-number">2.8.</span> <span class="nav-text">VisualVM：多合一故障处理工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Eclipse-Memory-Analyzer-MAT"><span class="nav-number">2.9.</span> <span class="nav-text">Eclipse Memory Analyzer(MAT)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个例子"><span class="nav-number">3.</span> <span class="nav-text">一个例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
