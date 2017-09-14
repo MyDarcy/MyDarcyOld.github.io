@@ -1,0 +1,1774 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="HTTPS,HTTP," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="面试中问到了HTTP的请求头响应头，状态码代表的含义，之前没有汇总很容易就忘记了。顺带复习一下Https的原理和通信过程。">
+<meta name="keywords" content="HTTPS,HTTP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTTP与HTTPS简介">
+<meta property="og:url" content="http://yoursite.com/2017/09/14/http-https-introductions/index.html">
+<meta property="og:site_name" content="darcy he">
+<meta property="og:description" content="面试中问到了HTTP的请求头响应头，状态码代表的含义，之前没有汇总很容易就忘记了。顺带复习一下Https的原理和通信过程。">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/5v79a7gkrz9e8sq4njmk2pp5/Man-in-the-middle-attack.png">
+<meta property="og:image" content="http://static.zybuluo.com/csqiang1992/pki7lgelsr6ajww5ucqc0j4n/ca-chrome.png">
+<meta property="og:updated_time" content="2017-09-14T05:15:29.649Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HTTP与HTTPS简介">
+<meta name="twitter:description" content="面试中问到了HTTP的请求头响应头，状态码代表的含义，之前没有汇总很容易就忘记了。顺带复习一下Https的原理和通信过程。">
+<meta name="twitter:image" content="http://static.zybuluo.com/csqiang1992/5v79a7gkrz9e8sq4njmk2pp5/Man-in-the-middle-attack.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/09/14/http-https-introductions/"/>
+
+
+
+
+
+  <title>HTTP与HTTPS简介 | darcy he</title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?594cf3672b18c8c9a97689d1dfffaa39";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">darcy he</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">求知 孤勇 温柔</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/14/http-https-introductions/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="darcy.q.cs">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/self.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="darcy he">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">HTTP与HTTPS简介</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-14T13:09:07+08:00">
+                2017-09-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/HTTP/" itemprop="url" rel="index">
+                    <span itemprop="name">HTTP</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/09/14/http-https-introductions/" class="leancloud_visitors" data-flag-title="HTTP与HTTPS简介">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>面试中问到了HTTP的请求头响应头，状态码代表的含义，之前没有汇总很容易就忘记了。顺带复习一下Https的原理和通信过程。</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="HTTP"><a href="#HTTP" class="headerlink" title="HTTP"></a>HTTP</h2><h3 id="HTTP请求报文和响应报文格式"><a href="#HTTP请求报文和响应报文格式" class="headerlink" title="HTTP请求报文和响应报文格式"></a>HTTP请求报文和响应报文格式</h3><ul>
+<li>HTTP报文分请求报文和响应报文两种，它们都由三个部分组成：<ul>
+<li>起始行：对报文进行描述。起始行分为<strong>请求行和响应行</strong>。</li>
+<li>首部：包含属性</li>
+<li>主体：可选的，包含数据。</li>
+</ul>
+</li>
+</ul>
+<h4 id="HTTP请求报文"><a href="#HTTP请求报文" class="headerlink" title="HTTP请求报文"></a>HTTP请求报文</h4><ul>
+<li>一个HTTP请求报文由<strong>请求行（request line）、请求头部（header）、空行和请求数据</strong>4个部分组成。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&lt;method&gt; &lt;request-URL&gt; &lt;version&gt; # 请求方法，请求URL, 协议版本</div><div class="line">&lt;headers&gt;</div><div class="line"></div><div class="line">&lt;entity-body&gt;</div><div class="line"></div><div class="line"># 例子:</div><div class="line">POST /myblog/addPosts HTTP/1.1</div><div class="line">Host: xxx</div><div class="line">Content-type: xxx</div><div class="line">Content-length:18</div><div class="line"></div><div class="line">item=xxx</div></pre></td></tr></table></figure>
+<h4 id="HTTP响应报文"><a href="#HTTP响应报文" class="headerlink" title="HTTP响应报文"></a>HTTP响应报文</h4><ul>
+<li>HTTP响应报文也由<strong>状态行、消息报头、空行，响应正文</strong>四个部分组成。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">&lt;version&gt; &lt;status&gt; &lt;reason-phrase&gt; # HTTP协议版本、数字状态码和原因短语</div><div class="line">&lt;headers&gt;</div><div class="line"></div><div class="line">&lt;entity-body&gt;</div><div class="line"></div><div class="line"># 例子：</div><div class="line">HTTP/1.1 200 OK</div><div class="line">Content-type:text/plain</div><div class="line">Content-length:37</div><div class="line"></div><div class="line">xxxjavaxxxgo</div></pre></td></tr></table></figure>
+<h4 id="方法字段"><a href="#方法字段" class="headerlink" title="方法字段"></a>方法字段</h4><table>
+<thead>
+<tr>
+<th>方法</th>
+<th style="text-align:right">描述</th>
+<th style="text-align:right">是否包含主体</th>
+<th style="text-align:center">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td style="text-align:right">从服务器中获取文档</td>
+<td style="text-align:right">否</td>
+<td style="text-align:center">常用方法，用于请求服务器发送某个资源，在HTTP/1.1中，要求服务器实现该方法。</td>
+</tr>
+<tr>
+<td>HEAD</td>
+<td style="text-align:right">从服务器获取文档首部</td>
+<td style="text-align:right">否</td>
+<td style="text-align:center">类似GET方法，但是响应只返回首部。目的是允许客户端对资源的首部进行检查。该方法有以下作用：不获取资源的前提下了解资源情况；查看对象是否存在；测试资源是否被修改。规范要求其返回的首部于GET方法获得的相同。</td>
+</tr>
+<tr>
+<td>POST</td>
+<td style="text-align:right">向服务器发送需要处理的数据</td>
+<td style="text-align:right">是</td>
+<td style="text-align:center">起初用来输入数据，现多用来支持HTTP表单。表单体拿到的数据发送给服务器，再由服务器决定去向。该方法不需要存储资源。</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td style="text-align:right">将请求的主体存储在服务器上　</td>
+<td style="text-align:right">是</td>
+<td style="text-align:center">向服务器写入文档，其方法的语义即让服务器用请求的主体部分（body）创建或者覆盖所请求的URL命名的新文档。由于其允许用户修改文件，通常要求进行密码认证。该方法需要存储资源。</td>
+</tr>
+<tr>
+<td>TRACE</td>
+<td style="text-align:right">对可能经过代理服务传送到服务器上的报文进行追踪</td>
+<td style="text-align:right">否</td>
+<td style="text-align:center">TRACE方法允许客户端最后将请求发送给服务器。该请求会进行“环回”诊断，即在服务器弹回一条携带收到的报文的TRACE响应，使得客户端能查看原始报文的修改情况。</td>
+</tr>
+<tr>
+<td>OPTIONS</td>
+<td style="text-align:right">查询服务器支持的方法</td>
+<td style="text-align:right">否</td>
+<td style="text-align:center">请求Web服务器告知其支持的所有方法，这些方法是通用于服务器上所有资源的。这使得客户端可以判定请求资源的最优方法。（就是优化）</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td style="text-align:right">从服务器上删除文档</td>
+<td style="text-align:right">否　</td>
+<td style="text-align:center">请求服务器删除请求URL指定的资源，但是客户端程序不保证删除操作被执行。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="状态码"><a href="#状态码" class="headerlink" title="状态码"></a>状态码</h4><ul>
+<li>服务器对客户端操作结果的回应。状态码有五种分类，而当前HTTP版本只规定了其中一部分。如果接收到拓展的状态码，则会按照其所属范围进行分类，而后按照该分类中的普通成员处理。状态码分类如下：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>整体范围</th>
+<th style="text-align:right">已定义范围</th>
+<th style="text-align:right">分类</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100~199</td>
+<td style="text-align:right">100、101</td>
+<td style="text-align:right">信息提示</td>
+</tr>
+<tr>
+<td>200~299</td>
+<td style="text-align:right">200~206</td>
+<td style="text-align:right">请求成功</td>
+</tr>
+<tr>
+<td>300~399</td>
+<td style="text-align:right">300~305</td>
+<td style="text-align:right">重定向</td>
+</tr>
+<tr>
+<td>400~499</td>
+<td style="text-align:right">400~415</td>
+<td style="text-align:right">客户端错误</td>
+</tr>
+<tr>
+<td>500~599</td>
+<td style="text-align:right">500~505</td>
+<td style="text-align:right">服务器错误</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="状态码详细解释"><a href="#状态码详细解释" class="headerlink" title="状态码详细解释"></a>状态码详细解释</h3><h4 id="信息性状态码100-199"><a href="#信息性状态码100-199" class="headerlink" title="信息性状态码100~199"></a>信息性状态码100~199</h4><table>
+<thead>
+<tr>
+<th>状态码</th>
+<th style="text-align:right">原因短语</th>
+<th style="text-align:center">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100　</td>
+<td style="text-align:right">Continue</td>
+<td style="text-align:center">说明收到请求的初始部分，请客户端继续。发送了这个状态码以后，服务器在收到请求之后必须响应。</td>
+</tr>
+<tr>
+<td>101</td>
+<td style="text-align:right">Switching Protocol</td>
+<td style="text-align:center">说明服务器正在根据客户端的指定，将协议切换成Update首部所列的协议</td>
+</tr>
+</tbody>
+</table>
+<h4 id="成功状态码200-299"><a href="#成功状态码200-299" class="headerlink" title="成功状态码200~299"></a>成功状态码200~299</h4><table>
+<thead>
+<tr>
+<th>状态码</th>
+<th style="text-align:right">原因短语</th>
+<th style="text-align:center">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td style="text-align:right">OK</td>
+<td style="text-align:center">请求没问题，实体的主体部分包含请求的资源。</td>
+</tr>
+<tr>
+<td>201</td>
+<td style="text-align:right">Created</td>
+<td style="text-align:center">对用于创建服务器对象的请求的响应。其实体的主体部分应该包含各种引用了已创建资源的URL，Location首部包含的是最具体的引用。</td>
+</tr>
+<tr>
+<td>202</td>
+<td style="text-align:right">Accepeted</td>
+<td style="text-align:center">请求已被接受，但是未执行并不保证执行请求。服务器应该在实体的主体部分包含对请求状态的描述，以及完成请求的时间的估算（或者可以获得此信息位置的指针）。</td>
+</tr>
+<tr>
+<td>203</td>
+<td style="text-align:right">Non-authoritative Information</td>
+<td style="text-align:center">实体首部包含的信息来自资源的副本（而非服务器）。在中间节点有资源副本，但是无法或者没有对它发送的与资源有关的首部进行验证时，出现的情况。</td>
+</tr>
+<tr>
+<td>　204</td>
+<td style="text-align:right">Not Content</td>
+<td style="text-align:center">响应报文包含首部和状态行，但是没有实体的主体部分。用于在浏览器不转为显示新文档的情况下，对其进行更新。</td>
+</tr>
+<tr>
+<td>　205</td>
+<td style="text-align:right">Reset Content</td>
+<td style="text-align:center">用于浏览器，告知浏览器清楚当前页面中所有HTML表单元素。</td>
+</tr>
+<tr>
+<td>　206</td>
+<td style="text-align:right">Partial Content</td>
+<td style="text-align:center">成功执行一个部分或者Range请求。其必须包含Content-Range\Date或者Content-Location首部。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="重定向状态码300-399"><a href="#重定向状态码300-399" class="headerlink" title="重定向状态码300~399"></a>重定向状态码300~399</h4><ul>
+<li>告知用户使用替代位置来访问资源，或者提供一个替代的响应而不是资源内容。如果资源已移动,则可以发送重定向状态码以及一个可选的Location首部来告知客户端资源已被移动，以及当前位置。这浏览器可以透明转入新的位置。也可以通过重定向状态码验证本地资源与服务器资源，用于查看服务器资源的修改，以及保持本地副本的及时性。对包含了重定向状态码的非HEAD请求进行响应，则包含一个实体，并在实体中描述信息和指向（多个）重定向URL的连接。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>状态码</th>
+<th style="text-align:right">原因短语</th>
+<th style="text-align:center">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>300</td>
+<td style="text-align:right">Multiple Choices</td>
+<td style="text-align:center">客户端请求一个实际上指向多个资源的URL时返回。服务器在返回时，可以在Location首部包含首选URL</td>
+</tr>
+<tr>
+<td>301</td>
+<td style="text-align:right">Moved Permanently</td>
+<td style="text-align:center">在请求的URL已经移除时使用。响应的Location首部则包含资源的现URL</td>
+</tr>
+<tr>
+<td>302</td>
+<td style="text-align:right">Found</td>
+<td style="text-align:center">类似301，但是Location首部给出的URL只能临时定位资源，之后的请求应使用旧URL</td>
+</tr>
+<tr>
+<td>303</td>
+<td style="text-align:right">See Other</td>
+<td style="text-align:center">告知客户端应使用另一个URL获取资源。新URL位于Location首部，目的是允许POST请求的响应将客户端重定向到某个资源上</td>
+</tr>
+<tr>
+<td>304</td>
+<td style="text-align:right">Not Modified</td>
+<td style="text-align:center">客户端可以通过包含的请求首部，使其变为有条件的。条件首部的内容可以在后面看到。带有该状态码的响应不包含实体的主体部分。</td>
+</tr>
+<tr>
+<td>305</td>
+<td style="text-align:right">Use Proxy</td>
+<td style="text-align:center">说明该资源必须通过代理访问。代理位置由Location首部指出。客户端是相对某个特定资源解析该响应，而不是指定所有资源通过该代理进行。</td>
+</tr>
+<tr>
+<td>307</td>
+<td style="text-align:right">Temporary Redirect</td>
+<td style="text-align:center">类似301。但是Location首部给出的URL只能临时定位资源，之后的请求应使用旧URL</td>
+</tr>
+</tbody>
+</table>
+<h4 id="客户端错误状态码400-499"><a href="#客户端错误状态码400-499" class="headerlink" title="客户端错误状态码400~499"></a>客户端错误状态码400~499</h4><table>
+<thead>
+<tr>
+<th>状态码</th>
+<th style="text-align:right">原因短语</th>
+<th style="text-align:center">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td style="text-align:right">Bad Request</td>
+<td style="text-align:center">告知客户端发送了一个错误请求。</td>
+</tr>
+<tr>
+<td>402</td>
+<td style="text-align:right">Unauthorized</td>
+<td style="text-align:center">与适当的首部一同返回，请求客户端在获取资源的访问权以前，对自己进行认证。</td>
+</tr>
+<tr>
+<td>403</td>
+<td style="text-align:right">Payment Required</td>
+<td style="text-align:center">未使用，但是保留到未来使用。</td>
+</tr>
+<tr>
+<td>404</td>
+<td style="text-align:right">Not Found</td>
+<td style="text-align:center">服务器无法找到请求的URl，通常包含一个实体，显示给客户端。</td>
+</tr>
+<tr>
+<td>405</td>
+<td style="text-align:right">Method Not Allowed</td>
+<td style="text-align:center">发送的请求中带有URl不支持的方法。其在响应中应该包含Allow首部，告知该资源可以使用的方法。</td>
+</tr>
+<tr>
+<td>406</td>
+<td style="text-align:right">Not Acceptable</td>
+<td style="text-align:center">在没有客户端可接受的URL相匹配的资源时使用，客户端可以指定参数来说明它们愿意接受的实体类型。</td>
+</tr>
+<tr>
+<td>407</td>
+<td style="text-align:right">Proxy Authentication Required</td>
+<td style="text-align:center">类似401，但是用于对要求对资源进行认证的代理服务器。</td>
+</tr>
+<tr>
+<td>408</td>
+<td style="text-align:right">Request Timeout</td>
+<td style="text-align:center">客户端完成请求的时间超时，服务器发送此状态码并关闭连接。</td>
+</tr>
+<tr>
+<td>409</td>
+<td style="text-align:right">Conflict</td>
+<td style="text-align:center">说明请求可能在资源上引发的冲突。在服务器担心请求可能会引发冲突时，发送此状态码。响应中应包含描述冲突的主体。</td>
+</tr>
+<tr>
+<td>410</td>
+<td style="text-align:right">Gone</td>
+<td style="text-align:center">类似404，只是服务器曾经拥有该资源，用于站点的维护，可以在服务器的资源被移除时通知客户端。</td>
+</tr>
+<tr>
+<td>411</td>
+<td style="text-align:right">Length Required</td>
+<td style="text-align:center">服务器的要求</td>
+</tr>
+<tr>
+<td>412</td>
+<td style="text-align:right">Precondition Failed</td>
+<td style="text-align:center">发起条件请求，但是其中一个条件失败时使用。</td>
+</tr>
+<tr>
+<td>413</td>
+<td style="text-align:right">Request Entity Too Large</td>
+<td style="text-align:center">客户端发送的实体主体部分大于服务器能处理的内容。</td>
+</tr>
+<tr>
+<td>414</td>
+<td style="text-align:right">Request URI Too Long</td>
+<td style="text-align:center">URL实在太长。</td>
+</tr>
+<tr>
+<td>415</td>
+<td style="text-align:right">Unsupported Media Type</td>
+<td style="text-align:center">服务器无法理解或者无法支持客户端所发送的实体的内容类型时使用。</td>
+</tr>
+<tr>
+<td>416</td>
+<td style="text-align:right">Requested Range Not Satisfiable</td>
+<td style="text-align:center">请求报文请求的是指定资源的某个范围，但是该范围无效或者无法满足。</td>
+</tr>
+<tr>
+<td>417</td>
+<td style="text-align:right">Expectation Failed</td>
+<td style="text-align:center">包含期望的请求无法由服务器满足。如果代理或者中间程序有确切证据说明服务器必然会产生一个失败的期望，则可以发送这个响应状态码。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="服务器错误状态码500-599"><a href="#服务器错误状态码500-599" class="headerlink" title="服务器错误状态码500~599"></a>服务器错误状态码500~599</h4><ul>
+<li>客户端的请求有效，但是服务器出错时，可以使用，这是通常是代理与服务器交流的结果。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>状态码</th>
+<th style="text-align:right">原因短语</th>
+<th style="text-align:center">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>500</td>
+<td style="text-align:right">Internal Server Error</td>
+<td style="text-align:center">服务器遇到一个妨碍它为请求提供服务的时候使用。</td>
+</tr>
+<tr>
+<td>501</td>
+<td style="text-align:right">Not Implemented</td>
+<td style="text-align:center">客户端发起的请求超过服务器能力时使用</td>
+</tr>
+<tr>
+<td>502</td>
+<td style="text-align:right">Bad Gateway</td>
+<td style="text-align:center">作为代理或者网关使用的服务器从请求响应链的下一条链路上收到了一条伪响应时使用</td>
+</tr>
+<tr>
+<td>503</td>
+<td style="text-align:right">Sevice Unavailable</td>
+<td style="text-align:center">用来说明服务器现在无法为请求提供服务</td>
+</tr>
+<tr>
+<td>504</td>
+<td style="text-align:right">Gateway Timeout</td>
+<td style="text-align:center">类似408，但是该响应来自一个网关或者代理</td>
+</tr>
+<tr>
+<td>505</td>
+<td style="text-align:right">HTTP Version Not Supported</td>
+<td style="text-align:center">收到的请求的版本不符。</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="首部"><a href="#首部" class="headerlink" title="首部"></a>首部</h3><h4 id="通用首部"><a href="#通用首部" class="headerlink" title="通用首部"></a>通用首部</h4><ul>
+<li>提供与报文相关的最基本的信息，可以由两种报文使用。信息性首部有：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connection</td>
+<td style="text-align:center">允许客户端和服务器指定与请求/响应连接相关的选项</td>
+</tr>
+<tr>
+<td>Date</td>
+<td style="text-align:center">提供日期和时间标志，说明报文创建的时间</td>
+</tr>
+<tr>
+<td>MIME-Version</td>
+<td style="text-align:center">给出发送端使用的MIME版本</td>
+</tr>
+<tr>
+<td>Trailer</td>
+<td style="text-align:center">报文采用了分块传输编码时，使用该首部列出位于报文拖挂（trailer）部分的首部集合。</td>
+</tr>
+<tr>
+<td>Transfer-Encoding</td>
+<td style="text-align:center">告知报文采用的编码方式</td>
+</tr>
+<tr>
+<td>Update</td>
+<td style="text-align:center">给出发送端可能想要“升级”使用的新版本或者协议</td>
+</tr>
+<tr>
+<td>Via</td>
+<td style="text-align:center">显示报文经过的中间节点</td>
+</tr>
+</tbody>
+</table>
+<h4 id="通用缓存首部"><a href="#通用缓存首部" class="headerlink" title="通用缓存首部"></a>通用缓存首部</h4><table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cache-Control</td>
+<td style="text-align:center">用于随报文传送缓存指令</td>
+</tr>
+<tr>
+<td>Pragma</td>
+<td style="text-align:center">另一种随报文传送指令的方式，但是非专门用于缓存</td>
+</tr>
+</tbody>
+</table>
+<h4 id="请求首部"><a href="#请求首部" class="headerlink" title="请求首部"></a>请求首部</h4><ul>
+<li>在请求报文中特有的内容。对服务器提供更详细的有关客户端的信息。其信息性首部有：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client-IP</td>
+<td style="text-align:center">运行客户端的机器的IP</td>
+</tr>
+<tr>
+<td>From</td>
+<td style="text-align:center">客户端用户的邮箱地址</td>
+</tr>
+<tr>
+<td>Host</td>
+<td style="text-align:center">请求的服务器主机名和端口号</td>
+</tr>
+<tr>
+<td>Referer</td>
+<td style="text-align:center">包含当前请求URL的文档的URL</td>
+</tr>
+<tr>
+<td>UA-Color</td>
+<td style="text-align:center">提供了与客户端显示器对颜色的支持的有关信息</td>
+</tr>
+<tr>
+<td>UA-CPU</td>
+<td style="text-align:center">提供了客户端的CPU类型或制造商</td>
+</tr>
+<tr>
+<td>UA-Disp</td>
+<td style="text-align:center">提供客户端显示器能力相关信息</td>
+</tr>
+<tr>
+<td>UA-OS</td>
+<td style="text-align:center">提供客户端操作系统信息——名称及其版本</td>
+</tr>
+<tr>
+<td>UA-Pixels</td>
+<td style="text-align:center">提供客户端显示器像素</td>
+</tr>
+<tr>
+<td>User-Agent</td>
+<td style="text-align:center">将发起请求的应用程序名告知服务器</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Accept首部"><a href="#Accept首部" class="headerlink" title="Accept首部"></a>Accept首部</h4><ul>
+<li>为客户端提供将器喜好和能力告知服务器的方式，从而使得连接的两端都得益。主要的Accept首部如下</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Accept</td>
+<td style="text-align:center">告诉服务器能够发送那些媒体类型</td>
+</tr>
+<tr>
+<td>Accept-Charset</td>
+<td style="text-align:center">能够发送的字符集</td>
+</tr>
+<tr>
+<td>Accept-Encoding</td>
+<td style="text-align:center">能够接受的编码方式</td>
+</tr>
+<tr>
+<td>Accept-Language</td>
+<td style="text-align:center">能够发送的语言</td>
+</tr>
+<tr>
+<td>TE</td>
+<td style="text-align:center">能使用那些扩展传输编码</td>
+</tr>
+</tbody>
+</table>
+<h4 id="安全请求首部"><a href="#安全请求首部" class="headerlink" title="安全请求首部"></a>安全请求首部</h4><ul>
+<li>对请求进行质询后者响应认证。要求客户端在获取特定资源之前，对自身进行认证，从而提高事务安全性。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authorization</td>
+<td style="text-align:center">包含客户端提供给服务器，以便对其自身进行认证的数据</td>
+</tr>
+<tr>
+<td>Cookie</td>
+<td style="text-align:center">传递给服务器的一个令牌，隐含安全功能</td>
+</tr>
+<tr>
+<td>Cookie2</td>
+<td style="text-align:center">用来说明请求端支持的Cookie版本</td>
+</tr>
+</tbody>
+</table>
+<h4 id="代理请求首部"><a href="#代理请求首部" class="headerlink" title="代理请求首部"></a>代理请求首部</h4><ul>
+<li>由于代理的普遍应用而来。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Max-Forward</td>
+<td style="text-align:center">在通往源服务器的路径上，将请求转发给其他代理（网关）的最大次数，与TRACE一同使用</td>
+</tr>
+<tr>
+<td>Proxy-Authorization</td>
+<td style="text-align:center">与同名首部功能相同，但是用于代理</td>
+</tr>
+<tr>
+<td>Proxy-Connection</td>
+<td style="text-align:center">与同名首部功能相同，但是用于代理</td>
+</tr>
+</tbody>
+</table>
+<h4 id="响应首部"><a href="#响应首部" class="headerlink" title="响应首部"></a>响应首部</h4><ul>
+<li>由响应报文使用，为客户端提供额外的信息，包括信息性首部、协商首部和安全响应首部。信息性首部如下：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Age</td>
+<td style="text-align:center">响应持续时间</td>
+</tr>
+<tr>
+<td>Public</td>
+<td style="text-align:center">服务器为资源提供的方法列表</td>
+</tr>
+<tr>
+<td>Retry-After</td>
+<td style="text-align:center">资源不可用则在该日期或者时间重试</td>
+</tr>
+<tr>
+<td>Server</td>
+<td style="text-align:center">服务器应用的名称和版本</td>
+</tr>
+<tr>
+<td>Title</td>
+<td style="text-align:center">HTML源端给定的标题</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td style="text-align:center">比原因短语详细的警告报文</td>
+</tr>
+</tbody>
+</table>
+<h4 id="协商首部"><a href="#协商首部" class="headerlink" title="协商首部"></a>协商首部</h4><ul>
+<li>传递与可协商资源有关的信息。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Accept-Range</td>
+<td style="text-align:center">对该资源来说，服务器可以接受的范围类型</td>
+</tr>
+<tr>
+<td>Vary</td>
+<td style="text-align:center">服务器查看的其他首部的列表，可能使响应变化。即由服务器决定最适合的资源版本发送给客户端</td>
+</tr>
+</tbody>
+</table>
+<h4 id="安全响应首部"><a href="#安全响应首部" class="headerlink" title="安全响应首部"></a>安全响应首部</h4><ul>
+<li>HTTP的质询/响应认证机制的响应侧</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Procy-Authenticate</td>
+<td style="text-align:center">来自代理对客户端的质询列表</td>
+</tr>
+<tr>
+<td>Set-Cookie</td>
+<td style="text-align:center">在客户端设置令牌，标识客户端</td>
+</tr>
+<tr>
+<td>Set-Cookie2</td>
+<td style="text-align:center">类似上面</td>
+</tr>
+<tr>
+<td>WWW-Authenticate</td>
+<td style="text-align:center">来自服务器的对客户端的质询列表</td>
+</tr>
+</tbody>
+</table>
+<h4 id="实体首部"><a href="#实体首部" class="headerlink" title="实体首部"></a>实体首部</h4><ul>
+<li>可以出现在两种报文中，提供有关实体及其内容的大量信息，其信息性首部有：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Allow</td>
+<td style="text-align:center">列出对该实体可以执行的请求方法</td>
+</tr>
+<tr>
+<td>Location</td>
+<td style="text-align:center">告知客户端实体的位置，用于定向到资源的位置</td>
+</tr>
+</tbody>
+</table>
+<h4 id="内容首部"><a href="#内容首部" class="headerlink" title="内容首部"></a>内容首部</h4><ul>
+<li>包含的是与实体内容有关的特定信息。 | </li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Content-Base</td>
+<td style="text-align:center">解析主体中相对URL时使用的基础URL</td>
+</tr>
+<tr>
+<td>Content-Encoding</td>
+<td style="text-align:center">对主体执行的编码方式</td>
+</tr>
+<tr>
+<td>Content-Language</td>
+<td style="text-align:center">理解主体适合的自然语言</td>
+</tr>
+<tr>
+<td>Content-Length</td>
+<td style="text-align:center">长度</td>
+</tr>
+<tr>
+<td>Content-Location</td>
+<td style="text-align:center">位置</td>
+</tr>
+<tr>
+<td>Content-MD5</td>
+<td style="text-align:center">MD5校验码</td>
+</tr>
+<tr>
+<td>Content-Range</td>
+<td style="text-align:center">该实体表示的字节范围</td>
+</tr>
+<tr>
+<td>Content-Type</td>
+<td style="text-align:center">对象类型</td>
+</tr>
+</tbody>
+</table>
+<h4 id="缓存首部"><a href="#缓存首部" class="headerlink" title="缓存首部"></a>缓存首部</h4><ul>
+<li>说明了被缓存的主体的信息。 </li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>首部</th>
+<th style="text-align:center">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ETag</td>
+<td style="text-align:center">与实体相关的实体标记</td>
+</tr>
+<tr>
+<td>Expires</td>
+<td style="text-align:center">实体不再有效，要从原始的源端中再次获取该实体的日期和时间</td>
+</tr>
+<tr>
+<td>Last-Modified</td>
+<td style="text-align:center">实体最后一次被修改的日期和时间</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="HTTPS"><a href="#HTTPS" class="headerlink" title="HTTPS"></a>HTTPS</h2><ul>
+<li>超文本传输安全协议（英语：<code>Hypertext Transfer Protocol Secure</code>，缩写：HTTPS，常称为<code>HTTP over TLS</code>，<code>HTTP over SSL</code>或<code>HTTP Secure</code>）是一种通过计算机网络进行安全通信的传输协议。HTTPS经由HTTP进行通信，但利用SSL/TLS来加密数据包。HTTPS开发的主要目的，是提供对网站服务器的身份认证，保护交换数据的隐私与完整性。这个协议由网景公司（Netscape）在1994年首次提出，随后扩展到互联网上。</li>
+<li>HTTPS的主要思想是在不安全的网络上创建一安全信道，并可在使用适当的加密包和服务器证书可被验证且可被信任时，对窃听和中间人攻击提供合理的防护。</li>
+<li>与HTTP的差异<ul>
+<li>与HTTP的URL由<code>http://</code>起始且默认使用端口<code>80</code>不同，HTTPS的URL由<code>https://</code>起始且默认使用端口<code>443</code>。</li>
+<li>HTTP是不安全的，且攻击者通过监听和中间人攻击等手段，可以获取网站帐户和敏感信息等。HTTPS被设计为可防止前述攻击，并在正确配置时被认为是安全的。</li>
+</ul>
+</li>
+<li>协议层<ul>
+<li>HTTP协议和安全协议同属于应用层（OSI模型的最高层），具体来讲，<strong>安全协议工作在HTTP之下，运输层之上</strong>：安全协议向运行HTTP的进程提供一个类似于TCP的套接字，供进程向其中注入报文，安全协议将报文加密并注入运输层套接字；或是从运输层获取加密报文，解密后交给对应的进程。严格地讲，<strong>HTTPS并不是一个单独的协议，而是对工作在一加密连接（TLS或SSL）上的常规HTTP协议的称呼</strong>。</li>
+<li>HTTPS报文中的任何东西都被加密，包括所有报头和荷载。除了可能的选择密文攻击（参见限制小节）之外，一个攻击者所能知道的只有在两者之间有一连接这一事实。</li>
+</ul>
+</li>
+<li>局限<ul>
+<li>TLS有两种策略：简单策略和交互策略。交互策略更为安全，但需要用户在他们的浏览器中安装个人的证书来进行认证。不管使用了哪种策略，协议所能提供的保护总强烈地依赖于浏览器的实现和服务器软件所支持的加密算法。</li>
+<li>HTTPS并不能防止站点被网络蜘蛛抓取。在某些情形中，被加密资源的URL可仅通过截获请求和响应的大小推得，[16]这就可使攻击者同时知道明文（公开的静态内容）和密文（被加密过的明文），从而使选择密文攻击成为可能。</li>
+<li>因为HTTPS连接所用的公钥以明文传输，因此GFW可以对特定网站按照匹配的黑名单证书，通过伪装成对方向连接两端的计算机发送RST包干扰两台计算机间正常的TCP通讯，以打断与特定IP地址之间的443端口握手，或者直接使握手的数据包丢弃，导致握手失败，从而导致TLS连接失败。</li>
+</ul>
+</li>
+</ul>
+<p><strong>HTTPS的工作原理</strong></p>
+<h3 id="HTTPS-是怎么实现安全通信的？"><a href="#HTTPS-是怎么实现安全通信的？" class="headerlink" title="HTTPS 是怎么实现安全通信的？"></a>HTTPS 是怎么实现安全通信的？</h3><ul>
+<li>加密传输确实安全，但是客户端把数据加密后，服务器怎么解密呢？又怎样保证中间人窃听到密文后无法解密呢？</li>
+<li>解决方案：<strong>对称加密</strong></li>
+</ul>
+<h3 id="怎样在通信之前，给双方分配两把一样的钥匙呢？"><a href="#怎样在通信之前，给双方分配两把一样的钥匙呢？" class="headerlink" title="怎样在通信之前，给双方分配两把一样的钥匙呢？"></a>怎样在通信之前，给双方分配两把一样的钥匙呢？</h3><ul>
+<li>两个问题：<ul>
+<li>实际通信往往是一个服务器和成千上万的客户端之间的通信。</li>
+<li>即使使用了对称加密技术，如果一方保管不善的话，也有可能钥匙被人偷了去复制一个，这样就存在很大的安全隐患，最好是每个客户端每次和服务器通信都用不同的密钥。</li>
+</ul>
+</li>
+<li>解决方案: <strong>密钥交换(Key Exchange)</strong>:<ul>
+<li>Deffie-Hellman 密钥交换算法</li>
+<li>RSA 密钥交换算法</li>
+</ul>
+</li>
+<li>RSA 密钥交换算法需要客户端向服务器提供一个Pre-Master-Key，然后通信双方再生成Master-Key，最后根据 Master-Key 产生后续一系列所需要的密钥，包括传输数据的时候使用的对称密钥。</li>
+</ul>
+<h3 id="客户端怎么把-Pre-Master-Key-告诉服务器呢？直接明文传输么？"><a href="#客户端怎么把-Pre-Master-Key-告诉服务器呢？直接明文传输么？" class="headerlink" title="客户端怎么把 Pre-Master-Key 告诉服务器呢？直接明文传输么？"></a>客户端怎么把 Pre-Master-Key 告诉服务器呢？直接明文传输么？</h3><ul>
+<li>悖论在于：为了加密通信，需要先把Pre-Master-Key传送给服务器，但是这个传送又必须要加密！！！</li>
+<li>解决方案：<strong>非对称加密</strong>。服务器可以生成一对不同的密钥（所谓非对称），一把私自保存，称为私钥；一把向所有人公开，称为公钥。</li>
+<li>具体的交互过程：<ul>
+<li>客户端向服务器索取公钥 PublicKey；</li>
+<li>服务器将公钥发给客户端（这里没有保密需求，因为公钥是向所有人公开的）；</li>
+<li>客户端使用服务器的公钥 PublicKey 把 Pre-Master-Key 加密成密文，传送给服务器；</li>
+<li>服务器用私钥 PrivateKey 解密密文，获取到客户端发送的 Pre-Master-Key;</li>
+</ul>
+</li>
+<li>但是上面的第二个过程会发生中间人攻击(MITM: Man-in-the-middle-attack)<ul>
+<li>中间人也可以生成一对非对称密钥，它会截获服务器发送的公钥，然后把它自己的公钥 MiddleMan-PublicKey 发送给客户端，进行欺骗。</li>
+<li>而客户端，竟然信以为真！然后傻乎乎的把自己的 Pre-Master-Key 用 MiddleMan-PublicKey 加密后，发给中间人。</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/5v79a7gkrz9e8sq4njmk2pp5/Man-in-the-middle-attack.png" alt="Man-in-the-middle-attack.png-38.2kB"></p>
+<h3 id="如何解决中间人攻击？"><a href="#如何解决中间人攻击？" class="headerlink" title="如何解决中间人攻击？"></a>如何解决中间人攻击？</h3><ul>
+<li>客户端怎么确定收到的公钥，真的就是服务器的公钥？</li>
+<li>解决方案：<strong>证书</strong><ul>
+<li>乘高铁、坐飞机的时候，怎么向工作人员证明你是你。答案很简单，到公安局（权威机构 英文名：Authority）出个身份证明（Certificate）身份证上记载了你的号码、姓名、年龄、照片、住址，还有签发机关、有效期等。</li>
+<li>所以，服务器也想办法到权威机构 (Authority) 办一张证书Certificate，上面记载了服务器的域名、公钥、所属单位，还有签发机关、有效期等。</li>
+<li>当客户端收到服务器发过来的证书后，<strong>只要证书不是伪造的，那么上面记载的公钥肯定也就是真的！</strong>(证书上记录了公钥) </li>
+</ul>
+</li>
+</ul>
+<h3 id="怎么证明证书不是伪造的？"><a href="#怎么证明证书不是伪造的？" class="headerlink" title="怎么证明证书不是伪造的？"></a>怎么证明证书不是伪造的？</h3><ul>
+<li>解决方案：<strong>签名</strong><ul>
+<li>只要服务器发送的证书上有权威机构Authority的签名，就可以确信证书是颁发给服务器的，而不是谁伪造的。</li>
+</ul>
+</li>
+</ul>
+<h3 id="计算机的数字化签名怎么实现呢？"><a href="#计算机的数字化签名怎么实现呢？" class="headerlink" title="计算机的数字化签名怎么实现呢？"></a>计算机的数字化签名怎么实现呢？</h3><ul>
+<li>解决方案：<strong>非对称加密技术</strong><ul>
+<li>数字证书认证机构（Certificate Authority，简称 CA）生成一对公/私钥；</li>
+<li>服务器将自己的域名、公钥等信息提交给 CA 审查；</li>
+<li>CA 审查无误，使用私钥把服务器信息的摘要加密，生成的密文就是所谓签名（Signature）；</li>
+<li>CA 把服务器的信息、签名、有效期等信息集合到一张证书上，颁发给服务器；</li>
+<li>客户端收到服务器发送的证书后，使用<strong>CA的公钥</strong>解密签名，获得服务器信息的摘要，如果和证书上记录的服务器信息的摘要一致，说明服务器信息是经过 CA 认可的。</li>
+</ul>
+</li>
+</ul>
+<h3 id="客户端怎么知道-CA-的公钥？"><a href="#客户端怎么知道-CA-的公钥？" class="headerlink" title="客户端怎么知道 CA 的公钥？"></a>客户端怎么知道 CA 的公钥？</h3><ul>
+<li>世界上的根 CA 就那么几家，浏览器或者操作系统在出厂的时候，已经内置了这些机构的自签名证书，上面记录他们的公钥信息，你也可以在需要的时候手动安装 CA 证书。Chrome浏览器查看证书步骤如下： <strong>F12–&gt;Security选项卡（找不到的点右箭头&gt;&gt;）,然后点击View certificate</strong></li>
+</ul>
+<p><img src="http://static.zybuluo.com/csqiang1992/pki7lgelsr6ajww5ucqc0j4n/ca-chrome.png" alt="ca-chrome.png-118.4kB"></p>
+<h3 id="所以，HTTPS的基本通信过程如下"><a href="#所以，HTTPS的基本通信过程如下" class="headerlink" title="所以，HTTPS的基本通信过程如下"></a>所以，HTTPS的基本通信过程如下</h3><ul>
+<li>操作系统/浏览器 自带了 CA 根证书；</li>
+<li>客户端因此可以验证服务器发送的证书真实性，从而获取到服务器的公钥；</li>
+<li>有了服务器的公钥，客户端就可以把 Pre-Master-Key 传送给服务器；</li>
+<li>服务器获取到 Pre-Master-Key 后，通过后续产生的对称密钥，就可以和客户端加密通信了</li>
+</ul>
+<p><strong>HTTPS 通讯过程的基本原理，涉及到了对称加密、非对称加密、信息摘要、签名、密钥交换等技术基础，以及发行机构、数字证书等概念。</strong></p>
+<hr>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><ul>
+<li><a href="https://juejin.im/post/592d23630ce46300579882b4" target="_blank" rel="external">看完你就知道什么是 HTTPS 了</a></li>
+<li><a href="https://segmentfault.com/a/1190000004356398" target="_blank" rel="external">HTTP权威指南：第三章</a></li>
+<li><a href="http://support.upyun.com/hc/kb/article/1079017/" target="_blank" rel="external">从HTTP到HTTPS再到HSTS</a></li>
+<li><a href="https://segmentfault.com/a/1190000005338367" target="_blank" rel="external">「理解HTTP」之常见的状态码</a></li>
+<li><a href="http://blog.csdn.net/gsls200808/article/details/55194393" target="_blank" rel="external"> 新版chrome查看https数字证书方式改变</a></li>
+<li><a href="https://zh.wikipedia.org/wiki/%E8%B6%85%E6%96%87%E6%9C%AC%E4%BC%A0%E8%BE%93%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE" target="_blank" rel="external">超文本传输安全协议</a></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/HTTPS/" rel="tag"># HTTPS</a>
+          
+            <a href="/tags/HTTP/" rel="tag"># HTTP</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/13/java-memory-leaks/" rel="next" title="Java内存泄漏的原因和检测">
+                <i class="fa fa-chevron-left"></i> Java内存泄漏的原因和检测
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/self.jpg"
+               alt="darcy.q.cs" />
+          <p class="site-author-name" itemprop="name">darcy.q.cs</p>
+           
+              <p class="site-description motion-element" itemprop="description">心怀孤勇.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">53</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/MyDarcy" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/70670266" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/frobisher27149" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://blog.zhenlanghuo.top/" title="zhenlang huo" target="_blank">zhenlang huo</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://xawei.me/" title="xinan wei" target="_blank">xinan wei</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP"><span class="nav-number">1.</span> <span class="nav-text">HTTP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP请求报文和响应报文格式"><span class="nav-number">1.1.</span> <span class="nav-text">HTTP请求报文和响应报文格式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#HTTP请求报文"><span class="nav-number">1.1.1.</span> <span class="nav-text">HTTP请求报文</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HTTP响应报文"><span class="nav-number">1.1.2.</span> <span class="nav-text">HTTP响应报文</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方法字段"><span class="nav-number">1.1.3.</span> <span class="nav-text">方法字段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#状态码"><span class="nav-number">1.1.4.</span> <span class="nav-text">状态码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#状态码详细解释"><span class="nav-number">1.2.</span> <span class="nav-text">状态码详细解释</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#信息性状态码100-199"><span class="nav-number">1.2.1.</span> <span class="nav-text">信息性状态码100~199</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#成功状态码200-299"><span class="nav-number">1.2.2.</span> <span class="nav-text">成功状态码200~299</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重定向状态码300-399"><span class="nav-number">1.2.3.</span> <span class="nav-text">重定向状态码300~399</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#客户端错误状态码400-499"><span class="nav-number">1.2.4.</span> <span class="nav-text">客户端错误状态码400~499</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务器错误状态码500-599"><span class="nav-number">1.2.5.</span> <span class="nav-text">服务器错误状态码500~599</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#首部"><span class="nav-number">1.3.</span> <span class="nav-text">首部</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#通用首部"><span class="nav-number">1.3.1.</span> <span class="nav-text">通用首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#通用缓存首部"><span class="nav-number">1.3.2.</span> <span class="nav-text">通用缓存首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#请求首部"><span class="nav-number">1.3.3.</span> <span class="nav-text">请求首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Accept首部"><span class="nav-number">1.3.4.</span> <span class="nav-text">Accept首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安全请求首部"><span class="nav-number">1.3.5.</span> <span class="nav-text">安全请求首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#代理请求首部"><span class="nav-number">1.3.6.</span> <span class="nav-text">代理请求首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#响应首部"><span class="nav-number">1.3.7.</span> <span class="nav-text">响应首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#协商首部"><span class="nav-number">1.3.8.</span> <span class="nav-text">协商首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安全响应首部"><span class="nav-number">1.3.9.</span> <span class="nav-text">安全响应首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实体首部"><span class="nav-number">1.3.10.</span> <span class="nav-text">实体首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内容首部"><span class="nav-number">1.3.11.</span> <span class="nav-text">内容首部</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#缓存首部"><span class="nav-number">1.3.12.</span> <span class="nav-text">缓存首部</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTPS"><span class="nav-number">2.</span> <span class="nav-text">HTTPS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTPS-是怎么实现安全通信的？"><span class="nav-number">2.1.</span> <span class="nav-text">HTTPS 是怎么实现安全通信的？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#怎样在通信之前，给双方分配两把一样的钥匙呢？"><span class="nav-number">2.2.</span> <span class="nav-text">怎样在通信之前，给双方分配两把一样的钥匙呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端怎么把-Pre-Master-Key-告诉服务器呢？直接明文传输么？"><span class="nav-number">2.3.</span> <span class="nav-text">客户端怎么把 Pre-Master-Key 告诉服务器呢？直接明文传输么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何解决中间人攻击？"><span class="nav-number">2.4.</span> <span class="nav-text">如何解决中间人攻击？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#怎么证明证书不是伪造的？"><span class="nav-number">2.5.</span> <span class="nav-text">怎么证明证书不是伪造的？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算机的数字化签名怎么实现呢？"><span class="nav-number">2.6.</span> <span class="nav-text">计算机的数字化签名怎么实现呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端怎么知道-CA-的公钥？"><span class="nav-number">2.7.</span> <span class="nav-text">客户端怎么知道 CA 的公钥？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#所以，HTTPS的基本通信过程如下"><span class="nav-number">2.8.</span> <span class="nav-text">所以，HTTPS的基本通信过程如下</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用"><span class="nav-number">3.</span> <span class="nav-text">引用</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">darcy.q.cs</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("nDVrc1Rvjlwx4V9XScsLSm9q-gzGzoHsz", "4ONqgToWREwRHxcX9qRXFhlL");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
