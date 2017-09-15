@@ -99,7 +99,7 @@
 <meta property="og:description" content="面试中问到了HTTP的请求头响应头，状态码代表的含义，之前没有汇总很容易就忘记了。顺带复习一下Https的原理和通信过程。">
 <meta property="og:image" content="http://static.zybuluo.com/csqiang1992/5v79a7gkrz9e8sq4njmk2pp5/Man-in-the-middle-attack.png">
 <meta property="og:image" content="http://static.zybuluo.com/csqiang1992/pki7lgelsr6ajww5ucqc0j4n/ca-chrome.png">
-<meta property="og:updated_time" content="2017-09-14T05:15:29.649Z">
+<meta property="og:updated_time" content="2017-09-14T05:19:03.548Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="HTTP与HTTPS简介">
 <meta name="twitter:description" content="面试中问到了HTTP的请求头响应头，状态码代表的含义，之前没有汇总很容易就忘记了。顺带复习一下Https的原理和通信过程。">
@@ -1163,7 +1163,7 @@
 </li>
 <li>局限<ul>
 <li>TLS有两种策略：简单策略和交互策略。交互策略更为安全，但需要用户在他们的浏览器中安装个人的证书来进行认证。不管使用了哪种策略，协议所能提供的保护总强烈地依赖于浏览器的实现和服务器软件所支持的加密算法。</li>
-<li>HTTPS并不能防止站点被网络蜘蛛抓取。在某些情形中，被加密资源的URL可仅通过截获请求和响应的大小推得，[16]这就可使攻击者同时知道明文（公开的静态内容）和密文（被加密过的明文），从而使选择密文攻击成为可能。</li>
+<li>HTTPS并不能防止站点被网络蜘蛛抓取。在某些情形中，被加密资源的URL可仅通过截获请求和响应的大小推得，这就可使攻击者同时知道明文（公开的静态内容）和密文（被加密过的明文），从而使选择密文攻击成为可能。</li>
 <li>因为HTTPS连接所用的公钥以明文传输，因此GFW可以对特定网站按照匹配的黑名单证书，通过伪装成对方向连接两端的计算机发送RST包干扰两台计算机间正常的TCP通讯，以打断与特定IP地址之间的443端口握手，或者直接使握手的数据包丢弃，导致握手失败，从而导致TLS连接失败。</li>
 </ul>
 </li>
@@ -1302,6 +1302,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2017/09/15/java-jdk8-hashmap/" rel="prev" title="Java源码阅读--HashMap">
+                Java源码阅读--HashMap <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -1372,7 +1376,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">53</span>
+                <span class="site-state-item-count">54</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1394,7 +1398,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-count">38</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
